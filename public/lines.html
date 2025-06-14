@@ -22,6 +22,13 @@
   <body>
     <h1>File Line Counts</h1>
     <div id="sim"></div>
+    <script type="importmap">
+      {
+        "imports": {
+          "matter-js": "https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.js"
+        }
+      }
+    </script>
     <script type="module">
       import { fetchLineCounts, renderFileSimulation } from './lines.js';
       const json = (u) => fetch(u).then((r) => r.json());

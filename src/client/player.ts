@@ -17,7 +17,7 @@ export const createPlayer = ({
   end,
   timeScale = 24 * 60 * 60 * 1000,
   raf = requestAnimationFrame,
-  now = performance.now,
+  now = performance.now.bind(performance),
 }: PlayerOptions) => {
   let playing = false;
   let lastTime = 0;

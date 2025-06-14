@@ -1,6 +1,10 @@
 /** @jest-environment jsdom */
 import { fetchLineCounts } from '../client/api';
-import { renderFileSimulation, computeScale } from '../client/lines';
+import {
+  renderFileSimulation,
+  computeScale,
+  createFileSimulation,
+} from '../client/lines';
 import type { LineCount } from '../client/types';
 
 describe('lines module', () => {
@@ -36,6 +40,35 @@ describe('lines module', () => {
     callbacks[0]?.(0);
     expect(div.querySelectorAll('.file-circle')).toHaveLength(2);
     stop();
+  });
+
+  it('reuses elements with same file name', () => {
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({
+      width: 200,
+      height: 200,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return 1;
+    };
+    const sim = createFileSimulation(div, { raf, now: () => 0 });
+    sim.update([{ file: 'a', lines: 1 }]);
+    callbacks[0]?.(0);
+    const first = div.querySelector('.file-circle');
+    sim.update([{ file: 'a', lines: 2 }]);
+    callbacks[1]?.(0);
+    const second = div.querySelector('.file-circle');
+    expect(first).toBe(second);
+    sim.destroy();
   });
 
   it('computes scale with easing', () => {

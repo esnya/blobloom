@@ -33,8 +33,9 @@ export const createCommitLog = ({
       (c) => c.commit.committer.timestamp * 1000 <= ts,
     );
     if (index === -1) index = commits.length - 1;
-    const start = Math.max(0, index - visible + 1);
-    const slice = commits.slice(start, index + 1).reverse();
+    const start = Math.max(0, index - visible);
+    const end = Math.min(commits.length, index + visible + 1);
+    const slice = commits.slice(start, end);
     list.innerHTML = '';
     slice.forEach((c, i) => {
       const li = document.createElement('li');
@@ -42,11 +43,11 @@ export const createCommitLog = ({
       if (i > 0) {
         const prev = slice[i - 1];
         const diff =
-          (c.commit.committer.timestamp - prev.commit.committer.timestamp) *
+          (prev.commit.committer.timestamp - c.commit.committer.timestamp) *
           1000;
         li.style.marginTop = `${diff / msPerPx}px`;
       }
-      if (start + (slice.length - 1 - i) === index) {
+      if (start + i === index) {
         li.classList.add('current');
       }
       list.appendChild(li);

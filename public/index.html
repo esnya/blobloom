@@ -12,12 +12,13 @@
         left: 0;
         top: 0;
         bottom: 0;
-        width: 250px;
+        width: 100%;
         padding: 10px;
+        box-sizing: border-box;
         font-family: monospace;
         color: #fff;
         pointer-events: none;
-        overflow: visible;
+        overflow: hidden;
         text-shadow: 0 0 4px #000;
         mask-image: linear-gradient(
           to bottom,
@@ -47,9 +48,9 @@
         width: 100%;
       }
       #commit-log li {
-        white-space: nowrap;
         position: relative;
         padding-left: 16px;
+        word-break: break-word;
       }
       #commit-log li::before {
         content: '•';

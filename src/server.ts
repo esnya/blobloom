@@ -40,23 +40,37 @@ if (!branch) {
   process.exit(1);
 }
 
+const commits = await git.log({ fs, dir: repoDir, ref: branch });
 const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch });
 
 const app = express();
 
 app.use(express.static('public'));
 
-app.get('/api/commits', async (_, res) => {
-  try {
-    const commits = await git.log({ fs, dir: repoDir, ref: branch });
-    res.json(commits);
-  } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
-  }
+app.get('/api/commits', (_, res) => {
+  res.json(commits);
 });
 
-app.get('/api/lines', (_, res) => {
-  res.json(lineCounts);
+app.get('/api/lines', async (req, res) => {
+  const tsParam = req.query.ts as string | undefined;
+  if (tsParam) {
+    const ts = Number(tsParam) / 1000;
+    const commit = commits.find(
+      (c) => c.commit.committer.timestamp <= ts,
+    );
+    if (!commit) {
+      res.status(404).json({ error: 'Commit not found' });
+      return;
+    }
+    try {
+      const counts = await getLineCounts({ dir: repoDir, ref: commit.oid });
+      res.json(counts);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  } else {
+    res.json(lineCounts);
+  }
 });
 
 app.listen(port, host, () => {

@@ -30,6 +30,7 @@ export const createPlayer = ({
     lastTime = time;
     const next = Math.min(Number(seek.value) + dt, end);
     seek.value = String(next);
+    seek.dispatchEvent(new Event('input'));
     if (next < end) {
       raf(tick);
     } else {
@@ -52,6 +53,7 @@ export const createPlayer = ({
   seek.min = String(start);
   seek.max = String(end);
   seek.value = String(start);
+  seek.dispatchEvent(new Event('input'));
 
   return { togglePlay };
 };

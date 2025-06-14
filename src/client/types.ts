@@ -6,3 +6,8 @@ export interface Commit {
     };
   };
 }
+
+export interface LineCount {
+  file: string;
+  lines: number;
+}

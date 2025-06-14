@@ -3,6 +3,7 @@ import Matter from 'matter-js';
 const { Bodies, Body, Composite, Engine } = Matter;
 
 const MIN_CIRCLE_SIZE = 1;
+const CHAR_ANIMATION_MS = 1500;
 
 const fileColors: Record<string, string> = {
   '.ts': '#2b7489',
@@ -177,7 +178,10 @@ export const createFileSimulation = (
     Composite.remove(engine.world, info.body);
     delete bodies[name];
     delete displayCounts[name];
-    setTimeout(() => container.removeChild(info.el), 1000);
+    setTimeout(
+      () => container.removeChild(info.el),
+      CHAR_ANIMATION_MS + 100,
+    );
   };
   const createWalls = (w: number, h: number): Matter.Body[] => [
     Bodies.rectangle(w / 2, h + 10, w, 20, { isStatic: true }),

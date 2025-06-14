@@ -207,8 +207,9 @@ export const createFileSimulation = (
   };
   const createWalls = (w: number, h: number): Matter.Body[] => [
     Bodies.rectangle(w / 2, h + 10, w, 20, { isStatic: true }),
-    Bodies.rectangle(-10, h / 2, 20, h, { isStatic: true }),
-    Bodies.rectangle(w + 10, h / 2, 20, h, { isStatic: true }),
+    Bodies.rectangle(w / 2, -h - 10, w, 20, { isStatic: true }),
+    Bodies.rectangle(-10, 0, 20, h * 2, { isStatic: true }),
+    Bodies.rectangle(w + 10, 0, 20, h * 2, { isStatic: true }),
   ];
   let walls = createWalls(width, height);
   Composite.add(engine.world, walls);
@@ -292,7 +293,7 @@ export const createFileSimulation = (
     for (const { body, el, r } of Object.values(bodies)) {
       const { x, y } = body.position;
       el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
-      if (x < -r || x > width + r || y > height + r) {
+      if (x < -r || x > width + r || y > height + r || y < -height - r) {
         Body.setVelocity(body, { x: 0, y: 0 });
         Body.setPosition(body, { x: Math.random() * (width - 2 * r) + r, y: -r });
       }

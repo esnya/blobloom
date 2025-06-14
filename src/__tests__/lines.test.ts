@@ -145,4 +145,36 @@ describe('lines module', () => {
     expect(callbacks).toHaveLength(2);
     sim.destroy();
   });
+
+  it('resizes the simulation space', () => {
+    const div = document.createElement('div');
+    let size = 200;
+    div.getBoundingClientRect = () => ({
+      width: size,
+      height: size,
+      top: 0,
+      left: 0,
+      bottom: size,
+      right: size,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return 1;
+    };
+    const sim = createFileSimulation(div, { raf, now: () => 0 });
+    const data: LineCount[] = [{ file: 'a', lines: 5 }];
+    sim.update(data);
+    callbacks[0]?.(0);
+    const circle = div.querySelector('.file-circle') as HTMLElement;
+    const initial = circle.style.width;
+    size = 400;
+    sim.resize();
+    callbacks[1]?.(0);
+    expect(circle.style.width).not.toBe(initial);
+    sim.destroy();
+  });
 });

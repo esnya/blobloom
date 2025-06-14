@@ -41,14 +41,22 @@ export const createPlayer = ({
     }
   };
 
-  const togglePlay = () => {
-    playing = !playing;
+  const setPlaying = (state: boolean) => {
+    playing = state;
     playButton.textContent = playing ? 'Pause' : 'Play';
     if (playing) {
       lastTime = now();
       raf(tick);
     }
   };
+
+  const togglePlay = (): void => {
+    setPlaying(!playing);
+  };
+
+  const pause = (): void => setPlaying(false);
+  const resume = (): void => setPlaying(true);
+  const isPlaying = (): boolean => playing;
 
   playButton.addEventListener('click', togglePlay);
 
@@ -57,5 +65,5 @@ export const createPlayer = ({
   seek.value = String(start);
   seek.dispatchEvent(new Event('input'));
 
-  return { togglePlay };
+  return { togglePlay, pause, resume, isPlaying };
 };

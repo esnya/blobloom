@@ -14,7 +14,8 @@ const duration = document.getElementById('duration') as HTMLInputElement;
 const playButton = document.getElementById('play') as HTMLButtonElement;
 const sim = document.getElementById('sim') as HTMLDivElement;
 const logContainer = document.getElementById('commit-log') as HTMLDivElement;
-const { update } = createFileSimulation(sim);
+const simInstance = createFileSimulation(sim);
+const { update } = simInstance;
 
 const updateLines = async (): Promise<void> => {
   const counts = await fetchLineCounts(json, Number(seek.value));
@@ -23,6 +24,18 @@ const updateLines = async (): Promise<void> => {
 
 seek.addEventListener('input', updateLines);
 
-createPlayer({ seek, duration, playButton, start, end });
+const player = createPlayer({ seek, duration, playButton, start, end });
 createCommitLog({ container: logContainer, seek, commits });
 updateLines();
+
+let wasPlaying = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    wasPlaying = player.isPlaying();
+    player.pause();
+    simInstance.pause();
+  } else {
+    simInstance.resume();
+    if (wasPlaying) player.resume();
+  }
+});

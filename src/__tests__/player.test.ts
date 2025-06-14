@@ -105,4 +105,33 @@ describe('createPlayer', () => {
 
     expect(listener).toHaveBeenCalled();
   });
+
+  it('pauses and resumes playback', () => {
+    document.body.innerHTML = `
+      <button id="play"></button>
+      <input id="seek" />
+      <input id="duration" />
+    `;
+    const playButton = document.getElementById('play') as HTMLButtonElement;
+    const seek = document.getElementById('seek') as HTMLInputElement;
+    const duration = document.getElementById('duration') as HTMLInputElement;
+    duration.value = '1';
+
+    const raf = jest.fn();
+
+    const player = createPlayer({
+      seek,
+      duration,
+      playButton,
+      start: 0,
+      end: 2,
+      raf,
+      now: () => 0,
+    });
+
+    player.resume();
+    expect(playButton.textContent).toBe('Pause');
+    player.pause();
+    expect(playButton.textContent).toBe('Play');
+  });
 });

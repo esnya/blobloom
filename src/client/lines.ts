@@ -210,7 +210,9 @@ export const createFileSimulation = (
 
   let frameId = 0;
   let last = now();
+  let running = true;
   const step = (time: number): void => {
+    if (!running) return;
     Engine.update(engine, time - last);
     last = time;
     for (const { body, el, r } of Object.values(bodies)) {
@@ -225,8 +227,21 @@ export const createFileSimulation = (
   };
 
   frameId = raf(step);
-  const destroy = (): void => cancelAnimationFrame(frameId);
-  return { update, destroy };
+  const pause = (): void => {
+    running = false;
+    cancelAnimationFrame(frameId);
+  };
+  const resume = (): void => {
+    if (running) return;
+    running = true;
+    last = now();
+    frameId = raf(step);
+  };
+  const destroy = (): void => {
+    running = false;
+    cancelAnimationFrame(frameId);
+  };
+  return { update, pause, resume, destroy };
 };
 
 export const renderFileSimulation = (

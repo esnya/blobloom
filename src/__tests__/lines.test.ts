@@ -118,4 +118,31 @@ describe('lines module', () => {
     const scale = computeScale(1000, 200, [{ file: 'a', lines: 1 }]);
     expect(scale).toBe(200);
   });
+
+  it('pauses and resumes the simulation', () => {
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({
+      width: 200,
+      height: 200,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return 1;
+    };
+    const sim = createFileSimulation(div, { raf, now: () => 0 });
+    sim.pause();
+    callbacks[0]?.(0);
+    expect(callbacks).toHaveLength(1);
+    sim.resume();
+    expect(callbacks).toHaveLength(2);
+    sim.destroy();
+  });
 });

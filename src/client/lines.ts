@@ -1,5 +1,6 @@
 import type { LineCount } from './types.js';
-import { Bodies, Composite, Engine } from 'matter-js';
+import Matter from 'matter-js';
+const { Bodies, Composite, Engine } = Matter;
 
 interface BodyInfo {
   el: HTMLElement;

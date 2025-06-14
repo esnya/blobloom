@@ -10,7 +10,7 @@ Install dependencies and start the server:
 npm install
 npm run lint
 npm test
-npm start
+npm start -- --repo path/to/repo
 ```
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.

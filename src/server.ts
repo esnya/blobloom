@@ -3,7 +3,7 @@ import { createApp } from './app';
 
 const program = new Command();
 program
-  .requiredOption('-r, --repo <path>', 'path to the git repository')
+  .option('-r, --repo <path>', 'path to the git repository', process.cwd())
   .option('-b, --branch <name>', 'branch to inspect')
   .option('-H, --host <host>', 'host name to listen on', 'localhost')
   .option('-p, --port <number>', 'port to listen on', (v) => Number(v), 3000);

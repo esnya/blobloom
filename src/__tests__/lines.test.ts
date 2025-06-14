@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import { fetchLineCounts } from '../client/api';
-import { renderFileSimulation } from '../client/lines';
+import { renderFileSimulation, computeScale } from '../client/lines';
 import type { LineCount } from '../client/types';
 
 describe('lines module', () => {
@@ -36,5 +36,18 @@ describe('lines module', () => {
     callbacks[0]?.(0);
     expect(div.querySelectorAll('.file-circle')).toHaveLength(2);
     stop();
+  });
+
+  it('computes scale with easing', () => {
+    const scale = computeScale(200, 200, [
+      { file: 'a', lines: 1 },
+      { file: 'b', lines: 2 },
+    ]);
+    expect(scale).toBeLessThan(100);
+  });
+
+  it('returns base scale when ratio below threshold', () => {
+    const scale = computeScale(1000, 200, [{ file: 'a', lines: 1 }]);
+    expect(scale).toBe(200);
   });
 });

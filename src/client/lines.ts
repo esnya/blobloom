@@ -25,6 +25,24 @@ interface BodyInfo {
   r: number;
 }
 
+export const computeScale = (
+  width: number,
+  height: number,
+  data: LineCount[],
+): number => {
+  const maxLines = data.reduce((m, d) => Math.max(m, d.lines), 1);
+  const base = Math.min(width, height) / maxLines;
+  const totalArea = data.reduce(
+    (sum, f) => sum + Math.PI * ((f.lines * base) / 2) ** 2,
+    0,
+  );
+  const ratio = totalArea / (width * height);
+  const threshold = 0.5;
+  if (ratio <= threshold) return base;
+  const easing = Math.pow(threshold / ratio, 0.25);
+  return base * easing;
+};
+
 export const renderFileSimulation = (
   container: HTMLElement,
   data: LineCount[],
@@ -36,8 +54,7 @@ export const renderFileSimulation = (
   const rect = container.getBoundingClientRect();
   const width = rect.width;
   const height = rect.height;
-  const maxLines = data[0]?.lines ?? 1;
-  const scale = Math.min(width, height) / maxLines;
+  const scale = computeScale(width, height, data);
 
   const engine = Engine.create();
   engine.gravity.y = 1;

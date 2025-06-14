@@ -1,11 +1,5 @@
 import type { Commit } from './types';
 
-export const fetchCommits = async (
-  json: (input: string) => Promise<unknown>,
-): Promise<Commit[]> => {
-  return (await json('/api/commits')) as Commit[];
-};
-
 export const renderCommitList = (
   element: HTMLElement,
   commits: Commit[],

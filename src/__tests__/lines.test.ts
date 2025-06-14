@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
-import { fetchLineCounts, renderFileSimulation } from '../client/lines';
+import { fetchLineCounts } from '../client/api';
+import { renderFileSimulation } from '../client/lines';
 import type { LineCount } from '../client/types';
 
 describe('lines module', () => {

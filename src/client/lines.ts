@@ -33,11 +33,13 @@ export const computeScale = (
   width: number,
   height: number,
   data: LineCount[],
+  opts: { linear?: boolean } = {},
 ): number => {
+  const exp = opts.linear ? 1 : 0.5;
   const maxLines = data.reduce((m, d) => Math.max(m, d.lines), 1);
-  const base = Math.min(width, height) / maxLines;
+  const base = Math.min(width, height) / Math.pow(maxLines, exp);
   const totalArea = data.reduce(
-    (sum, f) => sum + Math.PI * ((f.lines * base) / 2) ** 2,
+    (sum, f) => sum + Math.PI * ((Math.pow(f.lines, exp) * base) / 2) ** 2,
     0,
   );
   const ratio = totalArea / (width * height);
@@ -49,7 +51,11 @@ export const computeScale = (
 
 export const createFileSimulation = (
   container: HTMLElement,
-  opts: { raf?: (cb: FrameRequestCallback) => number; now?: () => number } = {},
+  opts: {
+    raf?: (cb: FrameRequestCallback) => number;
+    now?: () => number;
+    linear?: boolean;
+  } = {},
 ) => {
   const raf = opts.raf ?? requestAnimationFrame;
   const now = opts.now ?? performance.now.bind(performance);
@@ -119,7 +125,8 @@ export const createFileSimulation = (
   Composite.add(engine.world, walls);
 
   const update = (data: LineCount[]): void => {
-    const scale = computeScale(width, height, data);
+    const scale = computeScale(width, height, data, { linear: opts.linear });
+    const exp = opts.linear ? 1 : 0.5;
     const names = new Set(data.map((d) => d.file));
     for (const [name, info] of Object.entries(bodies)) {
       if (!names.has(name)) {
@@ -130,7 +137,7 @@ export const createFileSimulation = (
       }
     }
     for (const file of data) {
-      const r = (file.lines * scale) / 2;
+      const r = (Math.pow(file.lines, exp) * scale) / 2;
       const existing = bodies[file.file];
       const prev = prevCounts[file.file] ?? 0;
       const added = Math.max(0, file.lines - prev);
@@ -209,7 +216,11 @@ export const createFileSimulation = (
 export const renderFileSimulation = (
   container: HTMLElement,
   data: LineCount[],
-  opts: { raf?: (cb: FrameRequestCallback) => number; now?: () => number } = {},
+  opts: {
+    raf?: (cb: FrameRequestCallback) => number;
+    now?: () => number;
+    linear?: boolean;
+  } = {},
 ): (() => void) => {
   container.innerHTML = '';
   const sim = createFileSimulation(container, opts);

@@ -101,7 +101,17 @@ describe('lines module', () => {
       { file: 'a', lines: 1 },
       { file: 'b', lines: 2 },
     ]);
-    expect(scale).toBeLessThan(80);
+    expect(scale).toBeLessThan(100);
+  });
+
+  it('supports linear scaling option', () => {
+    const data: LineCount[] = [
+      { file: 'a', lines: 1 },
+      { file: 'b', lines: 2 },
+    ];
+    const nonlinear = computeScale(200, 200, data);
+    const linear = computeScale(200, 200, data, { linear: true });
+    expect(linear).toBeLessThan(nonlinear);
   });
 
   it('returns base scale when ratio below threshold', () => {

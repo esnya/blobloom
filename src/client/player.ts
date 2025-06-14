@@ -48,6 +48,8 @@ export const createPlayer = ({
     if (playing) {
       lastTime = now();
       raf(tick);
+    } else if (Number(seek.value) >= end) {
+      console.log('[debug] seekbar final update processed at', seek.value);
     }
     onPlayStateChange?.(playing);
   };

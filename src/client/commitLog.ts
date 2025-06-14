@@ -79,6 +79,10 @@ export const createCommitLog = ({
       }
       list.style.transform = `translateY(${offset}px)`;
     }
+
+    if (index === 0) {
+      console.log('[debug] commit log rendered final commit at', ts);
+    }
   };
 
   seek.addEventListener('input', render);

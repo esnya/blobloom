@@ -25,8 +25,12 @@ const updateTimestamp = () => {
 };
 
 const updateLines = async (): Promise<void> => {
-  const counts = await fetchLineCounts(json, Number(seek.value));
+  const ts = Number(seek.value);
+  const counts = await fetchLineCounts(json, ts);
   update(counts);
+  if (ts >= end) {
+    console.log('[debug] physics area updated for final commit at', ts);
+  }
 };
 
 seek.addEventListener('input', () => {

@@ -4,6 +4,7 @@ import {
   renderFileSimulation,
   computeScale,
   createFileSimulation,
+  MAX_EFFECT_CHARS,
 } from '../client/lines';
 import type { LineCount } from '../client/types';
 
@@ -203,6 +204,27 @@ describe('lines module', () => {
     sim.setEffectsEnabled(true);
     sim.update([{ file: 'a', lines: 2 }]);
     expect(div.querySelectorAll('.add-char').length).toBeGreaterThan(0);
+    sim.destroy();
+  });
+
+  it('limits active character effects', () => {
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({
+      width: 200,
+      height: 200,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    const sim = createFileSimulation(div, { raf: () => 1, now: () => 0 });
+    sim.setEffectsEnabled(true);
+    sim.update([{ file: 'a', lines: MAX_EFFECT_CHARS * 2 }]);
+    const chars = div.querySelectorAll('.add-char').length;
+    expect(chars).toBeLessThanOrEqual(MAX_EFFECT_CHARS);
     sim.destroy();
   });
 });

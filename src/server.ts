@@ -3,6 +3,7 @@ import * as git from 'isomorphic-git';
 import fs from 'fs';
 import { Command } from 'commander';
 import path from 'path';
+import { getLineCounts, LineCount } from './lineCounts';
 
 const program = new Command();
 program
@@ -39,6 +40,8 @@ if (!branch) {
   process.exit(1);
 }
 
+const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch });
+
 const app = express();
 
 app.use(express.static('public'));
@@ -50,6 +53,10 @@ app.get('/api/commits', async (_, res) => {
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
+});
+
+app.get('/api/lines', (_, res) => {
+  res.json(lineCounts);
 });
 
 app.listen(port, host, () => {

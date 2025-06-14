@@ -21,6 +21,7 @@ export const createCommitLog = ({
 
   const marker = document.createElement('div');
   marker.className = 'commit-marker';
+  marker.textContent = '•';
   container.appendChild(marker);
 
   const render = (): void => {

@@ -114,8 +114,8 @@ describe('lines module', () => {
     expect(linear).toBeLessThan(nonlinear);
   });
 
-  it('returns base scale when ratio below threshold', () => {
+  it('returns eased scale when ratio exceeds threshold', () => {
     const scale = computeScale(1000, 200, [{ file: 'a', lines: 1 }]);
-    expect(scale).toBe(200);
+    expect(scale).toBeCloseTo(197.7, 1);
   });
 });

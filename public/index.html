@@ -18,7 +18,7 @@
         color: #fff;
         pointer-events: none;
         overflow: visible;
-        background: rgba(0, 0, 0, 0.5);
+        text-shadow: 0 0 2px #000;
         mask-image: linear-gradient(
           to bottom,
           transparent,
@@ -26,6 +26,15 @@
           black calc(100% - 20px),
           transparent
         );
+      }
+      #commit-log::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 8px;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.5);
       }
       #commit-log ul {
         list-style: none;
@@ -36,17 +45,26 @@
       }
       #commit-log li {
         white-space: nowrap;
+        position: relative;
+        padding-left: 16px;
+      }
+      #commit-log li::before {
+        content: '•';
+        position: absolute;
+        left: 8px;
+        transform: translateX(-50%);
       }
       #commit-log li.current {
         color: #0ff;
+        font-weight: bold;
       }
       .commit-marker {
         position: absolute;
-        left: 0;
-        right: 0;
+        left: 8px;
         top: 50%;
-        height: 2px;
-        background: #0ff;
+        transform: translate(-50%, -50%);
+        color: #0f0;
+        font-size: 20px;
       }
       .file-circle {
         display: flex;

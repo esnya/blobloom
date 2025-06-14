@@ -5,6 +5,7 @@ export interface CommitLogOptions {
   seek: HTMLInputElement;
   commits: Commit[];
   visible?: number;
+  msPerPx?: number;
 }
 
 export const createCommitLog = ({
@@ -12,6 +13,7 @@ export const createCommitLog = ({
   seek,
   commits,
   visible = 20,
+  msPerPx = 1e6,
 }: CommitLogOptions) => {
   const list = document.createElement('ul');
   list.className = 'commit-list';
@@ -33,6 +35,13 @@ export const createCommitLog = ({
     slice.forEach((c, i) => {
       const li = document.createElement('li');
       li.textContent = c.commit.message.split('\n')[0];
+      if (i > 0) {
+        const prev = slice[i - 1];
+        const diff =
+          (c.commit.committer.timestamp - prev.commit.committer.timestamp) *
+          1000;
+        li.style.marginTop = `${diff / msPerPx}px`;
+      }
       if (start + (slice.length - 1 - i) === index) {
         li.classList.add('current');
       }

@@ -59,9 +59,9 @@ export const createFileSimulation = (
 ) => {
   const raf = opts.raf ?? requestAnimationFrame;
   const now = opts.now ?? performance.now.bind(performance);
-  const rect = container.getBoundingClientRect();
-  const width = rect.width;
-  const height = rect.height;
+  let rect = container.getBoundingClientRect();
+  let width = rect.width;
+  let height = rect.height;
   const engine = Engine.create();
   engine.gravity.y = 1;
   engine.gravity.scale = 0.001;
@@ -69,6 +69,7 @@ export const createFileSimulation = (
   const bodies: Record<string, BodyInfo> = {};
   const prevCounts: Record<string, number> = {};
   const displayCounts: Record<string, number> = {};
+  let currentData: LineCount[] = [];
 
   const spawnChar = (
     parent: HTMLElement,
@@ -134,14 +135,16 @@ export const createFileSimulation = (
     delete displayCounts[name];
     setTimeout(() => container.removeChild(info.el), 1000);
   };
-  const walls = [
-    Bodies.rectangle(width / 2, height + 10, width, 20, { isStatic: true }),
-    Bodies.rectangle(-10, height / 2, 20, height, { isStatic: true }),
-    Bodies.rectangle(width + 10, height / 2, 20, height, { isStatic: true }),
+  const createWalls = (w: number, h: number): Matter.Body[] => [
+    Bodies.rectangle(w / 2, h + 10, w, 20, { isStatic: true }),
+    Bodies.rectangle(-10, h / 2, 20, h, { isStatic: true }),
+    Bodies.rectangle(w + 10, h / 2, 20, h, { isStatic: true }),
   ];
+  let walls = createWalls(width, height);
   Composite.add(engine.world, walls);
 
   const update = (data: LineCount[]): void => {
+    currentData = data;
     const scale = computeScale(width, height, data, { linear: opts.linear });
     const exp = opts.linear ? 1 : 0.5;
     const names = new Set(data.map((d) => d.file));
@@ -237,11 +240,20 @@ export const createFileSimulation = (
     last = now();
     frameId = raf(step);
   };
+  const resize = (): void => {
+    rect = container.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+    Composite.remove(engine.world, walls);
+    walls = createWalls(width, height);
+    Composite.add(engine.world, walls);
+    if (currentData.length) update(currentData);
+  };
   const destroy = (): void => {
     running = false;
     cancelAnimationFrame(frameId);
   };
-  return { update, pause, resume, destroy };
+  return { update, pause, resume, resize, destroy };
 };
 
 export const renderFileSimulation = (

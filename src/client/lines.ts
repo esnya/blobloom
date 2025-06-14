@@ -155,8 +155,8 @@ export const createFileSimulation = (
     }
     for (let i = 0; i < remove; i++) {
       const offset = {
-        x: Math.random() * width - x,
-        y: Math.random() * height - y,
+        x: Math.random() * window.innerWidth - (rect.left + x),
+        y: Math.random() * window.innerHeight - (rect.top + y),
       };
       spawnChar(info.charsEl, 'remove-char', offset, () => {
         displayCounts[file]--;
@@ -169,10 +169,10 @@ export const createFileSimulation = (
     const count = Math.max(3, Math.floor(info.r / 5));
     for (let i = 0; i < count; i++) {
       const offset = {
-        x: (Math.random() - 0.5) * info.r * 2,
-        y: (Math.random() - 0.5) * info.r * 2,
+        x: Math.random() * window.innerWidth - (rect.left + info.body.position.x),
+        y: Math.random() * window.innerHeight - (rect.top + info.body.position.y),
       };
-      spawnChar(info.charsEl, 'remove-char', offset, () => {}, info.el.style.background);
+      spawnChar(info.charsEl, 'remove-char', offset, () => {});
     }
     Composite.remove(engine.world, info.body);
     delete bodies[name];

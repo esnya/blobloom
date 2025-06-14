@@ -9,7 +9,7 @@ const start = commits[commits.length - 1].commit.committer.timestamp * 1000;
 const end = commits[0].commit.committer.timestamp * 1000;
 
 const seek = document.getElementById('seek') as HTMLInputElement;
-const speed = document.getElementById('speed') as HTMLSelectElement;
+const duration = document.getElementById('duration') as HTMLInputElement;
 const playButton = document.getElementById('play') as HTMLButtonElement;
 const sim = document.getElementById('sim') as HTMLDivElement;
 
@@ -22,5 +22,5 @@ const updateLines = async (): Promise<void> => {
 
 seek.addEventListener('input', updateLines);
 
-createPlayer({ seek, speed, playButton, start, end });
+createPlayer({ seek, duration, playButton, start, end });
 updateLines();

@@ -1,21 +1,19 @@
 export interface PlayerOptions {
   seek: HTMLInputElement;
-  speed: HTMLSelectElement;
+  duration: HTMLInputElement;
   playButton: HTMLButtonElement;
   start: number;
   end: number;
-  timeScale?: number;
   raf?: (cb: FrameRequestCallback) => number;
   now?: () => number;
 }
 
 export const createPlayer = ({
   seek,
-  speed,
+  duration,
   playButton,
   start,
   end,
-  timeScale = 24 * 60 * 60 * 1000,
   raf = requestAnimationFrame,
   now = performance.now.bind(performance),
 }: PlayerOptions) => {
@@ -28,7 +26,9 @@ export const createPlayer = ({
       raf(tick);
       return;
     }
-    const dt = (time - lastTime) * parseFloat(speed.value) * timeScale;
+    const total = parseFloat(duration.value) * 1000;
+    const factor = (end - start) / total;
+    const dt = (time - lastTime) * factor;
     lastTime = time;
     const next = Math.min(Number(seek.value) + dt, end);
     seek.value = String(next);

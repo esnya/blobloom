@@ -8,5 +8,5 @@
     "moduleResolution": "Bundler",
     "verbatimModuleSyntax": true
   },
-  "include": ["src/client.ts", "src/types.d.ts"]
+  "include": ["src/client/index.ts", "src/types.d.ts"]
 }

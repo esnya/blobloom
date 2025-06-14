@@ -99,8 +99,8 @@ export const createFileSimulation = (
     const { x, y } = info.body.position;
     for (let i = 0; i < add; i++) {
       const offset = {
-        x: -x + Math.random() * 40 - 20,
-        y: -y + Math.random() * 40 - 20,
+        x: Math.random() * width - x,
+        y: Math.random() * height - y,
       };
       spawnChar(info.charsEl, 'add-char', offset, () => {
         displayCounts[file]++;
@@ -108,10 +108,9 @@ export const createFileSimulation = (
       });
     }
     for (let i = 0; i < remove; i++) {
-      const magnitude = info.r / 2 + Math.random() * 10;
       const offset = {
-        x: (Math.random() - 0.5) * 40,
-        y: -magnitude,
+        x: Math.random() * width - x,
+        y: Math.random() * height - y,
       };
       spawnChar(info.charsEl, 'remove-char', offset, () => {
         displayCounts[file]--;

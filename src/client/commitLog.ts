@@ -63,9 +63,21 @@ export const createCommitLog = ({
 
     const current = list.querySelector('li.current') as HTMLLIElement | null;
     if (current) {
-      const offset =
+      let offset =
         container.clientHeight / 2 -
         (current.offsetTop + current.offsetHeight / 2);
+      const prevCommit = index > 0 ? commits[index - 1] : null;
+      const prevLi = current.previousElementSibling as HTMLLIElement | null;
+      if (prevCommit && prevLi) {
+        const diffMs =
+          (prevCommit.commit.committer.timestamp -
+            commits[index].commit.committer.timestamp) * 1000;
+        const ratio =
+          (ts - commits[index].commit.committer.timestamp * 1000) / diffMs;
+        const prevCenter = prevLi.offsetTop + prevLi.offsetHeight / 2;
+        const currCenter = current.offsetTop + current.offsetHeight / 2;
+        offset -= (prevCenter - currCenter) * ratio;
+      }
       list.style.transform = `translateY(${offset}px)`;
     }
   };

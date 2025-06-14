@@ -6,25 +6,24 @@ describe('createPlayer', () => {
     document.body.innerHTML = `
       <button id="play"></button>
       <input id="seek" />
-      <select id="speed"><option value="1">1x</option></select>
+      <input id="duration" />
     `;
     const playButton = document.getElementById('play') as HTMLButtonElement;
     const seek = document.getElementById('seek') as HTMLInputElement;
-    const speed = document.getElementById('speed') as HTMLSelectElement;
-    speed.value = '1';
+    const duration = document.getElementById('duration') as HTMLInputElement;
+    duration.value = '20';
 
     const raf = jest.fn();
     const now = jest.fn(() => 0);
 
     createPlayer({
       seek,
-      speed,
+      duration,
       playButton,
       start: 0,
       end: 10,
       raf,
       now,
-      timeScale: 1,
     });
 
     playButton.click();
@@ -38,12 +37,12 @@ describe('createPlayer', () => {
     document.body.innerHTML = `
     <button id="play"></button>
     <input id="seek" />
-    <select id="speed"><option value="1">1x</option></select>
+    <input id="duration" />
   `;
   const playButton = document.getElementById('play') as HTMLButtonElement;
   const seek = document.getElementById('seek') as HTMLInputElement;
-  const speed = document.getElementById('speed') as HTMLSelectElement;
-  speed.value = '1';
+  const duration = document.getElementById('duration') as HTMLInputElement;
+  duration.value = '1';
 
   const callbacks: FrameRequestCallback[] = [];
   const raf = (cb: FrameRequestCallback) => {
@@ -53,19 +52,18 @@ describe('createPlayer', () => {
 
   const player = createPlayer({
     seek,
-    speed,
+    duration,
     playButton,
     start: 0,
     end: 5,
     raf,
     now: () => 0,
-    timeScale: 1,
   });
 
   player.togglePlay();
   callbacks[0]?.(0);
-  callbacks[1]?.(1);
-  callbacks[2]?.(6);
+  callbacks[1]?.(500);
+  callbacks[2]?.(1000);
 
   expect(seek.value).toBe('5');
   expect(playButton.textContent).toBe('Play');
@@ -75,12 +73,12 @@ describe('createPlayer', () => {
     document.body.innerHTML = `
       <button id="play"></button>
       <input id="seek" />
-      <select id="speed"><option value="1">1x</option></select>
+      <input id="duration" />
     `;
     const playButton = document.getElementById('play') as HTMLButtonElement;
     const seek = document.getElementById('seek') as HTMLInputElement;
-    const speed = document.getElementById('speed') as HTMLSelectElement;
-    speed.value = '1';
+    const duration = document.getElementById('duration') as HTMLInputElement;
+    duration.value = '1';
 
     const callbacks: FrameRequestCallback[] = [];
     const raf = (cb: FrameRequestCallback) => {
@@ -93,18 +91,17 @@ describe('createPlayer', () => {
 
     const player = createPlayer({
       seek,
-      speed,
+      duration,
       playButton,
       start: 0,
       end: 2,
       raf,
       now: () => 0,
-      timeScale: 1,
     });
 
     player.togglePlay();
     callbacks[0]?.(0);
-    callbacks[1]?.(1);
+    callbacks[1]?.(1000);
 
     expect(listener).toHaveBeenCalled();
   });

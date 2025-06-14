@@ -89,6 +89,7 @@ export const createFileSimulation = (
     span.textContent = Math.random().toString(36).charAt(2);
     span.style.setProperty('--x', `${offset.x}px`);
     span.style.setProperty('--y', `${offset.y}px`);
+    span.style.setProperty('--rotate', `${Math.random() * 360}deg`);
     span.style.animationDelay = `${Math.random() * 0.5}s`;
     if (color) span.style.color = color;
     parent.appendChild(span);

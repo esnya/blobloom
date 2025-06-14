@@ -99,21 +99,21 @@
       }
       @keyframes gather {
         from {
-          transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)));
+          transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rotate));
           opacity: 0;
         }
         to {
-          transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%) rotate(var(--rotate));
           opacity: 1;
         }
       }
       @keyframes scatter {
         from {
-          transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%) rotate(var(--rotate));
           opacity: 1;
         }
         to {
-          transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)));
+          transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--rotate));
           opacity: 0;
         }
       }

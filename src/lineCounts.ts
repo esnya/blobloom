@@ -2,6 +2,14 @@ import * as git from 'isomorphic-git';
 import fs from 'fs';
 import { minimatch } from 'minimatch';
 
+const isBinary = (buf: Buffer): boolean => {
+  const len = Math.min(buf.length, 1000);
+  for (let i = 0; i < len; i++) {
+    if (buf[i] === 0) return true;
+  }
+  return false;
+};
+
 export interface LineCount {
   file: string;
   lines: number;
@@ -22,7 +30,9 @@ export const getLineCounts = async ({
   for (const file of files) {
     if (ignore.some((p) => minimatch(file, p))) continue;
     const { blob } = await git.readBlob({ fs, dir, oid, filepath: file });
-    const content = Buffer.from(blob).toString('utf8').trimEnd();
+    const buffer = Buffer.from(blob);
+    if (isBinary(buffer)) continue;
+    const content = buffer.toString('utf8').trimEnd();
     counts.push({ file, lines: content.split(/\r?\n/).length });
   }
   counts.sort((a, b) => b.lines - a.lines);

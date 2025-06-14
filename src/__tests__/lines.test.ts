@@ -43,7 +43,7 @@ describe('lines module', () => {
       { file: 'a', lines: 1 },
       { file: 'b', lines: 2 },
     ]);
-    expect(scale).toBeLessThan(100);
+    expect(scale).toBeLessThan(80);
   });
 
   it('returns base scale when ratio below threshold', () => {

@@ -4,6 +4,8 @@ const { Bodies, Body, Composite, Engine } = Matter;
 
 const MIN_CIRCLE_SIZE = 1;
 const CHAR_ANIMATION_MS = 1500;
+export const EFFECT_DROP_THRESHOLD = 50;
+export const MAX_EFFECT_CHARS = 100;
 
 const fileColors: Record<string, string> = {
   '.ts': '#2b7489',
@@ -115,6 +117,7 @@ export const createFileSimulation = (
   const displayCounts: Record<string, number> = {};
   let currentData: LineCount[] = [];
   let effectsEnabled = false;
+  let activeCharCount = 0;
 
   const spawnChar = (
     parent: HTMLElement,
@@ -123,6 +126,20 @@ export const createFileSimulation = (
     onEnd: () => void,
     color?: string,
   ): void => {
+    if (activeCharCount >= MAX_EFFECT_CHARS) {
+      onEnd();
+      return;
+    }
+    if (
+      activeCharCount > EFFECT_DROP_THRESHOLD &&
+      Math.random() <
+        (activeCharCount - EFFECT_DROP_THRESHOLD) /
+          (MAX_EFFECT_CHARS - EFFECT_DROP_THRESHOLD)
+    ) {
+      onEnd();
+      return;
+    }
+    activeCharCount++;
     const span = document.createElement('span');
     span.className = cls;
     span.textContent = Math.random().toString(36).charAt(2);
@@ -134,6 +151,7 @@ export const createFileSimulation = (
     parent.appendChild(span);
     span.addEventListener('animationend', () => {
       span.remove();
+      activeCharCount--;
       onEnd();
     });
   };

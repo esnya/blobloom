@@ -17,6 +17,9 @@ export const createCommitLog = ({
 }: CommitLogOptions) => {
   const list = document.createElement('ul');
   list.className = 'commit-list';
+  list.style.position = 'absolute';
+  list.style.top = '0';
+  list.style.width = '100%';
   container.appendChild(list);
 
   const marker = document.createElement('div');
@@ -48,6 +51,14 @@ export const createCommitLog = ({
       }
       list.appendChild(li);
     });
+
+    const current = list.querySelector('li.current') as HTMLLIElement | null;
+    if (current) {
+      const offset =
+        container.clientHeight / 2 -
+        (current.offsetTop + current.offsetHeight / 2);
+      list.style.transform = `translateY(${offset}px)`;
+    }
   };
 
   seek.addEventListener('input', render);

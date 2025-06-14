@@ -2,6 +2,23 @@ import type { LineCount } from './types.js';
 import Matter from 'matter-js';
 const { Bodies, Composite, Engine } = Matter;
 
+const fileColors: Record<string, string> = {
+  '.ts': '#2b7489',
+  '.js': '#f1e05a',
+  '.json': '#292929',
+  '.md': '#083fa1',
+  '.html': '#e34c26',
+  '.css': '#563d7c',
+};
+
+const hashHue = (s: string): number =>
+  Array.from(s).reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+
+const colorForFile = (name: string): string => {
+  const ext = name.slice(name.lastIndexOf('.'));
+  return fileColors[ext] ?? `hsl(${hashHue(ext)},60%,60%)`;
+};
+
 interface BodyInfo {
   el: HTMLElement;
   body: Matter.Body;
@@ -23,7 +40,8 @@ export const renderFileSimulation = (
   const scale = Math.min(width, height) / maxLines;
 
   const engine = Engine.create();
-  engine.gravity.scale = 0;
+  engine.gravity.y = 1;
+  engine.gravity.scale = 0.001;
 
   const bodies: BodyInfo[] = [];
   for (const file of data) {
@@ -34,8 +52,17 @@ export const renderFileSimulation = (
     el.style.width = `${r * 2}px`;
     el.style.height = `${r * 2}px`;
     el.style.borderRadius = '50%';
-    el.style.background = 'steelblue';
+    el.style.background = colorForFile(file.file);
     el.style.willChange = 'transform';
+    const dir = file.file.split('/');
+    const name = dir.pop() ?? '';
+    const pathEl = document.createElement('div');
+    pathEl.className = 'path';
+    pathEl.textContent = dir.join('/') + (dir.length ? '/' : '');
+    const nameEl = document.createElement('div');
+    nameEl.className = 'name';
+    nameEl.textContent = name;
+    el.append(pathEl, nameEl);
     container.appendChild(el);
     const body = Bodies.circle(
       Math.random() * (width - 2 * r) + r,

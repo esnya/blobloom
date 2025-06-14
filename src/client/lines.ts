@@ -1,6 +1,6 @@
 import type { LineCount } from './types.js';
-import type { MasterClock } from './clock';
-import { defaultClock } from './clock';
+import type { MasterClock } from './clock.js';
+import { defaultClock } from './clock.js';
 import Matter from 'matter-js';
 const { Bodies, Body, Composite, Engine } = Matter;
 

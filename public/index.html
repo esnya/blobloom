@@ -7,15 +7,6 @@
   <body>
     <h1>Commits</h1>
     <ul id="commits"></ul>
-    <script type="module">
-      import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
-      const commits = await d3.json('/api/commits');
-      d3.select('#commits')
-        .selectAll('li')
-        .data(commits)
-        .enter()
-        .append('li')
-        .text(d => d.commit.message.trim());
-    </script>
+    <script type="module" src="./client.js"></script>
   </body>
 </html>

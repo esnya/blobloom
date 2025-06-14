@@ -8,6 +8,7 @@ const MIN_CIRCLE_SIZE = 1;
 const CHAR_ANIMATION_MS = 1500;
 export const EFFECT_DROP_THRESHOLD = 50;
 export const MAX_EFFECT_CHARS = 100;
+export const MAX_FILES = 1000;
 
 const fileColors: Record<string, string> = {
   '.ts': '#2b7489',
@@ -235,16 +236,16 @@ export const createFileSimulation = (
   Composite.add(engine.world, walls);
 
   const update = (data: LineCount[]): void => {
-    currentData = data;
-    const scale = computeScale(width, height, data, { linear: opts.linear });
+    currentData = data.slice(0, MAX_FILES);
+    const scale = computeScale(width, height, currentData, { linear: opts.linear });
     const exp = opts.linear ? 1 : 0.5;
-    const names = new Set(data.map((d) => d.file));
+    const names = new Set(currentData.map((d) => d.file));
     for (const [name, info] of Object.entries(bodies)) {
       if (!names.has(name)) {
         explodeAndRemove(name, info);
       }
     }
-    for (const file of data) {
+    for (const file of currentData) {
       const lines = Number.isFinite(file.lines) ? file.lines : 0;
       const r = (Math.pow(lines, exp) * scale) / 2;
       const existing = bodies[file.file];

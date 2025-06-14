@@ -1,21 +1,43 @@
 import express from 'express';
 import * as git from 'isomorphic-git';
 import fs from 'fs';
+import { Command } from 'commander';
+import path from 'path';
+
+const program = new Command();
+program
+  .requiredOption('-r, --repo <path>', 'path to the git repository')
+  .option('-H, --host <host>', 'host name to listen on', 'localhost')
+  .option('-p, --port <number>', 'port to listen on', (v) => Number(v), 3000);
+
+program.parse();
+
+const { repo, host, port } = program.opts<{
+  repo: string;
+  host: string;
+  port: number;
+}>();
+
+const repoDir = path.resolve(repo);
+
+if (!fs.existsSync(path.join(repoDir, '.git'))) {
+  console.error(`${repoDir} is not a git repository.`);
+  process.exit(1);
+}
 
 const app = express();
-const port = Number(process.env.PORT) || 3000;
 
 app.use(express.static('public'));
 
 app.get('/api/commits', async (_, res) => {
   try {
-    const commits = await git.log({ fs, dir: '.', depth: 10 });
+    const commits = await git.log({ fs, dir: repoDir, depth: 10 });
     res.json(commits);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+app.listen(port, host, () => {
+  console.log(`Server running at http://${host}:${port}`);
 });

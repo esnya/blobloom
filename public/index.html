@@ -7,6 +7,44 @@
       body { margin: 0; overflow: hidden; }
       #sim { position: fixed; inset: 0; overflow: hidden; }
       #controls { position: absolute; top: 10px; left: 10px; z-index: 1; }
+      #commit-log {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 250px;
+        padding: 10px;
+        font-family: monospace;
+        color: #fff;
+        pointer-events: none;
+        overflow: hidden;
+        mask-image: linear-gradient(
+          to bottom,
+          transparent,
+          black 20px,
+          black calc(100% - 20px),
+          transparent
+        );
+      }
+      #commit-log ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      #commit-log li.current {
+        color: #0ff;
+      }
+      .commit-marker {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 2px;
+        background: #0ff;
+      }
       .file-circle {
         display: flex;
         flex-direction: column;
@@ -72,6 +110,7 @@
       <input type="number" id="duration" value="20" min="1" />s
     </div>
     <div id="sim"></div>
+    <div id="commit-log"></div>
     <script type="importmap">
       {
         "imports": {

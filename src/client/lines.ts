@@ -25,6 +25,8 @@ interface BodyInfo {
   el: HTMLElement;
   body: Matter.Body;
   r: number;
+  countEl: HTMLDivElement;
+  charsEl: HTMLDivElement;
 }
 
 export const computeScale = (
@@ -59,6 +61,24 @@ export const createFileSimulation = (
   engine.gravity.scale = 0.001;
 
   const bodies: Record<string, BodyInfo> = {};
+  const prevCounts: Record<string, number> = {};
+
+  const spawnChar = (parent: HTMLElement, cls: string): void => {
+    const span = document.createElement('span');
+    span.className = cls;
+    span.textContent = Math.random().toString(36).charAt(2);
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 20 + Math.random() * 30;
+    span.style.setProperty('--x', `${Math.cos(angle) * dist}px`);
+    span.style.setProperty('--y', `${Math.sin(angle) * dist}px`);
+    parent.appendChild(span);
+    span.addEventListener('animationend', () => span.remove());
+  };
+
+  const spawnChars = (parent: HTMLElement, add: number, remove: number): void => {
+    for (let i = 0; i < Math.min(add, 5); i++) spawnChar(parent, 'add-char');
+    for (let i = 0; i < Math.min(remove, 5); i++) spawnChar(parent, 'remove-char');
+  };
   const walls = [
     Bodies.rectangle(width / 2, height + 10, width, 20, { isStatic: true }),
     Bodies.rectangle(-10, height / 2, 20, height, { isStatic: true }),
@@ -79,6 +99,10 @@ export const createFileSimulation = (
     for (const file of data) {
       const r = (file.lines * scale) / 2;
       const existing = bodies[file.file];
+      const prev = prevCounts[file.file] ?? 0;
+      const added = Math.max(0, file.lines - prev);
+      const removed = Math.max(0, prev - file.lines);
+      prevCounts[file.file] = file.lines;
       if (r * 2 < MIN_CIRCLE_SIZE) {
         if (existing) {
           Composite.remove(engine.world, existing.body);
@@ -93,6 +117,8 @@ export const createFileSimulation = (
         existing.r = r;
         existing.el.style.width = `${r * 2}px`;
         existing.el.style.height = `${r * 2}px`;
+        existing.countEl.textContent = String(file.lines);
+        spawnChars(existing.charsEl, added, removed);
       } else {
         const el = document.createElement('div');
         el.className = 'file-circle';
@@ -110,7 +136,12 @@ export const createFileSimulation = (
         const nameEl = document.createElement('div');
         nameEl.className = 'name';
         nameEl.textContent = name;
-        el.append(pathEl, nameEl);
+        const countEl = document.createElement('div');
+        countEl.className = 'count';
+        countEl.textContent = String(file.lines);
+        const charsEl = document.createElement('div');
+        charsEl.className = 'chars';
+        el.append(pathEl, nameEl, countEl, charsEl);
         container.appendChild(el);
         const body = Bodies.circle(
           Math.random() * (width - 2 * r) + r,
@@ -118,8 +149,9 @@ export const createFileSimulation = (
           r,
           { restitution: 0.9, frictionAir: 0.01 },
         );
-        bodies[file.file] = { el, body, r };
+        bodies[file.file] = { el, body, r, countEl, charsEl };
         Composite.add(engine.world, body);
+        spawnChars(charsEl, added, removed);
       }
     }
   };

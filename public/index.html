@@ -16,10 +16,47 @@
         font-family: sans-serif;
         text-align: center;
         pointer-events: none;
-        transition: width 0.4s ease, height 0.4s ease;
+        position: absolute;
+        transition: width 1s ease, height 1s ease;
       }
       .file-circle .path { font-size: 8px; opacity: 0.7; }
       .file-circle .name { font-size: 12px; }
+      .file-circle .count { font-size: 10px; }
+      .file-circle .chars {
+        position: absolute;
+        inset: 0;
+        overflow: visible;
+      }
+      .add-char, .remove-char {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        font-size: 8px;
+        font-family: monospace;
+        pointer-events: none;
+      }
+      @keyframes gather {
+        from {
+          transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)));
+          opacity: 0;
+        }
+        to {
+          transform: translate(-50%, -50%);
+          opacity: 1;
+        }
+      }
+      @keyframes scatter {
+        from {
+          transform: translate(-50%, -50%);
+          opacity: 1;
+        }
+        to {
+          transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y)));
+          opacity: 0;
+        }
+      }
+      .add-char { animation: gather 1s forwards; }
+      .remove-char { animation: scatter 1s forwards; }
     </style>
   </head>
   <body>

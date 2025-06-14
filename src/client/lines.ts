@@ -4,7 +4,6 @@ const { Bodies, Body, Composite, Engine } = Matter;
 
 const MIN_CIRCLE_SIZE = 1;
 const CHAR_ANIMATION_MS = 1500;
-const MAX_SPAWN_PER_UPDATE = 50;
 
 const fileColors: Record<string, string> = {
   '.ts': '#2b7489',
@@ -145,13 +144,7 @@ export const createFileSimulation = (
     remove: number,
   ): void => {
     const { x, y } = info.body.position;
-    let addLeft = add;
-    let removeLeft = remove;
-    const addSpawn = Math.min(addLeft, MAX_SPAWN_PER_UPDATE);
-    const removeSpawn = Math.min(removeLeft, MAX_SPAWN_PER_UPDATE);
-    addLeft -= addSpawn;
-    removeLeft -= removeSpawn;
-    for (let i = 0; i < addSpawn; i++) {
+    for (let i = 0; i < add; i++) {
       const offset = {
         x: Math.random() * width - x,
         y: Math.random() * height - y,
@@ -161,7 +154,7 @@ export const createFileSimulation = (
         info.countEl.textContent = String(displayCounts[file]);
       });
     }
-    for (let i = 0; i < removeSpawn; i++) {
+    for (let i = 0; i < remove; i++) {
       const offset = {
         x: Math.random() * window.innerWidth - (rect.left + x),
         y: Math.random() * window.innerHeight - (rect.top + y),
@@ -170,14 +163,6 @@ export const createFileSimulation = (
         displayCounts[file]--;
         info.countEl.textContent = String(displayCounts[file]);
       });
-    }
-    if (addLeft) {
-      displayCounts[file] += addLeft;
-      info.countEl.textContent = String(displayCounts[file]);
-    }
-    if (removeLeft) {
-      displayCounts[file] -= removeLeft;
-      info.countEl.textContent = String(displayCounts[file]);
     }
   };
 

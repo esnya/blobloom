@@ -8,7 +8,8 @@
     "start": "npm run build && tsx src/server.ts",
     "lint": "eslint \"**/*.ts\" --max-warnings=0",
     "build": "tsc -p tsconfig.client.json",
-    "test": "jest"
+    "test": "jest",
+    "rename-demo": "tsx src/renameDemo.ts"
   },
   "dependencies": {
     "commander": "^14.0.0",

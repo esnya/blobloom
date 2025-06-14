@@ -1,4 +1,4 @@
-import { sum } from '../utils';
+import { sum } from '../math';
 
 describe('sum', () => {
   it('adds numbers', () => {

@@ -53,10 +53,7 @@
         word-break: break-word;
       }
       #commit-log li::before {
-        content: '•';
-        position: absolute;
-        left: 8px;
-        transform: translateX(-50%);
+        display: none;
       }
       #commit-log li.current {
         color: #0ff;
@@ -67,7 +64,7 @@
         left: 8px;
         top: 50%;
         transform: translate(-50%, -50%);
-        color: #0f0;
+        color: #0ff;
         font-size: 20px;
       }
       .file-circle {

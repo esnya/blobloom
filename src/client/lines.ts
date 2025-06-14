@@ -37,7 +37,7 @@ export const computeScale = (
     0,
   );
   const ratio = totalArea / (width * height);
-  const threshold = 0.3;
+  const threshold = 0.2;
   if (ratio <= threshold) return base;
   const easing = Math.pow(threshold / ratio, 0.25);
   return base * easing;
@@ -83,7 +83,7 @@ export const renderFileSimulation = (
     container.appendChild(el);
     const body = Bodies.circle(
       Math.random() * (width - 2 * r) + r,
-      Math.random() * (height - 2 * r) + r,
+      -Math.random() * height - r,
       r,
       { restitution: 0.9, frictionAir: 0.01 },
     );
@@ -92,7 +92,6 @@ export const renderFileSimulation = (
   }
 
   const walls = [
-    Bodies.rectangle(width / 2, -10, width, 20, { isStatic: true }),
     Bodies.rectangle(width / 2, height + 10, width, 20, { isStatic: true }),
     Bodies.rectangle(-10, height / 2, 20, height, { isStatic: true }),
     Bodies.rectangle(width + 10, height / 2, 20, height, { isStatic: true }),

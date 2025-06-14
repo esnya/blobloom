@@ -2,6 +2,8 @@ import type { LineCount } from './types.js';
 import Matter from 'matter-js';
 const { Bodies, Composite, Engine } = Matter;
 
+const MIN_CIRCLE_SIZE = 1;
+
 const fileColors: Record<string, string> = {
   '.ts': '#2b7489',
   '.js': '#f1e05a',
@@ -77,6 +79,14 @@ export const createFileSimulation = (
     for (const file of data) {
       const r = (file.lines * scale) / 2;
       const existing = bodies[file.file];
+      if (r * 2 < MIN_CIRCLE_SIZE) {
+        if (existing) {
+          Composite.remove(engine.world, existing.body);
+          container.removeChild(existing.el);
+          delete bodies[file.file];
+        }
+        continue;
+      }
       if (existing) {
         const factor = r / existing.r;
         Matter.Body.scale(existing.body, factor, factor);

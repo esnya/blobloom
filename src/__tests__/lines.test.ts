@@ -71,6 +71,31 @@ describe('lines module', () => {
     sim.destroy();
   });
 
+  it('removes circles smaller than 1px', () => {
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({
+      width: 0.5,
+      height: 0.5,
+      top: 0,
+      left: 0,
+      bottom: 0.5,
+      right: 0.5,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return 1;
+    };
+    const sim = createFileSimulation(div, { raf, now: () => 0 });
+    sim.update([{ file: 'a', lines: 1 }]);
+    callbacks[0]?.(0);
+    expect(div.querySelectorAll('.file-circle')).toHaveLength(0);
+    sim.destroy();
+  });
+
   it('computes scale with easing', () => {
     const scale = computeScale(200, 200, [
       { file: 'a', lines: 1 },

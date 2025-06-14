@@ -1,6 +1,6 @@
 import type { LineCount } from './types.js';
 import Matter from 'matter-js';
-const { Bodies, Composite, Engine } = Matter;
+const { Bodies, Body, Composite, Engine } = Matter;
 
 const MIN_CIRCLE_SIZE = 1;
 
@@ -69,12 +69,14 @@ export const createFileSimulation = (
     cls: string,
     offset: { x: number; y: number },
     onEnd: () => void,
+    color?: string,
   ): void => {
     const span = document.createElement('span');
     span.className = cls;
     span.textContent = Math.random().toString(36).charAt(2);
     span.style.setProperty('--x', `${offset.x}px`);
     span.style.setProperty('--y', `${offset.y}px`);
+    if (color) span.style.color = color;
     parent.appendChild(span);
     span.addEventListener('animationend', () => {
       span.remove();
@@ -100,16 +102,31 @@ export const createFileSimulation = (
       });
     }
     for (let i = 0; i < remove; i++) {
-      const magnitude = info.r + Math.random() * 20;
+      const magnitude = info.r / 2 + Math.random() * 10;
       const offset = {
-        x: width - x + (Math.random() - 0.5) * 40,
-        y: -y - magnitude,
+        x: (Math.random() - 0.5) * 40,
+        y: -magnitude,
       };
       spawnChar(info.charsEl, 'remove-char', offset, () => {
         displayCounts[file]--;
         info.countEl.textContent = String(displayCounts[file]);
       });
     }
+  };
+
+  const explodeAndRemove = (name: string, info: BodyInfo): void => {
+    const count = Math.max(3, Math.floor(info.r / 5));
+    for (let i = 0; i < count; i++) {
+      const offset = {
+        x: (Math.random() - 0.5) * info.r * 2,
+        y: (Math.random() - 0.5) * info.r * 2,
+      };
+      spawnChar(info.charsEl, 'remove-char', offset, () => {}, info.el.style.background);
+    }
+    Composite.remove(engine.world, info.body);
+    delete bodies[name];
+    delete displayCounts[name];
+    setTimeout(() => container.removeChild(info.el), 1000);
   };
   const walls = [
     Bodies.rectangle(width / 2, height + 10, width, 20, { isStatic: true }),
@@ -123,10 +140,7 @@ export const createFileSimulation = (
     const names = new Set(data.map((d) => d.file));
     for (const [name, info] of Object.entries(bodies)) {
       if (!names.has(name)) {
-        Composite.remove(engine.world, info.body);
-        container.removeChild(info.el);
-        delete bodies[name];
-        delete displayCounts[name];
+        explodeAndRemove(name, info);
       }
     }
     for (const file of data) {
@@ -138,9 +152,7 @@ export const createFileSimulation = (
       prevCounts[file.file] = file.lines;
       if (r * 2 < MIN_CIRCLE_SIZE) {
         if (existing) {
-          Composite.remove(engine.world, existing.body);
-          container.removeChild(existing.el);
-          delete bodies[file.file];
+          explodeAndRemove(file.file, existing);
         }
         continue;
       }
@@ -197,6 +209,10 @@ export const createFileSimulation = (
     for (const { body, el, r } of Object.values(bodies)) {
       const { x, y } = body.position;
       el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
+      if (x < -r || x > width + r || y > height + r) {
+        Body.setVelocity(body, { x: 0, y: 0 });
+        Body.setPosition(body, { x: Math.random() * (width - 2 * r) + r, y: -r });
+      }
     }
     frameId = raf(step);
   };

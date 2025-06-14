@@ -36,10 +36,16 @@ export const computeScale = (
   opts: { linear?: boolean } = {},
 ): number => {
   const exp = opts.linear ? 1 : 0.5;
-  const maxLines = data.reduce((m, d) => Math.max(m, d.lines), 1);
+  const maxLines = data.reduce(
+    (m, d) => Math.max(m, Number.isFinite(d.lines) ? d.lines : 0),
+    1,
+  );
   const base = Math.min(width, height) / Math.pow(maxLines, exp);
   const totalArea = data.reduce(
-    (sum, f) => sum + Math.PI * ((Math.pow(f.lines, exp) * base) / 2) ** 2,
+    (sum, f) => {
+      const lines = Number.isFinite(f.lines) ? f.lines : 0;
+      return sum + Math.PI * ((Math.pow(lines, exp) * base) / 2) ** 2;
+    },
     0,
   );
   const ratio = totalArea / (width * height);
@@ -151,12 +157,13 @@ export const createFileSimulation = (
       }
     }
     for (const file of data) {
-      const r = (Math.pow(file.lines, exp) * scale) / 2;
+      const lines = Number.isFinite(file.lines) ? file.lines : 0;
+      const r = (Math.pow(lines, exp) * scale) / 2;
       const existing = bodies[file.file];
       const prev = prevCounts[file.file] ?? 0;
-      const added = Math.max(0, file.lines - prev);
-      const removed = Math.max(0, prev - file.lines);
-      prevCounts[file.file] = file.lines;
+      const added = Math.max(0, lines - prev);
+      const removed = Math.max(0, prev - lines);
+      prevCounts[file.file] = lines;
       if (r * 2 < MIN_CIRCLE_SIZE) {
         if (existing) {
           explodeAndRemove(file.file, existing);
@@ -189,7 +196,7 @@ export const createFileSimulation = (
         nameEl.textContent = name;
         const countEl = document.createElement('div');
         countEl.className = 'count';
-        countEl.textContent = String(file.lines);
+        countEl.textContent = String(lines);
         const charsEl = document.createElement('div');
         charsEl.className = 'chars';
         el.append(pathEl, nameEl, countEl, charsEl);
@@ -201,7 +208,7 @@ export const createFileSimulation = (
           { restitution: 0.9, frictionAir: 0.01 },
         );
         bodies[file.file] = { el, body, r, countEl, charsEl };
-        displayCounts[file.file] = file.lines;
+        displayCounts[file.file] = lines;
         Composite.add(engine.world, body);
         spawnChars(bodies[file.file], file.file, added, removed);
       }

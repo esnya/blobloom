@@ -6,6 +6,16 @@
   </head>
   <body>
     <h1>Commits</h1>
+    <div>
+      <button id="play">Play</button>
+      <input type="range" id="seek" />
+      <select id="speed">
+        <option value="0.5">0.5x</option>
+        <option value="1" selected>1x</option>
+        <option value="2">2x</option>
+        <option value="4">4x</option>
+      </select>
+    </div>
     <ul id="commits"></ul>
     <script type="module" src="./client.js"></script>
   </body>

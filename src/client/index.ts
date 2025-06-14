@@ -24,6 +24,7 @@ const updateLines = async (): Promise<void> => {
 
 seek.addEventListener('input', updateLines);
 
-createPlayer({ seek, speed, playButton, start, end });
+const DAY_MS = 86_400_000; // playback scale: one day per second at 1x
+createPlayer({ seek, speed, playButton, start, end, timeScale: DAY_MS });
 renderCommitList(list, commits);
 updateLines();

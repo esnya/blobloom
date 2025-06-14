@@ -4,6 +4,11 @@ export interface PlayerOptions {
   playButton: HTMLButtonElement;
   start: number;
   end: number;
+  /**
+   * Multiply the playback delta by this factor. Useful when commit timestamps
+   * span long periods and real-time playback would be too slow.
+   */
+  timeScale?: number;
   raf?: (cb: FrameRequestCallback) => number;
   now?: () => number;
 }
@@ -14,6 +19,7 @@ export const createPlayer = ({
   playButton,
   start,
   end,
+  timeScale = 1,
   raf = requestAnimationFrame,
   now = performance.now,
 }: PlayerOptions) => {
@@ -26,7 +32,7 @@ export const createPlayer = ({
       raf(tick);
       return;
     }
-    const dt = (time - lastTime) * parseFloat(speed.value);
+    const dt = (time - lastTime) * parseFloat(speed.value) * timeScale;
     lastTime = time;
     const next = Math.min(Number(seek.value) + dt, end);
     seek.value = String(next);

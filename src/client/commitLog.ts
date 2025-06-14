@@ -18,7 +18,6 @@ export const createCommitLog = ({
   list.style.position = 'absolute';
   list.style.top = '0';
   list.style.width = '100%';
-  list.style.transition = 'transform 0.2s ease';
   container.appendChild(list);
 
   const marker = document.createElement('div');

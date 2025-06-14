@@ -114,6 +114,7 @@ export const createFileSimulation = (
   const prevCounts: Record<string, number> = {};
   const displayCounts: Record<string, number> = {};
   let currentData: LineCount[] = [];
+  let effectsEnabled = false;
 
   const spawnChar = (
     parent: HTMLElement,
@@ -143,6 +144,11 @@ export const createFileSimulation = (
     add: number,
     remove: number,
   ): void => {
+    if (!effectsEnabled) {
+      displayCounts[file] = (displayCounts[file] ?? 0) + add - remove;
+      info.countEl.textContent = String(displayCounts[file]);
+      return;
+    }
     const { x, y } = info.body.position;
     for (let i = 0; i < add; i++) {
       const offset = {
@@ -310,7 +316,10 @@ export const createFileSimulation = (
     running = false;
     cancelAnimationFrame(frameId);
   };
-  return { update, pause, resume, resize, destroy };
+  const setEffectsEnabled = (state: boolean): void => {
+    effectsEnabled = state;
+  };
+  return { update, pause, resume, resize, destroy, setEffectsEnabled };
 };
 
 export const renderFileSimulation = (

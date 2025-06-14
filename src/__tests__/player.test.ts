@@ -135,6 +135,61 @@ describe('createPlayer', () => {
   expect(playButton.textContent).toBe('Play');
   });
 
+  it('stops and resets', () => {
+    document.body.innerHTML = `
+      <button id="play"></button>
+      <input id="seek" />
+      <input id="duration" />
+    `;
+    const playButton = document.getElementById('play') as HTMLButtonElement;
+    const seek = document.getElementById('seek') as HTMLInputElement;
+    const duration = document.getElementById('duration') as HTMLInputElement;
+    duration.value = '1';
+
+    const player = createPlayer({
+      seek,
+      duration,
+      playButton,
+      start: 0,
+      end: 2,
+      raf: jest.fn(),
+      now: () => 0,
+    });
+
+    seek.value = '1';
+    player.stop();
+    expect(seek.value).toBe('0');
+    expect(playButton.textContent).toBe('Play');
+  });
+
+  it('resets when playing from end', () => {
+    document.body.innerHTML = `
+      <button id="play"></button>
+      <input id="seek" />
+      <input id="duration" />
+    `;
+    const playButton = document.getElementById('play') as HTMLButtonElement;
+    const seek = document.getElementById('seek') as HTMLInputElement;
+    const duration = document.getElementById('duration') as HTMLInputElement;
+    duration.value = '1';
+
+    const raf = jest.fn();
+    createPlayer({
+      seek,
+      duration,
+      playButton,
+      start: 0,
+      end: 2,
+      raf,
+      now: () => 0,
+    });
+
+    seek.value = '2';
+    playButton.click();
+    expect(seek.value).toBe('0');
+    expect(playButton.textContent).toBe('Pause');
+  });
+
   it('notifies play state changes', () => {
     document.body.innerHTML = `
       <button id="play"></button>

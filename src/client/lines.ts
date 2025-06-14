@@ -1,5 +1,4 @@
 import type { LineCount } from './types';
-export type D3 = typeof import('d3');
 
 export const fetchLineCounts = async (
   json: (input: string) => Promise<unknown>,
@@ -9,44 +8,131 @@ export const fetchLineCounts = async (
   return (await json(url)) as LineCount[];
 };
 
-export const renderLineChart = (
-  d3: D3,
-  element: SVGSVGElement,
+interface Body {
+  el: HTMLElement;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r: number;
+  angle: number;
+  av: number;
+  mass: number;
+}
+
+export const renderFileSimulation = (
+  container: HTMLElement,
   data: LineCount[],
-): void => {
-  const svg = d3.select(element);
-  svg.selectAll('*').remove();
+  opts: { raf?: (cb: FrameRequestCallback) => number; now?: () => number } = {},
+): (() => void) => {
+  const raf = opts.raf ?? requestAnimationFrame;
+  const now = opts.now ?? performance.now.bind(performance);
+  container.innerHTML = '';
+  const rect = container.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+  const maxLines = data[0]?.lines ?? 1;
+  const scale = Math.min(width, height) / maxLines;
 
-  const barHeight = 20;
-  const margin = { left: 200, right: 20, top: 20, bottom: 20 };
-  const width = 800;
-  const height = barHeight * data.length + margin.top + margin.bottom;
+  const bodies: Body[] = [];
+  for (const file of data) {
+    const r = (file.lines * scale) / 2;
+    const el = document.createElement('div');
+    el.className = 'file-circle';
+    el.style.position = 'absolute';
+    el.style.width = `${r * 2}px`;
+    el.style.height = `${r * 2}px`;
+    el.style.borderRadius = '50%';
+    el.style.background = 'steelblue';
+    el.style.willChange = 'transform';
+    container.appendChild(el);
+    bodies.push({
+      el,
+      x: Math.random() * (width - 2 * r) + r,
+      y: Math.random() * (height - 2 * r) + r,
+      vx: (Math.random() - 0.5) * 40,
+      vy: (Math.random() - 0.5) * 40,
+      r,
+      angle: 0,
+      av: (Math.random() - 0.5) * 2,
+      mass: r * r,
+    });
+  }
 
-  svg.attr('width', width).attr('height', height);
+  let frameId = 0;
+  let last = now();
 
-  const x = d3
-    .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.lines) ?? 0])
-    .range([0, width - margin.left - margin.right]);
+  const step = (time: number) => {
+    const dt = (time - last) / 1000;
+    last = time;
 
-  const g = svg
-    .append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
+    for (const b of bodies) {
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.angle += b.av * dt;
 
-  g.selectAll('rect')
-    .data(data)
-    .join('rect')
-    .attr('y', (_, i) => i * barHeight)
-    .attr('width', (d) => x(d.lines))
-    .attr('height', barHeight - 1)
-    .attr('fill', 'steelblue');
+      if (b.x - b.r < 0) {
+        b.x = b.r;
+        b.vx = Math.abs(b.vx);
+        b.av *= 0.9;
+      } else if (b.x + b.r > width) {
+        b.x = width - b.r;
+        b.vx = -Math.abs(b.vx);
+        b.av *= 0.9;
+      }
+      if (b.y - b.r < 0) {
+        b.y = b.r;
+        b.vy = Math.abs(b.vy);
+        b.av *= 0.9;
+      } else if (b.y + b.r > height) {
+        b.y = height - b.r;
+        b.vy = -Math.abs(b.vy);
+        b.av *= 0.9;
+      }
+    }
 
-  g.selectAll('text')
-    .data(data)
-    .join('text')
-    .attr('x', -5)
-    .attr('y', (_, i) => i * barHeight + (barHeight - 1) / 2)
-    .attr('dy', '0.35em')
-    .attr('text-anchor', 'end')
-    .text((d) => d.file);
+    for (let i = 0; i < bodies.length; i++) {
+      for (let j = i + 1; j < bodies.length; j++) {
+        const a = bodies[i];
+        const b = bodies[j];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy);
+        const minDist = a.r + b.r;
+        if (dist < minDist && dist > 0) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const overlap = minDist - dist;
+          a.x -= (nx * overlap) / 2;
+          a.y -= (ny * overlap) / 2;
+          b.x += (nx * overlap) / 2;
+          b.y += (ny * overlap) / 2;
+          const dvx = b.vx - a.vx;
+          const dvy = b.vy - a.vy;
+          const vn = dvx * nx + dvy * ny;
+          if (vn < 0) {
+            const impulse = (2 * vn) / (a.mass + b.mass);
+            a.vx += impulse * b.mass * nx;
+            a.vy += impulse * b.mass * ny;
+            b.vx -= impulse * a.mass * nx;
+            b.vy -= impulse * a.mass * ny;
+            const vt = -dvy * nx + dvx * ny;
+            a.av -= (vt / a.r) * 0.1;
+            b.av += (vt / b.r) * 0.1;
+          }
+        }
+      }
+    }
+
+    for (const b of bodies) {
+      b.vx *= 0.999;
+      b.vy *= 0.999;
+      b.av *= 0.99;
+      b.el.style.transform = `translate3d(${b.x - b.r}px, ${b.y - b.r}px, 0) rotate(${b.angle}rad)`;
+    }
+    frameId = raf(step);
+  };
+
+  frameId = raf(step);
+  return () => cancelAnimationFrame(frameId);
 };

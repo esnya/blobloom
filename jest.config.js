@@ -8,9 +8,7 @@ export default {
       tsconfig: 'tsconfig.json',
     },
   },
-  moduleNameMapper: {
-    '^https://cdn\.jsdelivr\.net/npm/d3@7/\+esm$': 'd3',
-  },
+  moduleNameMapper: {},
   testMatch: ['**/__tests__/**/*.test.ts'],
   collectCoverage: true,
   collectCoverageFrom: [

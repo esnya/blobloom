@@ -1,4 +1,6 @@
 import type { LineCount } from './types.js';
+import type { MasterClock } from './clock';
+import { defaultClock } from './clock';
 import Matter from 'matter-js';
 const { Bodies, Body, Composite, Engine } = Matter;
 
@@ -98,13 +100,15 @@ export const computeScale = (
 export const createFileSimulation = (
   container: HTMLElement,
   opts: {
+    clock?: MasterClock;
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;
   } = {},
 ) => {
-  const raf = opts.raf ?? requestAnimationFrame;
-  const now = opts.now ?? performance.now.bind(performance);
+  const clock = opts.clock ?? defaultClock;
+  const raf = opts.raf ?? clock.request ?? requestAnimationFrame;
+  const now = opts.now ?? clock.now ?? performance.now.bind(performance);
   let rect = container.getBoundingClientRect();
   let width = rect.width;
   let height = rect.height;
@@ -344,6 +348,7 @@ export const renderFileSimulation = (
   container: HTMLElement,
   data: LineCount[],
   opts: {
+    clock?: MasterClock;
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;

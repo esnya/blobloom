@@ -1,5 +1,5 @@
-import type { MasterClock } from './clock';
-import { defaultClock } from './clock';
+import type { MasterClock } from './clock.js';
+import { defaultClock } from './clock.js';
 
 export interface PlayerOptions {
   seek: HTMLInputElement;

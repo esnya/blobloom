@@ -7,6 +7,17 @@
       body { margin: 0; overflow: hidden; }
       #sim { position: fixed; inset: 0; overflow: hidden; }
       #controls { position: absolute; top: 10px; left: 10px; z-index: 1; }
+      #timestamp {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: monospace;
+        color: #fff;
+        text-shadow: 0 0 4px #000;
+        pointer-events: none;
+        z-index: 1;
+      }
       #commit-log {
         position: fixed;
         left: 0;
@@ -134,6 +145,7 @@
       <input type="range" id="seek" />
       <input type="number" id="duration" value="20" min="1" />s
     </div>
+    <div id="timestamp"></div>
     <div id="sim"></div>
     <div id="commit-log"></div>
     <script type="importmap">

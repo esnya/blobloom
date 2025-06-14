@@ -1,5 +1,4 @@
 import { fetchCommits, fetchLineCounts } from './api.js';
-import { renderCommitList } from './commits.js';
 import { createPlayer } from './player.js';
 import { renderFileSimulation } from './lines.js';
 
@@ -12,7 +11,6 @@ const end = commits[0].commit.committer.timestamp * 1000;
 const seek = document.getElementById('seek') as HTMLInputElement;
 const speed = document.getElementById('speed') as HTMLSelectElement;
 const playButton = document.getElementById('play') as HTMLButtonElement;
-const list = document.getElementById('commits') as HTMLUListElement;
 const sim = document.getElementById('sim') as HTMLDivElement;
 
 let stop = () => {};
@@ -25,5 +23,4 @@ const updateLines = async (): Promise<void> => {
 seek.addEventListener('input', updateLines);
 
 createPlayer({ seek, speed, playButton, start, end });
-renderCommitList(list, commits);
 updateLines();

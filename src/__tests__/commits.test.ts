@@ -1,6 +1,5 @@
 /** @jest-environment jsdom */
 import { fetchCommits } from '../client/api';
-import { renderCommitList } from '../client/commits';
 import type { Commit } from '../client/types';
 
 describe('commits module', () => {
@@ -11,15 +10,5 @@ describe('commits module', () => {
     await expect(fetchCommits(json)).resolves.toEqual([
       { commit: { message: 'msg', committer: { timestamp: 1 } } },
     ]);
-  });
-
-  it('renders commit list', () => {
-    const element = document.createElement('ul');
-    const commits: Commit[] = [
-      { commit: { message: 'a ', committer: { timestamp: 0 } } },
-    ];
-    renderCommitList(element, commits);
-    expect(element.querySelectorAll('li')).toHaveLength(1);
-    expect(element.querySelector('li')?.textContent).toBe('a');
   });
 });

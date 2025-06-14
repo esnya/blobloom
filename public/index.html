@@ -3,10 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <title>blobloom</title>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #sim { position: fixed; inset: 0; overflow: hidden; }
+      #controls { position: absolute; top: 10px; left: 10px; z-index: 1; }
+      .file-circle { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-family: sans-serif; text-align: center; pointer-events: none; }
+      .file-circle .path { font-size: 8px; opacity: 0.7; }
+      .file-circle .name { font-size: 12px; }
+    </style>
   </head>
   <body>
-    <h1>Commits</h1>
-    <div>
+    <div id="controls">
       <button id="play">Play</button>
       <input type="range" id="seek" />
       <select id="speed">
@@ -16,8 +23,7 @@
         <option value="4">4x</option>
       </select>
     </div>
-    <ul id="commits"></ul>
-    <div id="sim" style="width:800px;height:600px;position:relative;overflow:hidden;border:1px solid #ccc"></div>
+    <div id="sim"></div>
     <script type="importmap">
       {
         "imports": {

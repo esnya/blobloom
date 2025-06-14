@@ -7,9 +7,10 @@ import { getLineCounts, LineCount } from './lineCounts';
 export interface CreateAppOptions {
   repo: string;
   branch?: string;
+  ignore?: string[];
 }
 
-export const createApp = async ({ repo, branch: inputBranch }: CreateAppOptions) => {
+export const createApp = async ({ repo, branch: inputBranch, ignore = [] }: CreateAppOptions) => {
   const repoDir = path.resolve(repo);
   if (!fs.existsSync(path.join(repoDir, '.git'))) {
     throw new Error(`${repoDir} is not a git repository.`);
@@ -25,7 +26,7 @@ export const createApp = async ({ repo, branch: inputBranch }: CreateAppOptions)
   }
 
   const commits = await git.log({ fs, dir: repoDir, ref: branch });
-  const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch });
+  const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch, ignore });
 
   const app = express();
 
@@ -45,7 +46,7 @@ export const createApp = async ({ repo, branch: inputBranch }: CreateAppOptions)
         return;
       }
       try {
-        const counts = await getLineCounts({ dir: repoDir, ref: commit.oid });
+        const counts = await getLineCounts({ dir: repoDir, ref: commit.oid, ignore });
         res.json(counts);
       } catch (error) {
         res.status(500).json({ error: (error as Error).message });

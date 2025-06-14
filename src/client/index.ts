@@ -20,7 +20,7 @@ const { update, resize } = simInstance;
 
 const updateTimestamp = () => {
   const date = new Date(Number(seek.value));
-  timestampEl.textContent = date.toISOString();
+  timestampEl.textContent = date.toLocaleString();
 };
 
 const updateLines = async (): Promise<void> => {

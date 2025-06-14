@@ -119,6 +119,11 @@ describe('lines module', () => {
     expect(scale).toBeCloseTo(197.7, 1);
   });
 
+  it('returns 0 when area is zero', () => {
+    const scale = computeScale(0, 200, [{ file: 'a', lines: 1 }]);
+    expect(scale).toBe(0);
+  });
+
   it('pauses and resumes the simulation', () => {
     const div = document.createElement('div');
     div.getBoundingClientRect = () => ({

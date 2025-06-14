@@ -88,7 +88,7 @@ export const computeScale = (
   );
   const ratio = totalArea / (width * height);
   const threshold = 0.15;
-  if (ratio <= threshold) return base;
+  if (!Number.isFinite(ratio) || ratio <= threshold) return base;
   const easing = Math.pow(threshold / ratio, 0.25);
   return base * easing;
 };

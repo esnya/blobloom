@@ -12,7 +12,7 @@ export default {
   testMatch: ['**/__tests__/**/*.test.ts'],
   collectCoverage: true,
   collectCoverageFrom: [
-    'src/utils.ts',
+    'src/math.ts',
     'src/client/**/*.ts',
     '!src/client/index.ts',
   ],

@@ -14,16 +14,25 @@ const duration = document.getElementById('duration') as HTMLInputElement;
 const playButton = document.getElementById('play') as HTMLButtonElement;
 const sim = document.getElementById('sim') as HTMLDivElement;
 const logContainer = document.getElementById('commit-log') as HTMLDivElement;
+const timestampEl = document.getElementById('timestamp') as HTMLDivElement;
 const simInstance = createFileSimulation(sim);
 const { update, resize, pause: simPause, resume: simResume } = simInstance;
 simPause();
+
+const updateTimestamp = () => {
+  const date = new Date(Number(seek.value));
+  timestampEl.textContent = date.toISOString();
+};
 
 const updateLines = async (): Promise<void> => {
   const counts = await fetchLineCounts(json, Number(seek.value));
   update(counts);
 };
 
-seek.addEventListener('input', updateLines);
+seek.addEventListener('input', () => {
+  updateLines();
+  updateTimestamp();
+});
 
 const player = createPlayer({
   seek,
@@ -38,6 +47,7 @@ const player = createPlayer({
 });
 createCommitLog({ container: logContainer, seek, commits });
 updateLines();
+updateTimestamp();
 window.addEventListener('resize', resize);
 
 let wasPlaying = false;

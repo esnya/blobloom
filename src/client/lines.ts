@@ -308,9 +308,11 @@ export const createFileSimulation = (
   let last = now();
   let running = true;
   const step = (time: number): void => {
+    void time;
     if (!running) return;
-    Engine.update(engine, time - last);
-    last = time;
+    const current = now();
+    Engine.update(engine, current - last);
+    last = current;
     for (const { body, el, r } of Object.values(bodies)) {
       const { x, y } = body.position;
       el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;

@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
-import { renderCommitList, fetchCommits } from '../client/commits';
+import { fetchCommits } from '../client/api';
+import { renderCommitList } from '../client/commits';
 import type { Commit } from '../client/types';
 
 describe('commits module', () => {

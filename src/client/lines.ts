@@ -1,15 +1,6 @@
 import type { LineCount } from './types';
 import { Bodies, Composite, Engine } from 'matter-js';
 
-export const fetchLineCounts = async (
-  json: (input: string) => Promise<unknown>,
-  timestamp?: number,
-): Promise<LineCount[]> => {
-  const url = timestamp ? `/api/lines?ts=${timestamp}` : '/api/lines';
-  return (await json(url)) as LineCount[];
-};
-
-
 interface BodyInfo {
   el: HTMLElement;
   body: Matter.Body;

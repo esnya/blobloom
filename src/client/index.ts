@@ -12,6 +12,7 @@ const end = commits[0].commit.committer.timestamp * 1000;
 const seek = document.getElementById('seek') as HTMLInputElement;
 const duration = document.getElementById('duration') as HTMLInputElement;
 const playButton = document.getElementById('play') as HTMLButtonElement;
+const stopButton = document.getElementById('stop') as HTMLButtonElement;
 const sim = document.getElementById('sim') as HTMLDivElement;
 const logContainer = document.getElementById('commit-log') as HTMLDivElement;
 const timestampEl = document.getElementById('timestamp') as HTMLDivElement;
@@ -39,7 +40,9 @@ const player = createPlayer({
   playButton,
   start,
   end,
+  onPlayStateChange: (p) => simInstance.setEffectsEnabled(p),
 });
+stopButton.addEventListener('click', player.stop);
 createCommitLog({ container: logContainer, seek, commits });
 updateLines();
 updateTimestamp();

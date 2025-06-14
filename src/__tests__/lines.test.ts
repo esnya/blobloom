@@ -182,4 +182,27 @@ describe('lines module', () => {
     expect(circle.style.width).not.toBe(initial);
     sim.destroy();
   });
+
+  it('toggles character effects', () => {
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({
+      width: 200,
+      height: 200,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    const sim = createFileSimulation(div, { raf: () => 1, now: () => 0 });
+    sim.setEffectsEnabled(false);
+    sim.update([{ file: 'a', lines: 1 }]);
+    expect(div.querySelectorAll('.add-char').length).toBe(0);
+    sim.setEffectsEnabled(true);
+    sim.update([{ file: 'a', lines: 2 }]);
+    expect(div.querySelectorAll('.add-char').length).toBeGreaterThan(0);
+    sim.destroy();
+  });
 });

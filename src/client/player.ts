@@ -53,10 +53,19 @@ export const createPlayer = ({
   };
 
   const togglePlay = (): void => {
+    if (!playing && Number(seek.value) >= end) {
+      seek.value = String(start);
+      seek.dispatchEvent(new Event('input'));
+    }
     setPlaying(!playing);
   };
 
   const pause = (): void => setPlaying(false);
+  const stop = (): void => {
+    setPlaying(false);
+    seek.value = String(start);
+    seek.dispatchEvent(new Event('input'));
+  };
   const resume = (): void => setPlaying(true);
   const isPlaying = (): boolean => playing;
 
@@ -67,5 +76,5 @@ export const createPlayer = ({
   seek.value = String(start);
   seek.dispatchEvent(new Event('input'));
 
-  return { togglePlay, pause, resume, isPlaying };
+  return { togglePlay, pause, resume, stop, isPlaying };
 };

@@ -168,6 +168,13 @@ export const createFileSimulation = (
 
   const explodeAndRemove = (name: string, info: BodyInfo): void => {
     const count = Math.max(3, Math.floor(info.r / 5));
+    // hide the circle immediately while preserving the chars container
+    for (const child of Array.from(info.el.children)) {
+      if (child !== info.charsEl) {
+        (child as HTMLElement).style.display = 'none';
+      }
+    }
+    info.el.style.background = 'transparent';
     for (let i = 0; i < count; i++) {
       const offset = {
         x: Math.random() * window.innerWidth - (rect.left + info.body.position.x),

@@ -1,7 +1,7 @@
-import { fetchCommits, fetchLineCounts } from './api';
-import { renderCommitList } from './commits';
-import { createPlayer } from './player';
-import { renderFileSimulation } from './lines';
+import { fetchCommits, fetchLineCounts } from './api.js';
+import { renderCommitList } from './commits.js';
+import { createPlayer } from './player.js';
+import { renderFileSimulation } from './lines.js';
 
 const json = (input: string) => fetch(input).then((r) => r.json());
 const commits = await fetchCommits(json);

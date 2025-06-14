@@ -1,4 +1,4 @@
-import type { Commit, LineCount } from './types';
+import type { Commit, LineCount } from './types.js';
 
 export type JsonFetcher = (input: string) => Promise<unknown>;
 

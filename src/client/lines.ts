@@ -172,7 +172,9 @@ export const createFileSimulation = (
       return;
     }
     const { x, y } = info.body.position;
-    for (let i = 0; i < add; i++) {
+    const spawnAdd = Math.min(add, MAX_EFFECT_CHARS);
+    const spawnRemove = Math.min(remove, MAX_EFFECT_CHARS);
+    for (let i = 0; i < spawnAdd; i++) {
       const offset = {
         x: Math.random() * width - x,
         y: Math.random() * height - y,
@@ -182,7 +184,7 @@ export const createFileSimulation = (
         info.countEl.textContent = String(displayCounts[file]);
       });
     }
-    for (let i = 0; i < remove; i++) {
+    for (let i = 0; i < spawnRemove; i++) {
       const offset = {
         x: Math.random() * window.innerWidth - (rect.left + x),
         y: Math.random() * window.innerHeight - (rect.top + y),
@@ -191,6 +193,11 @@ export const createFileSimulation = (
         displayCounts[file]--;
         info.countEl.textContent = String(displayCounts[file]);
       });
+    }
+    const diff = add - remove - (spawnAdd - spawnRemove);
+    if (diff !== 0) {
+      displayCounts[file] = (displayCounts[file] ?? 0) + diff;
+      info.countEl.textContent = String(displayCounts[file]);
     }
   };
 

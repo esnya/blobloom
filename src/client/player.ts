@@ -6,6 +6,7 @@ export interface PlayerOptions {
   end: number;
   raf?: (cb: FrameRequestCallback) => number;
   now?: () => number;
+  onPlayStateChange?: (playing: boolean) => void;
 }
 
 export const createPlayer = ({
@@ -16,6 +17,7 @@ export const createPlayer = ({
   end,
   raf = requestAnimationFrame,
   now = performance.now.bind(performance),
+  onPlayStateChange,
 }: PlayerOptions) => {
   let playing = false;
   let lastTime = 0;
@@ -36,8 +38,7 @@ export const createPlayer = ({
     if (next < end) {
       raf(tick);
     } else {
-      playing = false;
-      playButton.textContent = 'Play';
+      setPlaying(false);
     }
   };
 
@@ -48,6 +49,7 @@ export const createPlayer = ({
       lastTime = now();
       raf(tick);
     }
+    onPlayStateChange?.(playing);
   };
 
   const togglePlay = (): void => {

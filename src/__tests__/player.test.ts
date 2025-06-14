@@ -132,6 +132,43 @@ describe('createPlayer', () => {
     player.resume();
     expect(playButton.textContent).toBe('Pause');
     player.pause();
-    expect(playButton.textContent).toBe('Play');
+  expect(playButton.textContent).toBe('Play');
+  });
+
+  it('notifies play state changes', () => {
+    document.body.innerHTML = `
+      <button id="play"></button>
+      <input id="seek" />
+      <input id="duration" />
+    `;
+    const playButton = document.getElementById('play') as HTMLButtonElement;
+    const seek = document.getElementById('seek') as HTMLInputElement;
+    const duration = document.getElementById('duration') as HTMLInputElement;
+    duration.value = '1';
+
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback) => {
+      callbacks.push(cb);
+      return 1;
+    };
+
+    const stateListener = jest.fn();
+
+    const player = createPlayer({
+      seek,
+      duration,
+      playButton,
+      start: 0,
+      end: 2,
+      raf,
+      now: () => 0,
+      onPlayStateChange: stateListener,
+    });
+
+    player.resume();
+    expect(stateListener).toHaveBeenCalledWith(true);
+    callbacks[0]?.(0);
+    callbacks[1]?.(2000);
+    expect(stateListener).toHaveBeenLastCalledWith(false);
   });
 });

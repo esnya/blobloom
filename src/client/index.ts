@@ -16,8 +16,7 @@ const sim = document.getElementById('sim') as HTMLDivElement;
 const logContainer = document.getElementById('commit-log') as HTMLDivElement;
 const timestampEl = document.getElementById('timestamp') as HTMLDivElement;
 const simInstance = createFileSimulation(sim);
-const { update, resize, pause: simPause, resume: simResume } = simInstance;
-simPause();
+const { update, resize } = simInstance;
 
 const updateTimestamp = () => {
   const date = new Date(Number(seek.value));
@@ -40,10 +39,6 @@ const player = createPlayer({
   playButton,
   start,
   end,
-  onPlayStateChange: (playing) => {
-    if (playing) simResume();
-    else simPause();
-  },
 });
 createCommitLog({ container: logContainer, seek, commits });
 updateLines();

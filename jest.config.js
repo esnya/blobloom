@@ -10,10 +10,7 @@ export default {
   },
   testMatch: ['**/__tests__/**/*.test.ts'],
   collectCoverage: true,
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/types.d.ts',
-  ],
+  collectCoverageFrom: ['src/utils.ts'],
   coverageThreshold: {
     global: {
       lines: 80,

@@ -5,15 +5,13 @@ export interface CommitLogOptions {
   seek: HTMLInputElement;
   commits: Commit[];
   visible?: number;
-  msPerPx?: number;
 }
 
 export const createCommitLog = ({
   container,
   seek,
   commits,
-  visible = 20,
-  msPerPx = 1e6,
+  visible = 15,
 }: CommitLogOptions) => {
   const list = document.createElement('ul');
   list.className = 'commit-list';
@@ -38,6 +36,15 @@ export const createCommitLog = ({
     const end = Math.min(commits.length, index + visible + 1);
     const slice = commits.slice(start, end);
     list.innerHTML = '';
+
+    const spanMs =
+      slice.length > 1
+        ?
+            (slice[0].commit.committer.timestamp -
+              slice[slice.length - 1].commit.committer.timestamp) *
+          1000
+        : 1;
+    const msPerPx = spanMs / Math.max(container.clientHeight, 1);
     slice.forEach((c, i) => {
       const li = document.createElement('li');
       li.textContent = c.commit.message.split('\n')[0];

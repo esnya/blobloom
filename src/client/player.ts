@@ -1,13 +1,9 @@
-import type { MasterClock } from './clock.js';
-import { defaultClock } from './clock.js';
-
 export interface PlayerOptions {
   seek: HTMLInputElement;
   duration: HTMLInputElement;
   playButton: HTMLButtonElement;
   start: number;
   end: number;
-  clock?: MasterClock;
   raf?: (cb: FrameRequestCallback) => number;
   now?: () => number;
   onPlayStateChange?: (playing: boolean) => void;
@@ -19,9 +15,8 @@ export const createPlayer = ({
   playButton,
   start,
   end,
-  clock = defaultClock,
-  raf = clock?.request ?? requestAnimationFrame,
-  now = clock?.now ?? performance.now.bind(performance),
+  raf = requestAnimationFrame,
+  now = performance.now.bind(performance),
   onPlayStateChange,
 }: PlayerOptions) => {
   let playing = false;

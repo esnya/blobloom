@@ -16,7 +16,16 @@ describe('createPlayer', () => {
     const raf = jest.fn();
     const now = jest.fn(() => 0);
 
-    createPlayer({ seek, speed, playButton, start: 0, end: 10, raf, now });
+    createPlayer({
+      seek,
+      speed,
+      playButton,
+      start: 0,
+      end: 10,
+      raf,
+      now,
+      timeScale: 1,
+    });
 
     playButton.click();
     expect(playButton.textContent).toBe('Pause');
@@ -50,6 +59,7 @@ describe('createPlayer', () => {
     end: 5,
     raf,
     now: () => 0,
+    timeScale: 1,
   });
 
   player.togglePlay();
@@ -89,6 +99,7 @@ describe('createPlayer', () => {
       end: 2,
       raf,
       now: () => 0,
+      timeScale: 1,
     });
 
     player.togglePlay();

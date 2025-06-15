@@ -25,16 +25,7 @@ const eslintrc = {
     semi: ['error', 'always'],
     quotes: ['error', 'single'],
     '@typescript-eslint/no-unused-vars': ['error'],
-    // TODO: change to 'error' after resolving legacy issues
-    'react/display-name': 'warn',
-    // TODO: change to 'error' after resolving legacy issues
-    'react/jsx-uses-react': 'warn',
-    // TODO: change to 'error' after resolving legacy issues
-    'react/react-in-jsx-scope': 'warn',
-    // TODO: change to 'error' after verifying hook usage
-    'react-hooks/rules-of-hooks': 'warn',
-    // TODO: change to 'error' after verifying dependencies
-    'react-hooks/exhaustive-deps': 'warn',
+    'react-hooks/exhaustive-deps': 'error',
     'no-restricted-syntax': [
       'error',
       {

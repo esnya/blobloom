@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { type Application } from 'express';
+import { appSettings } from './appSettings';
 import * as git from 'isomorphic-git';
 import fs from 'fs';
 import path from 'path';
@@ -10,13 +11,11 @@ export interface CreateApiMiddlewareOptions {
   ignore?: string[];
 }
 
-export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputBranch, ignore = [] }: CreateApiMiddlewareOptions = {}) => {
-  const repoDir = path.resolve(repo);
-  if (!fs.existsSync(path.join(repoDir, '.git'))) {
-    throw new Error(`${repoDir} is not a git repository.`);
-  }
-
-  const branches = await git.listBranches({ fs, dir: repoDir });
+const resolveBranch = async (
+  dir: string,
+  inputBranch: string | undefined,
+): Promise<string> => {
+  const branches = await git.listBranches({ fs, dir });
   let branch = inputBranch;
   if (!branch) {
     branch = ['main', 'master', 'trunk'].find((b) => branches.includes(b)) ?? branches[0];
@@ -24,6 +23,16 @@ export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputB
   if (!branch) {
     throw new Error('No branch found.');
   }
+  return branch;
+};
+
+export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputBranch, ignore = [] }: CreateApiMiddlewareOptions = {}) => {
+  const repoDir = path.resolve(repo);
+  if (!fs.existsSync(path.join(repoDir, '.git'))) {
+    throw new Error(`${repoDir} is not a git repository.`);
+  }
+
+  const branch = await resolveBranch(repoDir, inputBranch);
 
   const commits = await git.log({ fs, dir: repoDir, ref: branch });
   const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch, ignore });
@@ -51,6 +60,62 @@ export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputB
       }
     } else {
       res.json(lineCounts);
+    }
+  });
+
+  return router;
+};
+
+export const createApiMiddlewareFromApp = (app: Application): express.Router => {
+  const router = express.Router();
+
+  const repoDir = (): string =>
+    path.resolve((app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd());
+
+  const ignorePatterns = (): string[] => app.get(appSettings.ignore.description!) ?? [];
+
+  router.get('/api/commits', async (_req, res) => {
+    const dir = repoDir();
+    if (!fs.existsSync(path.join(dir, '.git'))) {
+      res.status(500).json({ error: `${dir} is not a git repository.` });
+      return;
+    }
+    try {
+      const branch = await resolveBranch(dir, app.get(appSettings.branch.description!));
+      const commits = await git.log({ fs, dir, ref: branch });
+      res.json(commits);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
+
+  router.get('/api/lines', async (req, res) => {
+    const dir = repoDir();
+    if (!fs.existsSync(path.join(dir, '.git'))) {
+      res.status(500).json({ error: `${dir} is not a git repository.` });
+      return;
+    }
+    try {
+      const branch = await resolveBranch(dir, app.get(appSettings.branch.description!));
+      const tsParam = req.query.ts as string | undefined;
+      const ignore = ignorePatterns();
+
+      const baseCounts = await getLineCounts({ dir, ref: branch, ignore });
+      if (tsParam) {
+        const ts = Number(tsParam) / 1000;
+        const commits = await git.log({ fs, dir, ref: branch });
+        const commit = commits.find((c) => c.commit.committer.timestamp <= ts);
+        if (!commit) {
+          res.status(404).json({ error: 'Commit not found' });
+          return;
+        }
+        const counts = await getLineCounts({ dir, ref: commit.oid, ignore });
+        res.json(counts);
+      } else {
+        res.json(baseCounts);
+      }
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
     }
   });
 

@@ -5,19 +5,10 @@ export interface DurationInputProps {
   onInput?: (value: number) => void;
 }
 
-export interface DurationInputCallbacks {
-  onReady?: (el: HTMLInputElement | null) => void;
-}
-
-export function DurationInput({
-  defaultValue = 20,
-  onInput,
-  onReady,
-}: DurationInputProps & DurationInputCallbacks): React.JSX.Element {
+export function DurationInput({ defaultValue = 20, onInput }: DurationInputProps): React.JSX.Element {
   return (
     <input
       type="number"
-      ref={onReady ?? undefined}
       defaultValue={defaultValue}
       min={1}
       onInput={

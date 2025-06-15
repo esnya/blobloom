@@ -4,10 +4,10 @@ import type { LineCount } from './types';
 import { CommitLog } from './components/CommitLog';
 import { DurationInput } from './components/DurationInput';
 import { PlayButton } from './components/PlayButton';
-import type { PlayButtonHandle } from './components/PlayButton';
 import { SeekBar } from './components/SeekBar';
 import { SimulationArea } from './components/SimulationArea';
 import type { SimulationAreaHandle } from './components/SimulationArea';
+import { usePlayer } from './hooks';
 import type { Commit } from './types';
 
 export function App(): React.JSX.Element {
@@ -17,12 +17,19 @@ export function App(): React.JSX.Element {
   const [timestamp, setTimestamp] = useState(0);
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const [ready, setReady] = useState(false);
+  const [duration, setDuration] = useState(20);
 
-  const [seekEl, setSeekEl] = useState<HTMLInputElement | null>(null);
-  const [durationEl, setDurationEl] = useState<HTMLInputElement | null>(null);
-  const [player, setPlayer] = useState<PlayButtonHandle | null>(null);
   const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
   const [wasPlaying, setWasPlaying] = useState(false);
+
+  const player = usePlayer({
+    getSeek: () => timestamp,
+    setSeek: setTimestamp,
+    duration,
+    start,
+    end,
+    onPlayStateChange: (p) => sim?.setEffectsEnabled(p),
+  });
 
   const json = (input: string) => fetch(input).then((r) => r.json());
 
@@ -54,12 +61,12 @@ export function App(): React.JSX.Element {
     if (!ready) return;
     const onVisibility = () => {
       if (document.hidden) {
-        setWasPlaying(player?.isPlaying() ?? false);
-        player?.pause();
+        setWasPlaying(player.isPlaying());
+        player.pause();
         sim?.pause();
       } else {
         sim?.resume();
-        if (wasPlaying) player?.resume();
+        if (wasPlaying) player.resume();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
@@ -70,17 +77,10 @@ export function App(): React.JSX.Element {
     <>
       {ready && (
         <div id="controls">
-          <PlayButton
-            seekEl={seekEl}
-            durationEl={durationEl}
-            start={start}
-            end={end}
-            onPlayStateChange={(p) => sim?.setEffectsEnabled(p)}
-            onReady={setPlayer}
-          />
-          <button onClick={() => player?.stop()}>Stop</button>
-          <SeekBar value={timestamp} onInput={setTimestamp} onReady={setSeekEl} />
-          <DurationInput onReady={setDurationEl} />s
+          <PlayButton playing={player.isPlaying()} onToggle={player.togglePlay} />
+          <button onClick={player.stop}>Stop</button>
+          <SeekBar value={timestamp} onInput={setTimestamp} />
+          <DurationInput defaultValue={duration} onInput={setDuration} />s
         </div>
       )}
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>

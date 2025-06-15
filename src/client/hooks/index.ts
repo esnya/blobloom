@@ -59,34 +59,26 @@ export const useAnimatedSimulation = (
   return { pause, resume, setEffectsEnabled };
 };
 
-export const usePlayer = (
-  buttonEl: HTMLButtonElement | null,
-  options: Omit<PlayerOptions, 'playButton' | 'seek' | 'duration'> & {
-    seekEl: HTMLInputElement | null;
-    durationEl: HTMLInputElement | null;
-  },
-) => {
-  const { seekEl, durationEl, ...opts } = options;
+export const usePlayer = (options: PlayerOptions) => {
+  const { onPlayStateChange, ...opts } = options;
   const [player, setPlayer] = useState<ReturnType<typeof createPlayer> | null>(null);
 
   useEffect(() => {
-    if (!buttonEl || !seekEl || !durationEl) return;
     const p = createPlayer({
-      seek: seekEl,
-      duration: durationEl,
-      playButton: buttonEl,
       ...opts,
+      ...(onPlayStateChange ? { onPlayStateChange } : {}),
     });
     setPlayer(p);
     return () => p.pause();
-  }, [buttonEl, seekEl, durationEl, opts]);
+  }, [opts.getSeek, opts.setSeek, opts.duration, opts.start, opts.end, opts.raf, opts.now, onPlayStateChange]);
 
   const stop = useCallback(() => player?.stop(), [player]);
   const pause = useCallback(() => player?.pause(), [player]);
   const resume = useCallback(() => player?.resume(), [player]);
+  const togglePlay = useCallback(() => player?.togglePlay(), [player]);
   const isPlaying = useCallback(() => player?.isPlaying() ?? false, [player]);
 
-  return { stop, pause, resume, isPlaying };
+  return { stop, pause, resume, togglePlay, isPlaying };
 };
 
 export { useCssAnimation, makeUseCssAnimation } from './useCssAnimation';

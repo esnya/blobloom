@@ -19,7 +19,6 @@ export function App(): React.JSX.Element {
   const [ready, setReady] = useState(false);
 
   const seekRef = useRef<HTMLInputElement | null>(null);
-  const [seek, setSeek] = useState<HTMLInputElement | null>(null);
   const durationRef = useRef<HTMLInputElement>(null);
   const playerRef = useRef<PlayButtonHandle>(null);
   const simRef = useRef<SimulationAreaHandle>(null);
@@ -69,9 +68,7 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    const el = document.querySelector<HTMLInputElement>('input[type="range"]');
-    seekRef.current = el;
-    setSeek(el);
+    seekRef.current = document.querySelector<HTMLInputElement>('input[type="range"]');
   }, [ready]);
 
   return (
@@ -95,7 +92,11 @@ export function App(): React.JSX.Element {
       {ready && (
         <>
           <SimulationArea ref={simRef} data={lineCounts} />
-          {seek && <CommitLog commits={commits} seek={seek} />}
+          <CommitLog
+            commits={commits}
+            timestamp={timestamp}
+            onTimestampChange={setTimestamp}
+          />
         </>
       )}
     </>

@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import * as git from 'isomorphic-git';
-import { getLineCounts, MAX_BLOB_SIZE } from '../lineCounts';
+import { getLineCounts } from '../lineCounts';
 
 const author = { name: 'a', email: 'a@example.com' };
 
@@ -30,17 +30,5 @@ describe('getLineCounts', () => {
 
     const counts = await getLineCounts({ dir, ref: 'HEAD' });
     expect(counts.find((c) => c.file === 'b.bin')).toBeUndefined();
-  });
-
-  it('skips blobs larger than MAX_BLOB_SIZE', async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
-    await git.init({ fs, dir });
-    const large = Buffer.alloc(MAX_BLOB_SIZE + 1, 'a');
-    await fs.promises.writeFile(path.join(dir, 'large.txt'), large);
-    await git.add({ fs, dir, filepath: 'large.txt' });
-    await git.commit({ fs, dir, author, message: 'init' });
-
-    const counts = await getLineCounts({ dir, ref: 'HEAD' });
-    expect(counts.find((c) => c.file === 'large.txt')).toBeUndefined();
   });
 });

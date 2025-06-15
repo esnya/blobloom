@@ -8,9 +8,7 @@ export default {
       tsconfig: 'tsconfig.json',
     },
   },
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-  },
+  moduleNameMapper: {},
   testMatch: ['**/__tests__/**/*.test.ts'],
   collectCoverage: true,
   collectCoverageFrom: [

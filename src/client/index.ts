@@ -16,9 +16,7 @@ const stopButton = document.getElementById('stop') as HTMLButtonElement;
 const sim = document.getElementById('sim') as HTMLDivElement;
 const logContainer = document.getElementById('commit-log') as HTMLDivElement;
 const timestampEl = document.getElementById('timestamp') as HTMLDivElement;
-const simInstance = createFileSimulation(sim, {
-  now: () => Number(seek.value),
-});
+const simInstance = createFileSimulation(sim);
 const { update, resize } = simInstance;
 
 const updateTimestamp = () => {

@@ -1,6 +1,4 @@
 import type { LineCount } from './types.js';
-import type { MasterClock } from './clock.js';
-import { defaultClock } from './clock.js';
 import Matter from 'matter-js';
 const { Bodies, Body, Composite, Engine } = Matter;
 
@@ -8,7 +6,6 @@ const MIN_CIRCLE_SIZE = 1;
 const CHAR_ANIMATION_MS = 1500;
 export const EFFECT_DROP_THRESHOLD = 50;
 export const MAX_EFFECT_CHARS = 100;
-export const MAX_FILES = 1000;
 
 const fileColors: Record<string, string> = {
   '.ts': '#2b7489',
@@ -101,15 +98,13 @@ export const computeScale = (
 export const createFileSimulation = (
   container: HTMLElement,
   opts: {
-    clock?: MasterClock;
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;
   } = {},
 ) => {
-  const clock = opts.clock ?? defaultClock;
-  const raf = opts.raf ?? clock.request ?? requestAnimationFrame;
-  const now = opts.now ?? clock.now ?? performance.now.bind(performance);
+  const raf = opts.raf ?? requestAnimationFrame;
+  const now = opts.now ?? performance.now.bind(performance);
   let rect = container.getBoundingClientRect();
   let width = rect.width;
   let height = rect.height;
@@ -173,9 +168,7 @@ export const createFileSimulation = (
       return;
     }
     const { x, y } = info.body.position;
-    const spawnAdd = Math.min(add, MAX_EFFECT_CHARS);
-    const spawnRemove = Math.min(remove, MAX_EFFECT_CHARS);
-    for (let i = 0; i < spawnAdd; i++) {
+    for (let i = 0; i < add; i++) {
       const offset = {
         x: Math.random() * width - x,
         y: Math.random() * height - y,
@@ -185,7 +178,7 @@ export const createFileSimulation = (
         info.countEl.textContent = String(displayCounts[file]);
       });
     }
-    for (let i = 0; i < spawnRemove; i++) {
+    for (let i = 0; i < remove; i++) {
       const offset = {
         x: Math.random() * window.innerWidth - (rect.left + x),
         y: Math.random() * window.innerHeight - (rect.top + y),
@@ -194,11 +187,6 @@ export const createFileSimulation = (
         displayCounts[file]--;
         info.countEl.textContent = String(displayCounts[file]);
       });
-    }
-    const diff = add - remove - (spawnAdd - spawnRemove);
-    if (diff !== 0) {
-      displayCounts[file] = (displayCounts[file] ?? 0) + diff;
-      info.countEl.textContent = String(displayCounts[file]);
     }
   };
 
@@ -236,16 +224,16 @@ export const createFileSimulation = (
   Composite.add(engine.world, walls);
 
   const update = (data: LineCount[]): void => {
-    currentData = data.slice(0, MAX_FILES);
-    const scale = computeScale(width, height, currentData, { linear: opts.linear });
+    currentData = data;
+    const scale = computeScale(width, height, data, { linear: opts.linear });
     const exp = opts.linear ? 1 : 0.5;
-    const names = new Set(currentData.map((d) => d.file));
+    const names = new Set(data.map((d) => d.file));
     for (const [name, info] of Object.entries(bodies)) {
       if (!names.has(name)) {
         explodeAndRemove(name, info);
       }
     }
-    for (const file of currentData) {
+    for (const file of data) {
       const lines = Number.isFinite(file.lines) ? file.lines : 0;
       const r = (Math.pow(lines, exp) * scale) / 2;
       const existing = bodies[file.file];
@@ -308,11 +296,9 @@ export const createFileSimulation = (
   let last = now();
   let running = true;
   const step = (time: number): void => {
-    void time;
     if (!running) return;
-    const current = now();
-    Engine.update(engine, current - last);
-    last = current;
+    Engine.update(engine, time - last);
+    last = time;
     for (const { body, el, r } of Object.values(bodies)) {
       const { x, y } = body.position;
       el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
@@ -358,7 +344,6 @@ export const renderFileSimulation = (
   container: HTMLElement,
   data: LineCount[],
   opts: {
-    clock?: MasterClock;
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;

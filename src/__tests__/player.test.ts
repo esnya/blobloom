@@ -60,6 +60,39 @@ describe('createPlayer', () => {
     expect(player.isPlaying()).toBe(false);
   });
 
+  it('increments seek on each frame', () => {
+    let seek = 0;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
+
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback) => {
+      callbacks.push(cb);
+      return 1;
+    };
+
+    const player = createPlayer({
+      getSeek,
+      setSeek,
+      duration: 1,
+      start: 0,
+      end: 5,
+      raf,
+      now: () => 0,
+    });
+
+    player.togglePlay();
+    callbacks[0]?.(0);
+    expect(seek).toBe(0);
+    callbacks[1]?.(500);
+    expect(seek).toBeCloseTo(2.5);
+    callbacks[2]?.(1000);
+    expect(seek).toBe(5);
+    expect(player.isPlaying()).toBe(false);
+  });
+
   it('calls setter during playback', () => {
     let seek = 0;
     const getSeek = () => seek;

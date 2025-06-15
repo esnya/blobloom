@@ -2,6 +2,8 @@
 
 Git size-history visualizer
 
+Requires Node.js 20 or later.
+
 ## Development
 
 Install dependencies and start the server:

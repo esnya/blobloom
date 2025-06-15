@@ -38,6 +38,21 @@ export const useFileSimulation = (
   return { update, pause, resume, setEffectsEnabled };
 };
 
+export const useFileSimulationRef = (
+  opts: {
+    raf?: (cb: FrameRequestCallback) => number;
+    now?: () => number;
+    linear?: boolean;
+  } = {},
+) => {
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const ref = useCallback((node: HTMLElement | null) => setEl(node), []);
+
+  const controls = useFileSimulation(el, opts);
+
+  return { ref, ...controls };
+};
+
 export const useAnimatedSimulation = (
   container: HTMLElement | null,
   data: LineCount[],

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { createFileSimulation } from '../lines';
+import React, { useEffect } from 'react';
+import { useFileSimulationRef } from '../hooks';
 import type { LineCount } from '../types';
 
 export interface SimulationAreaHandle {
@@ -14,29 +14,16 @@ interface SimulationAreaProps {
 }
 
 export function SimulationArea({ data, onReady }: SimulationAreaProps): React.JSX.Element {
-  const [sim, setSim] = useState<ReturnType<typeof createFileSimulation> | null>(null);
+  const { ref, update, pause, resume, setEffectsEnabled } = useFileSimulationRef();
 
   useEffect(() => {
-    const el = document.getElementById('sim');
-    if (!el) return;
-    const instance = createFileSimulation(el);
-    setSim(instance);
-    onReady?.({
-      pause: instance.pause,
-      resume: instance.resume,
-      setEffectsEnabled: instance.setEffectsEnabled,
-    });
-    window.addEventListener('resize', instance.resize);
-    return () => {
-      window.removeEventListener('resize', instance.resize);
-      instance.destroy();
-    };
-  }, [onReady]);
+    onReady?.({ pause, resume, setEffectsEnabled });
+  }, [onReady, pause, resume, setEffectsEnabled]);
 
   useEffect(() => {
-    if (data.length && sim) sim.update(data);
-  }, [data, sim]);
+    if (data.length) update(data);
+  }, [data, update]);
 
-  return <div id="sim" />;
+  return <div id="sim" ref={ref} />;
 }
 

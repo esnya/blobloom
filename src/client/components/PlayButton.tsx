@@ -1,5 +1,5 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { createPlayer } from '../player.js';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { usePlayer } from '../hooks/index.js';
 
 export interface PlayButtonHandle {
   stop: () => void;
@@ -19,28 +19,15 @@ export interface PlayButtonProps {
 export const PlayButton = forwardRef<PlayButtonHandle, PlayButtonProps>(
   ({ seekRef, durationRef, start, end, onPlayStateChange }, ref) => {
     const buttonRef = useRef<HTMLButtonElement>(null);
-    const playerRef = useRef<ReturnType<typeof createPlayer> | null>(null);
+    const { stop, pause, resume, isPlaying } = usePlayer(buttonRef, {
+      seekRef: seekRef as React.RefObject<HTMLInputElement>,
+      durationRef: durationRef as React.RefObject<HTMLInputElement>,
+      start,
+      end,
+      onPlayStateChange,
+    });
 
-    useEffect(() => {
-      if (!seekRef.current || !durationRef.current || !buttonRef.current) return;
-      const player = createPlayer({
-        seek: seekRef.current,
-        duration: durationRef.current,
-        playButton: buttonRef.current,
-        start,
-        end,
-        onPlayStateChange,
-      });
-      playerRef.current = player;
-      return () => player.pause();
-    }, [seekRef, durationRef, start, end, onPlayStateChange]);
-
-    useImperativeHandle(ref, () => ({
-      stop: () => playerRef.current?.stop(),
-      pause: () => playerRef.current?.pause(),
-      resume: () => playerRef.current?.resume(),
-      isPlaying: () => playerRef.current?.isPlaying() ?? false,
-    }));
+    useImperativeHandle(ref, () => ({ stop, pause, resume, isPlaying }));
 
     return <button ref={buttonRef}>Play</button>;
   },

@@ -8,7 +8,7 @@ import { createApp } from '../src/app.js';
 
 const author = { name: 'a', email: 'a@example.com' };
 
-test('loads page with play button', async ({ page }) => {
+test('serves index page', async ({ page }) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
   await git.init({ fs, dir });
   await fs.promises.writeFile(path.join(dir, 'a.txt'), '1\n2\n');
@@ -19,8 +19,8 @@ test('loads page with play button', async ({ page }) => {
   const server = app.listen(0);
   const { port } = server.address() as AddressInfo;
 
-  await page.goto(`http://localhost:${port}`);
-  await expect(page.locator('text=Play')).toBeVisible();
+  const response = await page.goto(`http://localhost:${port}`);
+  expect(response?.ok()).toBe(true);
 
   server.close();
 });

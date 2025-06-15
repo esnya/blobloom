@@ -9,6 +9,7 @@
     "lint": "eslint \"**/*.ts?(x)\" --max-warnings=0",
     "build": "tsc -p tsconfig.client.json",
     "test": "jest",
+    "test:playwright": "playwright test",
     "rename-demo": "tsx src/renameDemo.ts"
   },
   "dependencies": {
@@ -20,18 +21,20 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
+    "@playwright/test": "^1.53.0",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^16.3.0",
     "@types/express": "^5.0.3",
     "@types/jest": "^29.5.14",
     "@types/matter-js": "^0.19.8",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
     "eslint": "^9.29.0",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/jest-dom": "^6.4.2",
+    "playwright": "^1.53.0",
     "ts-jest": "^29.4.0",
     "tsx": "^4.6.3",
     "typescript": "^5.2.2"

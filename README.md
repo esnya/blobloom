@@ -21,12 +21,15 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Headless Tests
 
-Playwright can run browser-based tests, but downloading browsers exceeds 100MB and is blocked in CI.
-Install it manually and run tests only when front-end code changes:
+Playwright is included as a development dependency. Install browsers once:
 
 ```bash
-npm install --no-save playwright
-npx playwright install chromium
-npx playwright test
+npx playwright install
+```
+
+Run end-to-end tests with:
+
+```bash
+npm run test:playwright
 ```
 Playwright tests live in the `playwright` directory.

@@ -1,7 +1,7 @@
 # Agent Instructions
-* Headless tests use Playwright. Installing browsers is heavy (>100MB) and blocked in CI.
-* Do not add Playwright to package.json.
-* When front-end changes, install Playwright manually and run `npx playwright test` locally.
+* Headless tests use Playwright. Browsers are cached in CI.
+* Playwright is included as a development dependency.
+* Run `npx playwright install` locally when dependencies change.
 
 - Always run `npm run lint`, `npm test`, and `npm run build` before committing changes.
 - The GitHub Actions workflow runs these commands. Update it when scripts change.

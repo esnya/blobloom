@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useState, useCallback } from 'react';
 import Matter from 'matter-js';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
 import { colorForFile } from '../lines';
@@ -49,7 +49,7 @@ export function FileCircle({
     };
   }, [engine, body]);
 
-  const updateRadius = (r: number): void => {
+  const updateRadius = useCallback((r: number): void => {
     if (r === radius) return;
     Body.scale(body, r / radius, r / radius);
     setRadius(r);
@@ -58,7 +58,7 @@ export function FileCircle({
       el.style.width = `${r * 2}px`;
       el.style.height = `${r * 2}px`;
     }
-  };
+  }, [radius, body, containerId]);
 
   useEffect(() => {
     if (!contentHandle) return;
@@ -68,7 +68,7 @@ export function FileCircle({
       updateRadius,
       ...contentHandle,
     });
-  }, [contentHandle, onReady, body, radius]);
+  }, [contentHandle, onReady, body, radius, updateRadius]);
 
   const dir = file.split('/');
   const name = dir.pop() ?? '';

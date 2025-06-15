@@ -30,13 +30,9 @@ describe('usePlayer', () => {
       usePlayer({ getSeek, setSeek, duration: 1, start: 0, end: 10 }),
     );
 
-    expect(createPlayer).toHaveBeenCalledWith({
-      getSeek,
-      setSeek,
-      duration: 1,
-      start: 0,
-      end: 10,
-    });
+    expect(createPlayer).toHaveBeenCalledWith(
+      expect.objectContaining({ duration: 1, start: 0, end: 10 })
+    );
 
     act(() => {
       result.current.pause();

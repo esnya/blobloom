@@ -1,4 +1,8 @@
 import type { LineCount } from './types';
+import React from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { flushSync } from 'react-dom';
+import { FileCircleContent } from './components/FileCircleContent';
 import Matter from 'matter-js';
 const { Bodies, Body, Composite, Engine } = Matter;
 
@@ -67,6 +71,7 @@ interface BodyInfo {
   r: number;
   countEl: HTMLDivElement;
   charsEl: HTMLDivElement;
+  root: Root;
 }
 
 export const computeScale = (
@@ -197,6 +202,7 @@ export const createFileSimulation = (
   };
 
   const explodeAndRemove = (name: string, info: BodyInfo): void => {
+    info.root.unmount();
     const count = Math.max(3, Math.floor(info.r / 5));
     // hide the circle immediately while preserving the chars container
     for (const child of Array.from(info.el.children)) {
@@ -282,26 +288,37 @@ export const createFileSimulation = (
         el.style.willChange = 'transform';
         const dir = file.file.split('/');
         const name = dir.pop() ?? '';
-        const pathEl = document.createElement('div');
-        pathEl.className = 'path';
-        pathEl.textContent = dir.join('/') + (dir.length ? '/' : '');
-        const nameEl = document.createElement('div');
-        nameEl.className = 'name';
-        nameEl.textContent = name;
-        const countEl = document.createElement('div');
-        countEl.className = 'count';
-        countEl.textContent = String(lines);
-        const charsEl = document.createElement('div');
-        charsEl.className = 'chars';
-        el.append(pathEl, nameEl, countEl, charsEl);
+        const countRef = React.createRef<HTMLDivElement>();
+        const charsRef = React.createRef<HTMLDivElement>();
+        const root = createRoot(el);
+        flushSync(() =>
+          root.render(
+            <FileCircleContent
+              path={dir.join('/') + (dir.length ? '/' : '')}
+              name={name}
+              count={lines}
+              countRef={countRef}
+              charsRef={charsRef}
+            />,
+          ),
+        );
         container.appendChild(el);
+        const countEl = countRef.current as HTMLDivElement;
+        const charsEl = charsRef.current as HTMLDivElement;
         const body = Bodies.circle(
           Math.random() * (width - 2 * r) + r,
           -Math.random() * height - r,
           r,
           { restitution: 0.9, frictionAir: 0.01 },
         );
-        bodies[file.file] = { el, body, r, countEl, charsEl };
+        bodies[file.file] = {
+          el,
+          body,
+          r,
+          countEl,
+          charsEl,
+          root,
+        };
         displayCounts[file.file] = lines;
         Composite.add(engine.world, body);
         spawnChars(bodies[file.file], file.file, added, removed);

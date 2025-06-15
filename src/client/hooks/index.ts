@@ -4,26 +4,29 @@ import { createPlayer } from '../player';
 import type { LineCount } from '../types';
 import type { PlayerOptions } from '../player';
 
+const DEFAULT_SIM_OPTS = {} as const;
+
 export const useFileSimulation = (
   container: HTMLElement | null,
-  opts: {
+  opts?: {
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;
-  } = {},
+  },
 ) => {
+  const options = opts ?? DEFAULT_SIM_OPTS;
   const [sim, setSim] = useState<ReturnType<typeof createFileSimulation> | null>(null);
 
   useEffect(() => {
     if (!container) return;
-    const instance = createFileSimulation(container, opts);
+    const instance = createFileSimulation(container, options);
     setSim(instance);
     window.addEventListener('resize', instance.resize);
     return () => {
       window.removeEventListener('resize', instance.resize);
       instance.destroy();
     };
-  }, [container, opts]);
+  }, [container, options]);
 
   const update = useCallback((data: LineCount[]) => {
     sim?.update(data);
@@ -39,16 +42,17 @@ export const useFileSimulation = (
 };
 
 export const useFileSimulationRef = (
-  opts: {
+  opts?: {
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;
-  } = {},
+  },
 ) => {
+  const options = opts ?? DEFAULT_SIM_OPTS;
   const [el, setEl] = useState<HTMLElement | null>(null);
   const ref = useCallback((node: HTMLElement | null) => setEl(node), []);
 
-  const controls = useFileSimulation(el, opts);
+  const controls = useFileSimulation(el, options);
 
   return { ref, ...controls };
 };
@@ -56,13 +60,14 @@ export const useFileSimulationRef = (
 export const useAnimatedSimulation = (
   container: HTMLElement | null,
   data: LineCount[],
-  opts: {
+  opts?: {
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;
-  } = {},
+  },
 ) => {
-  const { update, pause, resume, setEffectsEnabled } = useFileSimulation(container, opts);
+  const options = opts ?? DEFAULT_SIM_OPTS;
+  const { update, pause, resume, setEffectsEnabled } = useFileSimulation(container, options);
 
   useEffect(() => {
     if (data.length) update(data);

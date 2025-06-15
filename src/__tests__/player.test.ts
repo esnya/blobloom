@@ -1,84 +1,39 @@
-/** @jest-environment jsdom */
 import { createPlayer } from '../client/player';
 
 describe('createPlayer', () => {
   it('toggles playback and calls raf', () => {
-    document.body.innerHTML = `
-      <button id="play"></button>
-      <input id="seek" />
-      <input id="duration" />
-    `;
-    const playButton = document.getElementById('play') as HTMLButtonElement;
-    const seek = document.getElementById('seek') as HTMLInputElement;
-    const duration = document.getElementById('duration') as HTMLInputElement;
-    duration.value = '20';
+    let seek = 0;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
 
     const raf = jest.fn();
     const now = jest.fn(() => 0);
 
-    createPlayer({
-      seek,
-      duration,
-      playButton,
+    const player = createPlayer({
+      getSeek,
+      setSeek,
+      duration: 20,
       start: 0,
       end: 10,
       raf,
       now,
     });
 
-    playButton.click();
-    expect(playButton.textContent).toBe('Pause');
+    player.togglePlay();
+    expect(player.isPlaying()).toBe(true);
     expect(raf).toHaveBeenCalled();
 
-    playButton.click();
-    expect(playButton.textContent).toBe('Play');
+    player.togglePlay();
+    expect(player.isPlaying()).toBe(false);
   });
   it('advances to end and stops', () => {
-    document.body.innerHTML = `
-    <button id="play"></button>
-    <input id="seek" />
-    <input id="duration" />
-  `;
-  const playButton = document.getElementById('play') as HTMLButtonElement;
-  const seek = document.getElementById('seek') as HTMLInputElement;
-  const duration = document.getElementById('duration') as HTMLInputElement;
-  duration.value = '1';
-
-  const callbacks: FrameRequestCallback[] = [];
-  const raf = (cb: FrameRequestCallback) => {
-    callbacks.push(cb);
-    return 1;
-  };
-
-  const player = createPlayer({
-    seek,
-    duration,
-    playButton,
-    start: 0,
-    end: 5,
-    raf,
-    now: () => 0,
-  });
-
-  player.togglePlay();
-  callbacks[0]?.(0);
-  callbacks[1]?.(500);
-  callbacks[2]?.(1000);
-
-  expect(seek.value).toBe('5');
-  expect(playButton.textContent).toBe('Play');
-  });
-
-  it('dispatches input events during playback', () => {
-    document.body.innerHTML = `
-      <button id="play"></button>
-      <input id="seek" />
-      <input id="duration" />
-    `;
-    const playButton = document.getElementById('play') as HTMLButtonElement;
-    const seek = document.getElementById('seek') as HTMLInputElement;
-    const duration = document.getElementById('duration') as HTMLInputElement;
-    duration.value = '1';
+    let seek = 0;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
 
     const callbacks: FrameRequestCallback[] = [];
     const raf = (cb: FrameRequestCallback) => {
@@ -86,13 +41,42 @@ describe('createPlayer', () => {
       return 1;
     };
 
-    const listener = jest.fn();
-    seek.addEventListener('input', listener);
+    const player = createPlayer({
+      getSeek,
+      setSeek,
+      duration: 1,
+      start: 0,
+      end: 5,
+      raf,
+      now: () => 0,
+    });
+
+    player.togglePlay();
+    callbacks[0]?.(0);
+    callbacks[1]?.(500);
+    callbacks[2]?.(1000);
+
+    expect(seek).toBe(5);
+    expect(player.isPlaying()).toBe(false);
+  });
+
+  it('calls setter during playback', () => {
+    let seek = 0;
+    const getSeek = () => seek;
+    const setSeek = jest.fn((v: number) => {
+      seek = v;
+    });
+
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback) => {
+      callbacks.push(cb);
+      return 1;
+    };
 
     const player = createPlayer({
-      seek,
-      duration,
-      playButton,
+      getSeek,
+      setSeek,
+      duration: 1,
       start: 0,
       end: 2,
       raf,
@@ -103,26 +87,21 @@ describe('createPlayer', () => {
     callbacks[0]?.(0);
     callbacks[1]?.(1000);
 
-    expect(listener).toHaveBeenCalled();
+    expect(setSeek).toHaveBeenCalled();
   });
 
   it('pauses and resumes playback', () => {
-    document.body.innerHTML = `
-      <button id="play"></button>
-      <input id="seek" />
-      <input id="duration" />
-    `;
-    const playButton = document.getElementById('play') as HTMLButtonElement;
-    const seek = document.getElementById('seek') as HTMLInputElement;
-    const duration = document.getElementById('duration') as HTMLInputElement;
-    duration.value = '1';
-
     const raf = jest.fn();
+    let seek = 0;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
 
     const player = createPlayer({
-      seek,
-      duration,
-      playButton,
+      getSeek,
+      setSeek,
+      duration: 1,
       start: 0,
       end: 2,
       raf,
@@ -130,76 +109,62 @@ describe('createPlayer', () => {
     });
 
     player.resume();
-    expect(playButton.textContent).toBe('Pause');
+    expect(player.isPlaying()).toBe(true);
     player.pause();
-  expect(playButton.textContent).toBe('Play');
+    expect(player.isPlaying()).toBe(false);
   });
 
   it('stops and resets', () => {
-    document.body.innerHTML = `
-      <button id="play"></button>
-      <input id="seek" />
-      <input id="duration" />
-    `;
-    const playButton = document.getElementById('play') as HTMLButtonElement;
-    const seek = document.getElementById('seek') as HTMLInputElement;
-    const duration = document.getElementById('duration') as HTMLInputElement;
-    duration.value = '1';
+    let seek = 1;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
 
     const player = createPlayer({
-      seek,
-      duration,
-      playButton,
+      getSeek,
+      setSeek,
+      duration: 1,
       start: 0,
       end: 2,
       raf: jest.fn(),
       now: () => 0,
     });
 
-    seek.value = '1';
     player.stop();
-    expect(seek.value).toBe('0');
-    expect(playButton.textContent).toBe('Play');
+    expect(seek).toBe(0);
+    expect(player.isPlaying()).toBe(false);
   });
 
   it('resets when playing from end', () => {
-    document.body.innerHTML = `
-      <button id="play"></button>
-      <input id="seek" />
-      <input id="duration" />
-    `;
-    const playButton = document.getElementById('play') as HTMLButtonElement;
-    const seek = document.getElementById('seek') as HTMLInputElement;
-    const duration = document.getElementById('duration') as HTMLInputElement;
-    duration.value = '1';
+    let seek = 2;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
 
     const raf = jest.fn();
-    createPlayer({
-      seek,
-      duration,
-      playButton,
+    const player = createPlayer({
+      getSeek,
+      setSeek,
+      duration: 1,
       start: 0,
       end: 2,
       raf,
       now: () => 0,
     });
 
-    seek.value = '2';
-    playButton.click();
-    expect(seek.value).toBe('0');
-    expect(playButton.textContent).toBe('Pause');
+    player.togglePlay();
+    expect(seek).toBe(0);
+    expect(player.isPlaying()).toBe(true);
   });
 
   it('notifies play state changes', () => {
-    document.body.innerHTML = `
-      <button id="play"></button>
-      <input id="seek" />
-      <input id="duration" />
-    `;
-    const playButton = document.getElementById('play') as HTMLButtonElement;
-    const seek = document.getElementById('seek') as HTMLInputElement;
-    const duration = document.getElementById('duration') as HTMLInputElement;
-    duration.value = '1';
+    let seek = 0;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
 
     const callbacks: FrameRequestCallback[] = [];
     const raf = (cb: FrameRequestCallback) => {
@@ -210,9 +175,9 @@ describe('createPlayer', () => {
     const stateListener = jest.fn();
 
     const player = createPlayer({
-      seek,
-      duration,
-      playButton,
+      getSeek,
+      setSeek,
+      duration: 1,
       start: 0,
       end: 2,
       raf,

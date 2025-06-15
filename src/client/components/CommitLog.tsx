@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { JSX } from 'react';
 import type { Commit } from '../types.js';
 
 export interface CommitLogProps {

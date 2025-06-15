@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { fetchCommits } from './api';
+import { fetchCommits, fetchLineCounts } from './api';
+import type { LineCount } from './types';
 import { CommitLog } from './components/CommitLog';
 import { DurationInput } from './components/DurationInput';
 import { PlayButton } from './components/PlayButton';
@@ -14,6 +15,7 @@ export function App(): React.JSX.Element {
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
   const [timestamp, setTimestamp] = useState(0);
+  const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const [ready, setReady] = useState(false);
 
   const seekRef = useRef<HTMLInputElement>(null);
@@ -37,6 +39,17 @@ export function App(): React.JSX.Element {
       setReady(true);
     })();
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    (async () => {
+      const counts = await fetchLineCounts(json, timestamp);
+      setLineCounts(counts);
+      if (timestamp >= end) {
+        console.log('[debug] physics area updated for final commit at', timestamp);
+      }
+    })();
+  }, [ready, timestamp, end]);
 
   useEffect(() => {
     if (!ready) return;
@@ -80,7 +93,7 @@ export function App(): React.JSX.Element {
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>
       {ready && (
         <>
-          <SimulationArea ref={simRef} json={json} timestamp={timestamp} end={end} />
+          <SimulationArea ref={simRef} data={lineCounts} />
           {seek && <CommitLog commits={commits} seek={seek} />}
         </>
       )}

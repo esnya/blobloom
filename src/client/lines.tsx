@@ -2,7 +2,10 @@ import type { LineCount } from './types';
 import React from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { FileCircleContent } from './components/FileCircleContent';
+import {
+  FileCircleContent,
+  type FileCircleContentHandle,
+} from './components/FileCircleContent';
 import Matter from 'matter-js';
 const { Bodies, Body, Composite, Engine } = Matter;
 
@@ -65,11 +68,12 @@ const colorForFile = (name: string): string => {
   return `hsl(${hue},60%,60%)`;
 };
 
+
 interface BodyInfo {
   el: HTMLElement;
   body: Matter.Body;
   r: number;
-  countEl: HTMLDivElement;
+  handle: FileCircleContentHandle;
   charsEl: HTMLDivElement;
   root: Root;
 }
@@ -124,12 +128,6 @@ export const createFileSimulation = (
   let effectsEnabled = false;
   let activeCharCount = 0;
 
-  const addGlow = (el: HTMLElement, cls: string, ms = 500): void => {
-    if (!effectsEnabled) return;
-    el.classList.add(cls);
-    setTimeout(() => el.classList.remove(cls), ms);
-  };
-
   const spawnChar = (
     parent: HTMLElement,
     cls: string,
@@ -175,7 +173,7 @@ export const createFileSimulation = (
   ): void => {
     if (!effectsEnabled) {
       displayCounts[file] = (displayCounts[file] ?? 0) + add - remove;
-      info.countEl.textContent = String(displayCounts[file]);
+      info.handle.setCount(displayCounts[file]);
       return;
     }
     const { x, y } = info.body.position;
@@ -186,7 +184,7 @@ export const createFileSimulation = (
       };
       spawnChar(info.charsEl, 'add-char', offset, () => {
         displayCounts[file]++;
-        info.countEl.textContent = String(displayCounts[file]);
+        info.handle.setCount(displayCounts[file]);
       });
     }
     for (let i = 0; i < remove; i++) {
@@ -196,7 +194,7 @@ export const createFileSimulation = (
       };
       spawnChar(info.charsEl, 'remove-char', offset, () => {
         displayCounts[file]--;
-        info.countEl.textContent = String(displayCounts[file]);
+        info.handle.setCount(displayCounts[file]);
       });
     }
   };
@@ -275,8 +273,10 @@ export const createFileSimulation = (
         existing.el.style.width = `${r * 2}px`;
         existing.el.style.height = `${r * 2}px`;
         spawnChars(existing, file.file, added, removed);
-        if (added > removed) addGlow(existing.el, 'glow-grow');
-        else if (removed > added) addGlow(existing.el, 'glow-shrink');
+        if (effectsEnabled) {
+          if (added > removed) existing.handle.showGlow('glow-grow');
+          else if (removed > added) existing.handle.showGlow('glow-shrink');
+        }
       } else {
         const el = document.createElement('div');
         el.className = 'file-circle';
@@ -288,8 +288,8 @@ export const createFileSimulation = (
         el.style.willChange = 'transform';
         const dir = file.file.split('/');
         const name = dir.pop() ?? '';
-        const countRef = React.createRef<HTMLDivElement>();
-        const charsRef = React.createRef<HTMLDivElement>();
+        const contentRef = React.createRef<FileCircleContentHandle>();
+        const containerObj = { current: el } as React.RefObject<HTMLDivElement>;
         const root = createRoot(el);
         flushSync(() =>
           root.render(
@@ -297,14 +297,13 @@ export const createFileSimulation = (
               path={dir.join('/') + (dir.length ? '/' : '')}
               name={name}
               count={lines}
-              countRef={countRef}
-              charsRef={charsRef}
+              container={containerObj}
+              ref={contentRef}
             />,
           ),
         );
         container.appendChild(el);
-        const countEl = countRef.current as HTMLDivElement;
-        const charsEl = charsRef.current as HTMLDivElement;
+        const { charsEl } = contentRef.current as FileCircleContentHandle;
         const body = Bodies.circle(
           Math.random() * (width - 2 * r) + r,
           -Math.random() * height - r,
@@ -315,14 +314,14 @@ export const createFileSimulation = (
           el,
           body,
           r,
-          countEl,
-          charsEl,
+          handle: contentRef.current as FileCircleContentHandle,
+          charsEl: charsEl as HTMLDivElement,
           root,
         };
         displayCounts[file.file] = lines;
         Composite.add(engine.world, body);
         spawnChars(bodies[file.file], file.file, added, removed);
-        addGlow(el, 'glow-new');
+        if (effectsEnabled) bodies[file.file].handle.showGlow('glow-new');
       }
     }
   };

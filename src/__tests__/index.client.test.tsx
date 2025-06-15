@@ -18,8 +18,15 @@ describe('client index', () => {
       if (typeof input === 'string' && input.startsWith('/api/lines')) {
         return Promise.resolve({ json: () => Promise.resolve([]) });
       }
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      return Promise.reject(new Error(`Unexpected url: ${String(input)}`));
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input instanceof Request
+              ? input.url
+              : '';
+      return Promise.reject(new Error(`Unexpected url: ${url}`));
     }) as jest.Mock;
   });
 

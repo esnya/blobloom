@@ -4,11 +4,11 @@ import type { LineCount } from './types';
 import { CommitLog } from './components/CommitLog';
 import { DurationInput } from './components/DurationInput';
 import { PlayButton } from './components/PlayButton';
-import type { PlayButtonHandle } from './components/PlayButton';
 import { SeekBar } from './components/SeekBar';
 import { SimulationArea } from './components/SimulationArea';
 import type { SimulationAreaHandle } from './components/SimulationArea';
 import type { Commit } from './types';
+import { usePlayer } from './hooks';
 
 export function App(): React.JSX.Element {
   const [commits, setCommits] = useState<Commit[]>([]);
@@ -20,8 +20,15 @@ export function App(): React.JSX.Element {
 
   const seekRef = useRef<HTMLInputElement | null>(null);
   const [seek, setSeek] = useState<HTMLInputElement | null>(null);
-  const durationRef = useRef<HTMLInputElement>(null);
-  const playerRef = useRef<PlayButtonHandle>(null);
+  const [duration, setDuration] = useState(20);
+  const { togglePlay, stop, pause, resume, isPlaying, playing } = usePlayer({
+    getSeek: () => timestamp,
+    setSeek: setTimestamp,
+    duration,
+    start,
+    end,
+    onPlayStateChange: (p) => simRef.current?.setEffectsEnabled(p),
+  });
   const simRef = useRef<SimulationAreaHandle>(null);
   const wasPlaying = useRef(false);
 
@@ -55,12 +62,12 @@ export function App(): React.JSX.Element {
     if (!ready) return;
     const onVisibility = () => {
       if (document.hidden) {
-        wasPlaying.current = playerRef.current?.isPlaying() ?? false;
-        playerRef.current?.pause();
+        wasPlaying.current = isPlaying();
+        pause();
         simRef.current?.pause();
       } else {
         simRef.current?.resume();
-        if (wasPlaying.current) playerRef.current?.resume();
+        if (wasPlaying.current) resume();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
@@ -78,17 +85,10 @@ export function App(): React.JSX.Element {
     <>
       {ready && (
         <div id="controls">
-          <PlayButton
-            ref={playerRef}
-            seekRef={seekRef}
-            durationRef={durationRef}
-            start={start}
-            end={end}
-            onPlayStateChange={(p) => simRef.current?.setEffectsEnabled(p)}
-          />
-          <button onClick={() => playerRef.current?.stop()}>Stop</button>
+          <PlayButton playing={playing} onToggle={togglePlay} />
+          <button onClick={stop}>Stop</button>
           <SeekBar value={timestamp} onInput={setTimestamp} />
-          <DurationInput ref={durationRef} />s
+          <DurationInput onInput={setDuration} defaultValue={duration} />s
         </div>
       )}
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>

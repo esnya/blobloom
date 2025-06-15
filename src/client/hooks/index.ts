@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createFileSimulation } from '../lines';
 import { createPlayer } from '../player';
 import type { LineCount } from '../types';
@@ -59,37 +60,38 @@ export const useAnimatedSimulation = (
   return { pause, resume, setEffectsEnabled };
 };
 
-export const usePlayer = (
-  buttonRef: React.RefObject<HTMLButtonElement | null>,
-  options: Omit<PlayerOptions, 'playButton' | 'seek' | 'duration'> & {
-    seekRef: React.RefObject<HTMLInputElement | null>;
-    durationRef: React.RefObject<HTMLInputElement | null>;
-  },
-) => {
-  const { seekRef, durationRef, ...opts } = options;
+export interface UsePlayerResult {
+  stop: () => void;
+  pause: () => void;
+  resume: () => void;
+  togglePlay: () => void;
+  isPlaying: () => boolean;
+  playing: boolean;
+}
+
+export const usePlayer = (options: PlayerOptions): UsePlayerResult => {
+  const [playing, setPlaying] = useState<boolean>(false);
   const playerRef = useRef<ReturnType<typeof createPlayer> | null>(null);
 
   useEffect(() => {
-    if (!buttonRef.current || !seekRef.current || !durationRef.current) return;
     const player = createPlayer({
-      seek: seekRef.current,
-      duration: durationRef.current,
-      playButton: buttonRef.current,
-      ...opts,
+      ...options,
+      onPlayStateChange: (state) => {
+        setPlaying(state);
+        if (options.onPlayStateChange) options.onPlayStateChange(state);
+      },
     });
     playerRef.current = player;
     return () => player.pause();
-  }, [buttonRef, seekRef, durationRef, opts]);
+  }, [options.getSeek, options.setSeek, options.duration, options.start, options.end]);
 
   const stop = useCallback(() => playerRef.current?.stop(), []);
   const pause = useCallback(() => playerRef.current?.pause(), []);
   const resume = useCallback(() => playerRef.current?.resume(), []);
-  const isPlaying = useCallback(
-    () => playerRef.current?.isPlaying() ?? false,
-    [],
-  );
+  const togglePlay = useCallback(() => playerRef.current?.togglePlay(), []);
+  const isPlaying = useCallback(() => playerRef.current?.isPlaying() ?? false, []);
 
-  return { stop, pause, resume, isPlaying };
+  return { stop, pause, resume, togglePlay, isPlaying, playing };
 };
 
 export { useCssAnimation, makeUseCssAnimation } from './useCssAnimation';

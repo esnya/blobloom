@@ -1,6 +1,6 @@
 import express from 'express';
 import { Command } from 'commander';
-import { createApiMiddlewareFromApp } from './apiMiddleware';
+import { apiMiddleware } from './apiMiddleware';
 import { appSettings } from './appSettings';
 
 const defaultIgnore = [
@@ -38,7 +38,7 @@ app.set(appSettings.branch.description!, branch);
 app.set(appSettings.ignore.description!, ignore);
 
 app.use(express.static('dist'));
-app.use(createApiMiddlewareFromApp(app));
+app.use(apiMiddleware);
 
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);

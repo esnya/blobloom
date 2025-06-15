@@ -19,7 +19,6 @@ describe('lines module', () => {
   it('renders circles', async () => {
     const div = document.createElement('div');
     document.body.appendChild(div);
-    document.body.appendChild(div);
     div.getBoundingClientRect = () => ({
       width: 200,
       height: 200,

@@ -24,7 +24,10 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
 
   const start = Math.max(0, index - visible);
   const end = Math.min(commits.length, index + visible + 1);
-  const slice = commits.slice(start, end);
+  const slice = useMemo(
+    () => commits.slice(start, end),
+    [commits, start, end]
+  );
 
   const containerHeight = document.getElementById('commit-log')?.clientHeight ?? 1;
   const spanMs =
@@ -57,7 +60,7 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
     }
     setOffset(nextOffset);
     if (index === 0) container.dispatchEvent(new Event('end'));
-  }, [slice, timestamp, index, commits]);
+  }, [timestamp, index, commits]);
 
   return (
     <div id="commit-log">

@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { usePlayer } from '../hooks/index.js';
+import { usePlayer } from '../hooks';
 
 export interface PlayButtonHandle {
   stop: () => void;

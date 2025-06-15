@@ -1,7 +1,7 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { useFileSimulation } from '../hooks/index.js';
-import { fetchLineCounts } from '../api.js';
-import type { JsonFetcher } from '../api.js';
+import { useFileSimulation } from '../hooks';
+import { fetchLineCounts } from '../api';
+import type { JsonFetcher } from '../api';
 
 export interface SimulationAreaHandle {
   pause: () => void;

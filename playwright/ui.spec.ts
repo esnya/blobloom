@@ -4,7 +4,7 @@ import path from 'path';
 import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import { test, expect } from '@playwright/test';
-import { createApp } from '../src/app.js';
+import { createApp } from '../src/app';
 
 const author = { name: 'a', email: 'a@example.com' };
 

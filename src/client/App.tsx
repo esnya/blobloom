@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { fetchCommits } from './api.js';
-import { CommitLog } from './components/CommitLog.js';
-import { DurationInput } from './components/DurationInput.js';
-import { PlayButton } from './components/PlayButton.js';
-import type { PlayButtonHandle } from './components/PlayButton.js';
-import { SeekBar } from './components/SeekBar.js';
-import { SimulationArea } from './components/SimulationArea.js';
-import type { SimulationAreaHandle } from './components/SimulationArea.js';
-import type { Commit } from './types.js';
+import { fetchCommits } from './api';
+import { CommitLog } from './components/CommitLog';
+import { DurationInput } from './components/DurationInput';
+import { PlayButton } from './components/PlayButton';
+import type { PlayButtonHandle } from './components/PlayButton';
+import { SeekBar } from './components/SeekBar';
+import { SimulationArea } from './components/SimulationArea';
+import type { SimulationAreaHandle } from './components/SimulationArea';
+import type { Commit } from './types';
 
 export function App(): React.JSX.Element {
   const [commits, setCommits] = useState<Commit[]>([]);

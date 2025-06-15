@@ -225,4 +225,35 @@ describe('createPlayer', () => {
 
     expect(raf).toHaveBeenCalledTimes(2);
   });
+
+  it('handles reversed ranges', () => {
+    let seek = 10;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
+
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback) => {
+      callbacks.push(cb);
+      return 1;
+    };
+
+    const player = createPlayer({
+      getSeek,
+      setSeek,
+      duration: 1,
+      start: 10,
+      end: 0,
+      raf,
+      now: () => 0,
+    });
+
+    player.resume();
+    callbacks[0]?.(0);
+    callbacks[1]?.(1000);
+
+    expect(seek).toBe(0);
+    expect(player.isPlaying()).toBe(false);
+  });
 });

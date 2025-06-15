@@ -21,18 +21,28 @@ export const createPlayer = ({
 }: PlayerOptions) => {
   let playing = false;
   let lastTime = 0;
+  const forward = end >= start;
+  const rangeStart = forward ? start : end;
+  const rangeEnd = forward ? end : start;
+  const direction = forward ? 1 : -1;
 
   const tick = (time: number): void => {
     if (!playing) {
       return;
     }
     const total = duration * 1000;
-    const factor = (end - start) / total;
-    const dt = (time - lastTime) * factor;
+    const factor = (rangeEnd - rangeStart) / total;
+    const dt = (time - lastTime) * factor * direction;
     lastTime = time;
-    const next = Math.min(getSeek() + dt, end);
+    const next = Math.max(
+      rangeStart,
+      Math.min(rangeEnd, getSeek() + dt),
+    );
     setSeek(next);
-    if (next < end) {
+    if (
+      (forward && next < rangeEnd) ||
+      (!forward && next > rangeStart)
+    ) {
       raf(tick);
     } else {
       setPlaying(false);

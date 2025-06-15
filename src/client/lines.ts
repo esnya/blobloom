@@ -120,6 +120,7 @@ export const createFileSimulation = (
   let activeCharCount = 0;
 
   const addGlow = (el: HTMLElement, cls: string, ms = 500): void => {
+    if (!effectsEnabled) return;
     el.classList.add(cls);
     setTimeout(() => el.classList.remove(cls), ms);
   };

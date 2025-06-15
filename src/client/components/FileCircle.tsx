@@ -4,7 +4,7 @@ import { useBody } from '../hooks';
 import * as Physics from '../physics';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
 import { colorForFile } from '../lines';
-import { useGlowAnimation } from '../hooks';
+import { useGlowControl } from '../hooks';
 
 export interface FileCircleHandle extends FileCircleContentHandle {
   body: Physics.Body;
@@ -37,7 +37,7 @@ export function FileCircle({
   const containerRef = useRef<HTMLDivElement>(null);
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);
-  const [startGlow, glowProps] = useGlowAnimation();
+  const { startGlow, glowProps } = useGlowControl();
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
     Physics.Body.setPosition(body, {

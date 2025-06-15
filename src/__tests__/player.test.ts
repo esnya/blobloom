@@ -199,7 +199,7 @@ describe('createPlayer', () => {
       seek = v;
     };
 
-    let cb: any = null;
+    let cb: FrameRequestCallback = () => {};
     const raf = jest.fn((fn: FrameRequestCallback) => {
       cb = fn;
       return 1;
@@ -217,11 +217,11 @@ describe('createPlayer', () => {
 
     player.resume();
     expect(raf).toHaveBeenCalledTimes(1);
-    if (cb) cb(0 as unknown as DOMHighResTimeStamp);
+    cb?.(0 as unknown as DOMHighResTimeStamp);
     expect(raf).toHaveBeenCalledTimes(2);
 
     player.pause();
-    if (cb) cb(16 as unknown as DOMHighResTimeStamp);
+    cb?.(16 as unknown as DOMHighResTimeStamp);
 
     expect(raf).toHaveBeenCalledTimes(2);
   });

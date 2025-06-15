@@ -44,11 +44,19 @@ export const useTimelinePlayback = ({
 
   useEffect(() => {
     if (!json || !ready) return;
-    void (async () => {
-      const counts = await fetchLineCounts(json, timestamp);
-      setLineCounts(counts);
-    })();
-  }, [json, ready, timestamp]);
+    let prev = NaN;
+    let frameId = 0;
+    const step = (): void => {
+      if (prev !== timestamp) {
+        prev = timestamp;
+        void fetchLineCounts(json, timestamp).then(setLineCounts);
+        void fetchCommits(json).then(setCommits);
+      }
+      frameId = (raf ?? requestAnimationFrame)(step);
+    };
+    frameId = (raf ?? requestAnimationFrame)(step);
+    return () => cancelAnimationFrame(frameId);
+  }, [json, raf, ready, timestamp]);
 
   const hidden = usePageVisibility();
   const [wasPlaying, setWasPlaying] = useState(false);

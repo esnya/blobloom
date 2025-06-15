@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createFileSimulation } from '../lines';
 import { createPlayer } from '../player';
 import type { LineCount } from '../types';
@@ -73,33 +73,35 @@ export const useAnimatedSimulation = (
 
 export const usePlayer = (options: PlayerOptions) => {
   const { onPlayStateChange, getSeek, setSeek, raf, now, ...rest } = options;
-  const getSeekRef = useRef(getSeek);
-  const setSeekRef = useRef(setSeek);
-  const onPlayStateChangeRef = useRef(onPlayStateChange);
+  const [refs] = useState(() => ({
+    getSeek,
+    setSeek,
+    onPlayStateChange,
+  }));
 
   useEffect(() => {
-    getSeekRef.current = getSeek;
-  }, [getSeek]);
+    refs.getSeek = getSeek;
+  }, [getSeek, refs]);
 
   useEffect(() => {
-    setSeekRef.current = setSeek;
-  }, [setSeek]);
+    refs.setSeek = setSeek;
+  }, [setSeek, refs]);
 
   useEffect(() => {
-    onPlayStateChangeRef.current = onPlayStateChange;
-  }, [onPlayStateChange]);
+    refs.onPlayStateChange = onPlayStateChange;
+  }, [onPlayStateChange, refs]);
 
   const [player, setPlayer] = useState<ReturnType<typeof createPlayer> | null>(null);
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     const instance = createPlayer({
-      getSeek: () => getSeekRef.current(),
-      setSeek: (v) => setSeekRef.current(v),
+      getSeek: () => refs.getSeek(),
+      setSeek: (v) => refs.setSeek(v),
       ...(raf ? { raf } : {}),
       ...(now ? { now } : {}),
       ...(onPlayStateChange
-        ? { onPlayStateChange: (p) => onPlayStateChangeRef.current?.(p) }
+        ? { onPlayStateChange: (p) => refs.onPlayStateChange?.(p) }
         : {}),
       ...rest,
     });

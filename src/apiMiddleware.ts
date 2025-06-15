@@ -4,14 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import { getLineCounts, LineCount } from './lineCounts';
 
-export interface CreateAppOptions {
-  repo: string;
+export interface CreateApiMiddlewareOptions {
+  repo?: string;
   branch?: string;
   ignore?: string[];
-  serveStatic?: boolean;
 }
 
-export const createApp = async ({ repo, branch: inputBranch, ignore = [], serveStatic = true }: CreateAppOptions) => {
+export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputBranch, ignore = [] }: CreateApiMiddlewareOptions = {}) => {
   const repoDir = path.resolve(repo);
   if (!fs.existsSync(path.join(repoDir, '.git'))) {
     throw new Error(`${repoDir} is not a git repository.`);
@@ -29,17 +28,13 @@ export const createApp = async ({ repo, branch: inputBranch, ignore = [], serveS
   const commits = await git.log({ fs, dir: repoDir, ref: branch });
   const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch, ignore });
 
-  const app = express();
+  const router = express.Router();
 
-  if (serveStatic) {
-    app.use(express.static('dist'));
-  }
-
-  app.get('/api/commits', (_, res) => {
+  router.get('/api/commits', (_, res) => {
     res.json(commits);
   });
 
-  app.get('/api/lines', async (req, res) => {
+  router.get('/api/lines', async (req, res) => {
     const tsParam = req.query.ts as string | undefined;
     if (tsParam) {
       const ts = Number(tsParam) / 1000;
@@ -59,5 +54,5 @@ export const createApp = async ({ repo, branch: inputBranch, ignore = [], serveS
     }
   });
 
-  return app;
+  return router;
 };

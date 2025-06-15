@@ -3,7 +3,8 @@ import os from 'os';
 import path from 'path';
 import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
-import { createApp } from '../app';
+import express from 'express';
+import { createApiMiddleware } from '../apiMiddleware';
 import { fetchCommits, fetchLineCounts, JsonFetcher } from '../client/api';
 
 const author = { name: 'a', email: 'a@example.com' };
@@ -20,7 +21,8 @@ describe('server e2e', () => {
     await git.add({ fs, dir, filepath: 'a.txt' });
     await git.commit({ fs, dir, author, message: 'init' });
 
-    const app = await createApp({ repo: dir, branch: 'HEAD' });
+    const app = express();
+    app.use(await createApiMiddleware({ repo: dir, branch: 'HEAD' }));
     const server = app.listen(0);
     const { port } = server.address() as AddressInfo;
 

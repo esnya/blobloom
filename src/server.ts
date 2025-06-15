@@ -1,5 +1,6 @@
+import express from 'express';
 import { Command } from 'commander';
-import { createApp } from './app';
+import { createApiMiddleware } from './apiMiddleware';
 
 const defaultIgnore = [
   '**/*.lock',
@@ -17,7 +18,6 @@ const collect = (val: string, acc: string[]): string[] => acc.concat(val.split('
 
 const program = new Command();
 program
-  .option('-r, --repo <path>', 'path to the git repository', process.cwd())
   .option('-b, --branch <name>', 'branch to inspect')
   .option('-H, --host <host>', 'host name to listen on', 'localhost')
   .option('-p, --port <number>', 'port to listen on', (v) => Number(v), 3000)
@@ -25,15 +25,16 @@ program
 
 program.parse();
 
-const { repo, host, port, branch, ignore } = program.opts<{
-  repo: string;
+const { host, port, branch, ignore } = program.opts<{
   host: string;
   port: number;
   branch?: string;
   ignore: string[];
 }>();
 
-const app = await createApp({ repo, branch, ignore });
+const app = express();
+app.use(express.static('dist'));
+app.use(await createApiMiddleware({ branch, ignore }));
 
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);

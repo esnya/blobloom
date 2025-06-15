@@ -4,7 +4,8 @@ import path from 'path';
 import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import { test, expect } from '@playwright/test';
-import { createApp } from '../src/app';
+import express from 'express';
+import { createApiMiddleware } from '../src/apiMiddleware';
 
 const author = { name: 'a', email: 'a@example.com' };
 
@@ -15,7 +16,9 @@ test('serves index page', async ({ page }) => {
   await git.add({ fs, dir, filepath: 'a.txt' });
   await git.commit({ fs, dir, author, message: 'init' });
 
-  const app = await createApp({ repo: dir, branch: 'HEAD' });
+  const app = express();
+  app.use(express.static('dist'));
+  app.use(await createApiMiddleware({ repo: dir, branch: 'HEAD' }));
   const server = app.listen(0);
   const { port } = server.address() as AddressInfo;
 

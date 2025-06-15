@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite';
+import type { NextHandleFunction } from 'connect';
 import { createApiMiddleware } from './apiMiddleware';
 
 export default function viteExpress(): Plugin {
@@ -7,7 +8,7 @@ export default function viteExpress(): Plugin {
     async configureServer(server) {
       const middleware = await createApiMiddleware();
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      server.middlewares.use(middleware);
+      server.middlewares.use(middleware as unknown as NextHandleFunction);
     },
   };
 }

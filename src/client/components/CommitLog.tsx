@@ -33,7 +33,10 @@ export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): Reac
   const containerHeight = containerRef.current?.clientHeight ?? 1;
   const spanMs =
     slice.length > 1
-      ? (slice[0].commit.committer.timestamp - slice[slice.length - 1].commit.committer.timestamp) * 1000
+      ?
+          (slice[0]!.commit.committer.timestamp -
+            slice[slice.length - 1]!.commit.committer.timestamp) *
+          1000
       : 1;
   const msPerPx = spanMs / Math.max(containerHeight, 1);
 
@@ -49,9 +52,9 @@ export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): Reac
     const prevLi = current.previousElementSibling as HTMLLIElement | null;
     if (prevCommit && prevLi) {
       const diffMs =
-        (prevCommit.commit.committer.timestamp - commits[index].commit.committer.timestamp) * 1000;
+        (prevCommit.commit.committer.timestamp - commits[index]!.commit.committer.timestamp) * 1000;
       const ratio =
-        (timestamp - commits[index].commit.committer.timestamp * 1000) / diffMs;
+        (timestamp - commits[index]!.commit.committer.timestamp * 1000) / diffMs;
       const prevCenter = prevLi.offsetTop + prevLi.offsetHeight / 2;
       const currCenter = current.offsetTop + current.offsetHeight / 2;
       nextOffset -= (prevCenter - currCenter) * ratio;
@@ -70,7 +73,7 @@ export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): Reac
         {slice.map((c, i) => {
           const diff =
             i > 0
-              ? (slice[i - 1].commit.committer.timestamp - c.commit.committer.timestamp) * 1000
+              ? (slice[i - 1]!.commit.committer.timestamp - c.commit.committer.timestamp) * 1000
               : 0;
           const marginTop = i > 0 ? `${diff / msPerPx}px` : undefined;
           const isCurrent = start + i === index;

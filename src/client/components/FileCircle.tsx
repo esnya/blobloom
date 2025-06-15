@@ -9,6 +9,8 @@ export interface FileCircleHandle extends FileCircleContentHandle {
   body: Matter.Body;
   radius: number;
   updateRadius: (r: number) => void;
+  showGlow: (cls: string, ms?: number) => void;
+  hide: () => void;
 }
 
 interface FileCircleProps {
@@ -33,6 +35,8 @@ export function FileCircle({
   const containerId = useId();
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);
+  const [glow, setGlow] = useState('');
+  const [hidden, setHidden] = useState(false);
   const [body] = useState(() =>
     Bodies.circle(
       Math.random() * (width - 2 * initialRadius) + initialRadius,
@@ -60,6 +64,15 @@ export function FileCircle({
     }
   }, [radius, body, containerId]);
 
+  const showGlow = useCallback((cls: string, ms = 500): void => {
+    setGlow(cls);
+    setTimeout(() => setGlow(''), ms);
+  }, []);
+
+  const hide = useCallback((): void => {
+    setHidden(true);
+  }, []);
+
   useEffect(() => {
     if (!contentHandle) return;
     onReady?.({
@@ -67,22 +80,24 @@ export function FileCircle({
       radius,
       updateRadius,
       ...contentHandle,
+      showGlow,
+      hide,
     });
-  }, [contentHandle, onReady, body, radius, updateRadius]);
+  }, [contentHandle, onReady, body, radius, updateRadius, showGlow, hide]);
 
   const dir = file.split('/');
   const name = dir.pop() ?? '';
 
   return (
     <div
-      className="file-circle"
+      className={`file-circle ${glow}`}
       id={containerId}
       style={{
         position: 'absolute',
         width: `${radius * 2}px`,
         height: `${radius * 2}px`,
         borderRadius: '50%',
-        background: colorForFile(file),
+        background: hidden ? 'transparent' : colorForFile(file),
         willChange: 'transform',
       }}
     >
@@ -90,7 +105,7 @@ export function FileCircle({
         path={dir.join('/') + (dir.length ? '/' : '')}
         name={name}
         count={lines}
-        containerId={containerId}
+        hidden={hidden}
         onReady={setContentHandle}
       />
     </div>

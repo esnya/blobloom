@@ -71,7 +71,6 @@ interface BodyInfo {
   body: Matter.Body;
   r: number;
   handle?: FileCircleHandle;
-  charsEl?: HTMLDivElement;
   root: Root;
 }
 
@@ -126,7 +125,7 @@ export const createFileSimulation = (
   let activeCharCount = 0;
 
   const spawnChar = (
-    parent: HTMLElement,
+    handle: FileCircleHandle,
     cls: string,
     offset: { x: number; y: number },
     onEnd: () => void,
@@ -146,20 +145,10 @@ export const createFileSimulation = (
       return;
     }
     activeCharCount++;
-    const span = document.createElement('span');
-    span.className = cls;
-    span.textContent = Math.random().toString(36).charAt(2);
-    span.style.setProperty('--x', `${offset.x}px`);
-    span.style.setProperty('--y', `${offset.y}px`);
-    span.style.setProperty('--rotate', `${Math.random() * 360}deg`);
-    span.style.animationDelay = `${Math.random() * 0.5}s`;
-    if (color) span.style.color = color;
-    parent.appendChild(span);
-    span.addEventListener('animationend', () => {
-      span.remove();
+    handle.spawnChar(cls, offset, () => {
       activeCharCount--;
       onEnd();
-    });
+    }, color);
   };
 
   const spawnChars = (
@@ -173,14 +162,14 @@ export const createFileSimulation = (
       info.handle?.setCount(displayCounts[file]);
       return;
     }
-    if (!info.charsEl) return;
     const { x, y } = info.body.position;
     for (let i = 0; i < add; i++) {
       const offset = {
         x: Math.random() * width - x,
         y: Math.random() * height - y,
       };
-      spawnChar(info.charsEl, 'add-char', offset, () => {
+      if (!info.handle) continue;
+      spawnChar(info.handle, 'add-char', offset, () => {
         displayCounts[file] = (displayCounts[file] ?? 0) + 1;
         info.handle?.setCount(displayCounts[file]);
       });
@@ -190,7 +179,8 @@ export const createFileSimulation = (
         x: Math.random() * window.innerWidth - (rect.left + x),
         y: Math.random() * window.innerHeight - (rect.top + y),
       };
-      spawnChar(info.charsEl, 'remove-char', offset, () => {
+      if (!info.handle) continue;
+      spawnChar(info.handle, 'remove-char', offset, () => {
         displayCounts[file] = (displayCounts[file] ?? 0) - 1;
         info.handle?.setCount(displayCounts[file]);
       });
@@ -198,40 +188,25 @@ export const createFileSimulation = (
   };
 
   const explodeAndRemove = (name: string, info: BodyInfo): void => {
-    info.root.unmount();
-    const count = Math.max(3, Math.floor(info.r / 5));
-    // hide the circle immediately while preserving the chars container
-    for (const child of Array.from(info.el.children)) {
-      if (child !== info.charsEl) {
-        (child as HTMLElement).style.display = 'none';
-      }
-    }
-    info.el.style.background = 'transparent';
-    if (info.charsEl) {
+    if (info.handle) {
+      const count = Math.max(3, Math.floor(info.r / 5));
+      info.handle.hide();
       for (let i = 0; i < count; i++) {
         const offset = {
           x: Math.random() * window.innerWidth - (rect.left + info.body.position.x),
           y: Math.random() * window.innerHeight - (rect.top + info.body.position.y),
         };
-        spawnChar(info.charsEl, 'remove-char', offset, () => {});
+        spawnChar(info.handle, 'remove-char', offset, () => {});
       }
+      info.handle.showGlow('glow-disappear');
     }
     Composite.remove(engine.world, info.body);
-    const glow = document.createElement('div');
-    glow.className = 'file-circle glow-disappear';
-    glow.style.position = 'absolute';
-    glow.style.width = `${info.r * 2}px`;
-    glow.style.height = `${info.r * 2}px`;
-    glow.style.borderRadius = '50%';
-    glow.style.transform = info.el.style.transform;
-    container.appendChild(glow);
-    setTimeout(() => glow.remove(), 500);
     delete bodies[name];
     delete displayCounts[name];
-    setTimeout(
-      () => container.removeChild(info.el),
-      CHAR_ANIMATION_MS + 100,
-    );
+    setTimeout(() => {
+      info.root.unmount();
+      container.removeChild(info.el);
+    }, CHAR_ANIMATION_MS + 100);
   };
   const createWalls = (w: number, h: number): Matter.Body[] => [
     Bodies.rectangle(w / 2, h + 10, w, 20, { isStatic: true }),
@@ -297,7 +272,6 @@ export const createFileSimulation = (
                   body: handle.body,
                   r,
                   handle,
-                  charsEl: handle.charsEl as HTMLDivElement,
                   root,
                 };
                 displayCounts[file.file] = lines;

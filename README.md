@@ -10,6 +10,7 @@ Install dependencies and start the server:
 
 ```bash
 npm install
+npx playwright install   # install browsers for headless tests
 npm run lint
 npm test
 npm run build            # client build with Vite
@@ -21,7 +22,7 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Headless Tests
 
-Playwright is included as a development dependency. Install browsers once:
+Playwright is included as a development dependency. After `npm install`, install browsers once:
 
 ```bash
 npx playwright install

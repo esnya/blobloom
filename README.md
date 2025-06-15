@@ -10,6 +10,7 @@ Install dependencies and start the server:
 npm install
 npm run lint
 npm test
+npm run build
 npm start                # defaults to current directory
 # npm start -- --repo path/to/repo
 ```

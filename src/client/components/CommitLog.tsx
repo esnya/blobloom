@@ -8,7 +8,7 @@ export interface CommitLogProps {
   visible?: number;
 }
 
-export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): JSX.Element => {
+export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): React.JSX.Element => {
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const [timestamp, setTimestamp] = useState(() => Number(seek.value));

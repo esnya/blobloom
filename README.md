@@ -14,7 +14,6 @@ npm run lint
 npm test
 npm run build            # client build with Vite
 npm start                # defaults to current directory
-# npm start -- --repo path/to/repo
 # npm run dev            # start Vite dev server with API
 ```
 

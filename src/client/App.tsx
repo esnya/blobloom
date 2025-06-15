@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { fetchCommits, fetchLineCounts } from './api';
 import type { LineCount } from './types';
 import { CommitLog } from './components/CommitLog';
@@ -7,7 +7,7 @@ import { PlayButton } from './components/PlayButton';
 import { SeekBar } from './components/SeekBar';
 import { SimulationArea } from './components/SimulationArea';
 import type { SimulationAreaHandle } from './components/SimulationArea';
-import { usePlayer } from './hooks';
+import { usePlayer, usePageVisibility } from './hooks';
 import type { Commit } from './types';
 
 export function App(): React.JSX.Element {
@@ -20,6 +20,9 @@ export function App(): React.JSX.Element {
   const [duration, setDuration] = useState(20);
 
   const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
+
+  const hidden = usePageVisibility();
+  const wasPlaying = useRef(false);
 
   const player = usePlayer({
     getSeek: () => timestamp,
@@ -58,20 +61,15 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    let was = false;
-    const onVisibility = () => {
-      if (document.hidden) {
-        was = player.isPlaying();
-        player.pause();
-        sim?.pause();
-      } else {
-        sim?.resume();
-        if (was) player.resume();
-      }
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [ready, player, sim]);
+    if (hidden) {
+      wasPlaying.current = player.isPlaying();
+      player.pause();
+      sim?.pause();
+    } else {
+      sim?.resume();
+      if (wasPlaying.current) player.resume();
+    }
+  }, [hidden, ready, player, sim]);
 
 
   return (

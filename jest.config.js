@@ -16,8 +16,7 @@ export default {
   ],
   coverageThreshold: {
     global: {
-      // TODO: increase back to 80 once hook tests are expanded
-      lines: 79,
+      lines: 80,
     },
   },
 };

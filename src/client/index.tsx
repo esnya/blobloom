@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import type { JSX } from 'react';
 import ReactDOM from 'react-dom/client';
 import { fetchCommits, fetchLineCounts } from './api.js';
 import { createPlayer } from './player.js';

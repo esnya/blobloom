@@ -10,12 +10,15 @@ const EngineContext = createContext<Physics.Engine | null>(null);
 
 interface PhysicsProviderProps {
   bounds: Bounds;
+  engine?: Physics.Engine;
   children: React.ReactNode;
 }
 
-export function PhysicsProvider({ bounds, children }: PhysicsProviderProps): React.JSX.Element {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const engine = useMemo(() => Physics.Engine.create(bounds.width, bounds.height), []);
+export function PhysicsProvider({ bounds, engine: externalEngine, children }: PhysicsProviderProps): React.JSX.Element {
+  const engine = useMemo(
+    () => externalEngine ?? Physics.Engine.create(bounds.width, bounds.height),
+    [externalEngine, bounds.width, bounds.height],
+  );
 
   useEffect(() => {
     engine.bounds.width = bounds.width;

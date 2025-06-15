@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import React, { useEffect, useId, useState, useCallback, useRef } from 'react';
-import { usePhysics } from '../hooks';
+import { useBody } from '../hooks';
 import * as Physics from '../physics';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
 import { colorForFile } from '../lines';
@@ -19,9 +19,6 @@ interface FileCircleProps {
   file: string;
   lines: number;
   initialRadius: number;
-  engine: Physics.Engine;
-  width: number;
-  height: number;
   onReady?: (handle: FileCircleHandle) => void;
 }
 
@@ -29,45 +26,37 @@ export function FileCircle({
   file,
   lines,
   initialRadius,
-  engine,
-  width,
-  height,
   onReady,
 }: FileCircleProps): React.JSX.Element {
-  const PhysicsLib = usePhysics();
-  const { Bodies, Body, Composite } = PhysicsLib;
+  const { body, setRadius: setBodyRadius } = useBody({
+    radius: initialRadius,
+    restitution: 0.9,
+    frictionAir: 0.01,
+  });
   const containerId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);
   const [startGlow, glowProps] = useGlowAnimation();
   const [hidden, setHidden] = useState(false);
-  const [body] = useState(() =>
-    Bodies.circle(
-      Math.random() * (width - 2 * initialRadius) + initialRadius,
-      -Math.random() * height - initialRadius,
-      initialRadius,
-      { restitution: 0.9, frictionAir: 0.01 },
-    ),
-  );
-
   useEffect(() => {
-    Composite.add(engine.world, body);
-    return () => {
-      Composite.remove(engine.world, body);
-    };
-  }, [engine, body, Composite]);
+    Physics.Body.setPosition(body, {
+      x: body.position.x,
+      y: -Math.random() * (window.innerHeight || 0) - initialRadius,
+    });
+  }, [body, initialRadius]);
 
   const updateRadius = useCallback((r: number): void => {
     if (r === radius) return;
-    Body.scale(body, r / radius, r / radius);
+    Physics.Body.scale(body, r / radius, r / radius);
+    setBodyRadius(r);
     setRadius(r);
     const el = document.getElementById(containerId);
     if (el) {
       el.style.width = `${r * 2}px`;
       el.style.height = `${r * 2}px`;
     }
-  }, [radius, body, containerId, Body]);
+  }, [radius, body, containerId, setBodyRadius]);
 
   const showGlow = useCallback(
     (cls: string): void => {
@@ -109,6 +98,7 @@ export function FileCircle({
         borderRadius: '50%',
         background: hidden ? 'transparent' : colorForFile(file),
         willChange: 'transform',
+        transform: `translate3d(${body.position.x - radius}px, ${body.position.y - radius}px, 0) rotate(${body.angle}rad)`,
       }}
     >
       <FileCircleContent

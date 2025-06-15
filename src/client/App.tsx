@@ -78,7 +78,12 @@ export function App(): React.JSX.Element {
         <div id="controls">
           <PlayButton playing={player.isPlaying()} onToggle={player.togglePlay} />
           <button onClick={player.stop}>Stop</button>
-          <SeekBar value={timestamp} onInput={setTimestamp} />
+          <SeekBar
+            value={timestamp}
+            min={start}
+            max={end}
+            onInput={setTimestamp}
+          />
           <DurationInput defaultValue={duration} onInput={setDuration} />s
         </div>
       )}

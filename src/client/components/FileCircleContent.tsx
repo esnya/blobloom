@@ -15,7 +15,7 @@ export interface FileCircleContentProps {
   path: string;
   name: string;
   count: number;
-  container: React.RefObject<HTMLDivElement>;
+  container: React.RefObject<HTMLDivElement | null>;
 }
 
 export const FileCircleContent = forwardRef<

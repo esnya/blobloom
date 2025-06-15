@@ -2,10 +2,7 @@ import type { LineCount } from './types';
 import React from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import {
-  FileCircleContent,
-  type FileCircleContentHandle,
-} from './components/FileCircleContent';
+import { FileCircle, type FileCircleHandle } from './components/FileCircle';
 import Matter from 'matter-js';
 const { Bodies, Body, Composite, Engine } = Matter;
 
@@ -56,7 +53,7 @@ const hexToHsl = (
 const hsl = ({ h, s, l }: { h: number; s: number; l: number }): string =>
   `hsl(${h},${s}%,${l}%)`;
 
-const colorForFile = (name: string): string => {
+export const colorForFile = (name: string): string => {
   const ext = name.slice(name.lastIndexOf('.'));
   const offset = (hashHue(name) % 20) - 10;
   const base = fileColors[ext];
@@ -73,7 +70,7 @@ interface BodyInfo {
   el: HTMLElement;
   body: Matter.Body;
   r: number;
-  handle: FileCircleContentHandle;
+  handle: FileCircleHandle;
   charsEl: HTMLDivElement;
   root: Root;
 }
@@ -272,11 +269,8 @@ export const createFileSimulation = (
         continue;
       }
       if (existing) {
-        const factor = r / existing.r;
-        Matter.Body.scale(existing.body, factor, factor);
+        existing.handle.updateRadius(r);
         existing.r = r;
-        existing.el.style.width = `${r * 2}px`;
-        existing.el.style.height = `${r * 2}px`;
         spawnChars(existing, file.file, added, removed);
         if (effectsEnabled) {
           if (added > removed) existing.handle.showGlow('glow-grow');
@@ -284,49 +278,34 @@ export const createFileSimulation = (
         }
       } else {
         const el = document.createElement('div');
-        el.className = 'file-circle';
-        el.style.position = 'absolute';
-        el.style.width = `${r * 2}px`;
-        el.style.height = `${r * 2}px`;
-        el.style.borderRadius = '50%';
-        el.style.background = colorForFile(file.file);
-        el.style.willChange = 'transform';
-        const dir = file.file.split('/');
-        const name = dir.pop() ?? '';
-        const contentRef = React.createRef<FileCircleContentHandle>();
-        const containerObj = { current: el } as React.RefObject<HTMLDivElement>;
+        const ref = React.createRef<FileCircleHandle>();
         const root = createRoot(el);
         flushSync(() =>
           root.render(
-            <FileCircleContent
-              path={dir.join('/') + (dir.length ? '/' : '')}
-              name={name}
-              count={lines}
-              container={containerObj}
-              ref={contentRef}
+            <FileCircle
+              ref={ref}
+              file={file.file}
+              lines={lines}
+              initialRadius={r}
+              engine={engine}
+              width={width}
+              height={height}
             />,
           ),
         );
         container.appendChild(el);
-        const { charsEl } = contentRef.current as FileCircleContentHandle;
-        const body = Bodies.circle(
-          Math.random() * (width - 2 * r) + r,
-          -Math.random() * height - r,
-          r,
-          { restitution: 0.9, frictionAir: 0.01 },
-        );
+        const handle = ref.current as FileCircleHandle;
         bodies[file.file] = {
           el,
-          body,
+          body: handle.body,
           r,
-          handle: contentRef.current as FileCircleContentHandle,
-          charsEl: charsEl as HTMLDivElement,
+          handle,
+          charsEl: handle.charsEl as HTMLDivElement,
           root,
         };
         displayCounts[file.file] = lines;
-        Composite.add(engine.world, body);
-        spawnChars(bodies[file.file]!, file.file, added, removed);
-        if (effectsEnabled) bodies[file.file]!.handle.showGlow('glow-new');
+        spawnChars(bodies[file.file], file.file, added, removed);
+        if (effectsEnabled) handle.showGlow('glow-new');
       }
     }
   };

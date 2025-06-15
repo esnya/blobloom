@@ -11,8 +11,6 @@ export function App(): React.JSX.Element {
 
   const playback = useTimelinePlayback({
     duration,
-    onPlayStateChange: (p) => sim?.setEffectsEnabled(p),
-    onVisibilityChange: (h) => (h ? sim?.pause() : sim?.resume()),
     json: (input: string) => fetch(input).then((r) => r.json()),
   });
   const {

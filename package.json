@@ -7,7 +7,8 @@
   "scripts": {
     "start": "npm run build && tsx src/server.ts",
     "lint": "eslint \"**/*.ts?(x)\" --max-warnings=0",
-    "build": "tsc -p tsconfig.client.json",
+    "build": "vite build",
+    "dev": "vite",
     "test": "jest",
     "test:playwright": "playwright test",
     "rename-demo": "tsx src/renameDemo.ts"
@@ -38,7 +39,9 @@
     "playwright": "^1.53.0",
     "ts-jest": "^29.4.0",
     "tsx": "^4.6.3",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "@vitejs/plugin-react": "^4.2.0"
   },
   "engines": {
     "node": ">=20"

@@ -30,7 +30,7 @@ export const createApp = async ({ repo, branch: inputBranch, ignore = [] }: Crea
 
   const app = express();
 
-  app.use(express.static('public'));
+  app.use(express.static('dist'));
 
   app.get('/api/commits', (_, res) => {
     res.json(commits);

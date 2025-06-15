@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { createFileSimulation } from '../lines.js';
-import { createPlayer } from '../player.js';
-import type { LineCount } from '../types.js';
-import type { PlayerOptions } from '../player.js';
+import { createFileSimulation } from '../lines';
+import { createPlayer } from '../player';
+import type { LineCount } from '../types';
+import type { PlayerOptions } from '../player';
 
 export const useFileSimulation = (
   containerRef: React.RefObject<HTMLDivElement | null>,

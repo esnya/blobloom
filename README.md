@@ -12,9 +12,10 @@ Install dependencies and start the server:
 npm install
 npm run lint
 npm test
-npm run build
+npm run build            # client build with Vite
 npm start                # defaults to current directory
 # npm start -- --repo path/to/repo
+# npm run dev            # Vite dev server
 ```
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.

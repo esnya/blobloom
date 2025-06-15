@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react';
 import { SimulationArea } from '../client/components/SimulationArea';
-import { useFileSimulationRef } from '../client/hooks';
+import { useFileSimulation } from '../client/hooks';
 import type { LineCount } from '../client/types';
 
 jest.mock('../client/hooks');
@@ -11,10 +11,8 @@ const update = jest.fn();
 const pause = jest.fn();
 const resume = jest.fn();
 const setEffectsEnabled = jest.fn();
-const ref = jest.fn();
 
-(useFileSimulationRef as jest.Mock).mockReturnValue({
-  ref,
+(useFileSimulation as jest.Mock).mockReturnValue({
   update,
   pause,
   resume,
@@ -26,8 +24,7 @@ const data: LineCount[] = [{ file: 'a', lines: 1 }];
 describe('SimulationArea', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useFileSimulationRef as jest.Mock).mockReturnValue({
-      ref,
+    (useFileSimulation as jest.Mock).mockReturnValue({
       update,
       pause,
       resume,
@@ -39,7 +36,6 @@ describe('SimulationArea', () => {
     const onReady = jest.fn();
     render(<SimulationArea data={[]} onReady={onReady} />);
     expect(onReady).toHaveBeenCalledWith({ pause, resume, setEffectsEnabled });
-    expect(ref).toHaveBeenCalledWith(expect.any(HTMLDivElement));
   });
 
   it('updates simulation on data change', () => {

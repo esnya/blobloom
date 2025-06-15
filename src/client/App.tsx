@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchCommits, fetchLineCounts } from './api';
 import type { LineCount } from './types';
 import { CommitLog } from './components/CommitLog';
@@ -22,7 +22,7 @@ export function App(): React.JSX.Element {
   const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
 
   const hidden = usePageVisibility();
-  const wasPlaying = useRef(false);
+  const [wasPlaying, setWasPlaying] = useState(false);
 
   const player = usePlayer({
     getSeek: () => timestamp,
@@ -62,14 +62,14 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     if (!ready) return;
     if (hidden) {
-      wasPlaying.current = player.isPlaying();
+      setWasPlaying(player.isPlaying());
       player.pause();
       sim?.pause();
     } else {
       sim?.resume();
-      if (wasPlaying.current) player.resume();
+      if (wasPlaying) player.resume();
     }
-  }, [hidden, ready, player, sim]);
+  }, [hidden, ready, player, sim, wasPlaying]);
 
 
   return (

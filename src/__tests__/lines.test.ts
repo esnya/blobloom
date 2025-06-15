@@ -201,9 +201,11 @@ describe('lines module', () => {
     sim.setEffectsEnabled(false);
     sim.update([{ file: 'a', lines: 1 }]);
     expect(div.querySelectorAll('.add-char').length).toBe(0);
+    expect(div.querySelector('.glow-new')).toBeNull();
     sim.setEffectsEnabled(true);
     sim.update([{ file: 'a', lines: 2 }]);
     expect(div.querySelectorAll('.add-char').length).toBeGreaterThan(0);
+    expect(div.querySelector('.glow-grow')).not.toBeNull();
     sim.destroy();
   });
 

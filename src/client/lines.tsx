@@ -1,7 +1,7 @@
 import type { LineCount } from './types';
 import React from 'react';
-import { createRoot, type Root } from 'react-dom/client';
-import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+import { createPortal, flushSync } from 'react-dom';
 import { FileCircle, type FileCircleHandle } from './components/FileCircle';
 import * as Physics from './physics';
 const { Body, Composite, Engine } = Physics;
@@ -68,10 +68,9 @@ export const colorForFile = (name: string): string => {
 
 interface BodyInfo {
   el: HTMLElement;
-  body: Physics.Body;
+  body?: Physics.Body;
   r: number;
   handle?: FileCircleHandle;
-  root: Root;
 }
 
 export const computeScale = (
@@ -117,12 +116,35 @@ export const createFileSimulation = (
   engine.gravity.y = 1;
   engine.gravity.scale = 0.001;
 
+  const root = createRoot(container);
+
   const bodies: Record<string, BodyInfo> = {};
   const prevCounts: Record<string, number> = {};
   const displayCounts: Record<string, number> = {};
   let currentData: LineCount[] = [];
   let effectsEnabled = false;
   let activeCharCount = 0;
+
+  const renderPortals = (): void => {
+    const portals = Object.entries(bodies).map(([name, info]) =>
+      createPortal(
+        <FileCircle
+          file={name}
+          lines={prevCounts[name] ?? 0}
+          initialRadius={info.r}
+          engine={engine}
+          width={width}
+          height={height}
+          onReady={(handle) => {
+            info.body = handle.body;
+            info.handle = handle;
+          }}
+        />,
+        info.el,
+      ),
+    );
+    flushSync(() => root.render(<>{portals}</>));
+  };
 
   const spawnChar = (
     handle: FileCircleHandle,
@@ -157,6 +179,7 @@ export const createFileSimulation = (
     add: number,
     remove: number,
   ): void => {
+    if (!info.body) return;
     if (!effectsEnabled) {
       displayCounts[file] = (displayCounts[file] ?? 0) + add - remove;
       info.handle?.setCount(displayCounts[file]);
@@ -193,19 +216,19 @@ export const createFileSimulation = (
       info.handle.hide();
       for (let i = 0; i < count; i++) {
         const offset = {
-          x: Math.random() * window.innerWidth - (rect.left + info.body.position.x),
-          y: Math.random() * window.innerHeight - (rect.top + info.body.position.y),
+          x: Math.random() * window.innerWidth - (rect.left + (info.body?.position.x ?? 0)),
+          y: Math.random() * window.innerHeight - (rect.top + (info.body?.position.y ?? 0)),
         };
         spawnChar(info.handle, 'remove-char', offset, () => {});
       }
       info.handle.showGlow('glow-disappear');
     }
-    Composite.remove(engine.world, info.body);
-    delete bodies[name];
+    if (info.body) Composite.remove(engine.world, info.body);
     delete displayCounts[name];
     setTimeout(() => {
-      info.root.unmount();
+      delete bodies[name];
       container.removeChild(info.el);
+      renderPortals();
     }, CHAR_ANIMATION_MS + 100);
   };
 
@@ -224,6 +247,7 @@ export const createFileSimulation = (
         explodeAndRemove(name, info);
       }
     }
+    const newFiles: Array<{ name: string; el: HTMLElement; added: number; removed: number }> = [];
     for (const file of data) {
       const lines = Number.isFinite(file.lines) ? file.lines : 0;
       const r = (Math.pow(lines, exp) * scale) / 2;
@@ -248,32 +272,18 @@ export const createFileSimulation = (
         }
       } else {
         const el = document.createElement('div');
-        const root = createRoot(el);
-        flushSync(() =>
-          root.render(
-            <FileCircle
-              file={file.file}
-              lines={lines}
-              initialRadius={r}
-              engine={engine}
-              width={width}
-              height={height}
-              onReady={(handle) => {
-                bodies[file.file] = {
-                  el,
-                  body: handle.body,
-                  r,
-                  handle,
-                  root,
-                };
-                displayCounts[file.file] = lines;
-                spawnChars(bodies[file.file]!, file.file, added, removed);
-                if (effectsEnabled) handle.showGlow('glow-new');
-              }}
-            />,
-          ),
-        );
-        container.appendChild(el);
+        bodies[file.file] = { el, r };
+        displayCounts[file.file] = lines;
+        newFiles.push({ name: file.file, el, added, removed });
+      }
+    }
+    if (newFiles.length) {
+      renderPortals();
+      for (const { el } of newFiles) container.appendChild(el);
+      for (const { name, added, removed } of newFiles) {
+        const info = bodies[name]!;
+        spawnChars(info, name, added, removed);
+        if (effectsEnabled) info.handle?.showGlow('glow-new');
       }
     }
   };
@@ -286,6 +296,7 @@ export const createFileSimulation = (
     Engine.update(engine, time - last);
     last = time;
     for (const { body, el, r } of Object.values(bodies)) {
+      if (!body) continue;
       const { x, y } = body.position;
       el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
       if (x < -r || x > width + r || y > height + r || y < -height - r) {

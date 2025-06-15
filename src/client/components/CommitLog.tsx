@@ -75,7 +75,7 @@ export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): Reac
               {c.commit.message.split('\n')[0]}
             </li>
           );
-          })}
+        })}
       </ul>
       <div className="commit-marker">•</div>
     </div>

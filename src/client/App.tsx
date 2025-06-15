@@ -5,8 +5,7 @@ import { CommitLog } from './components/CommitLog';
 import { DurationInput } from './components/DurationInput';
 import { PlayButton } from './components/PlayButton';
 import { SeekBar } from './components/SeekBar';
-import { SimulationArea } from './components/SimulationArea';
-import type { SimulationAreaHandle } from './components/SimulationArea';
+import { FileCircleSimulation } from './components/FileCircleSimulation';
 import { useTimelinePlayback } from './hooks';
 import type { Commit } from './types';
 
@@ -18,14 +17,10 @@ export function App(): React.JSX.Element {
   const [ready, setReady] = useState(false);
   const [duration, setDuration] = useState(20);
 
-  const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
-
   const playback = useTimelinePlayback({
     duration,
     start,
     end,
-    onPlayStateChange: (p) => sim?.setEffectsEnabled(p),
-    onVisibilityChange: (h) => (h ? sim?.pause() : sim?.resume()),
   });
   const { timestamp, setTimestamp, ...player } = playback;
 
@@ -76,7 +71,7 @@ export function App(): React.JSX.Element {
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>
       {ready && (
         <>
-          <SimulationArea onReady={setSim} data={lineCounts} />
+          <FileCircleSimulation data={lineCounts} />
           <CommitLog
             commits={commits}
             timestamp={timestamp}

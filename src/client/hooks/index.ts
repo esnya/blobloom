@@ -1,45 +1,45 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createFileSimulation } from '../lines';
 import { createPlayer } from '../player';
 import type { LineCount } from '../types';
 import type { PlayerOptions } from '../player';
 
 export const useFileSimulation = (
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  containerEl: HTMLDivElement | null,
   opts: {
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;
   } = {},
 ) => {
-  const simRef = useRef<ReturnType<typeof createFileSimulation> | null>(null);
+  const [sim, setSim] = useState<ReturnType<typeof createFileSimulation> | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    const sim = createFileSimulation(containerRef.current, opts);
-    simRef.current = sim;
-    window.addEventListener('resize', sim.resize);
+    if (!containerEl) return;
+    const s = createFileSimulation(containerEl, opts);
+    setSim(s);
+    window.addEventListener('resize', s.resize);
     return () => {
-      window.removeEventListener('resize', sim.resize);
-      sim.destroy();
+      window.removeEventListener('resize', s.resize);
+      s.destroy();
     };
-  }, [containerRef, opts]);
+  }, [containerEl, opts]);
 
   const update = useCallback((data: LineCount[]) => {
-    simRef.current?.update(data);
-  }, []);
-  const pause = useCallback(() => simRef.current?.pause(), []);
-  const resume = useCallback(() => simRef.current?.resume(), []);
+    sim?.update(data);
+  }, [sim]);
+  const pause = useCallback(() => sim?.pause(), [sim]);
+  const resume = useCallback(() => sim?.resume(), [sim]);
   const setEffectsEnabled = useCallback(
-    (state: boolean) => simRef.current?.setEffectsEnabled(state),
-    [],
+    (state: boolean) => sim?.setEffectsEnabled(state),
+    [sim],
   );
 
   return { update, pause, resume, setEffectsEnabled };
 };
 
 export const useAnimatedSimulation = (
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  containerEl: HTMLDivElement | null,
   data: LineCount[],
   opts: {
     raf?: (cb: FrameRequestCallback) => number;
@@ -48,7 +48,7 @@ export const useAnimatedSimulation = (
   } = {},
 ) => {
   const { update, pause, resume, setEffectsEnabled } = useFileSimulation(
-    containerRef,
+    containerEl,
     opts,
   );
 
@@ -60,34 +60,31 @@ export const useAnimatedSimulation = (
 };
 
 export const usePlayer = (
-  buttonRef: React.RefObject<HTMLButtonElement | null>,
+  buttonEl: HTMLButtonElement | null,
   options: Omit<PlayerOptions, 'playButton' | 'seek' | 'duration'> & {
-    seekRef: React.RefObject<HTMLInputElement | null>;
-    durationRef: React.RefObject<HTMLInputElement | null>;
+    seekEl: HTMLInputElement | null;
+    durationEl: HTMLInputElement | null;
   },
 ) => {
-  const { seekRef, durationRef, ...opts } = options;
-  const playerRef = useRef<ReturnType<typeof createPlayer> | null>(null);
+  const { seekEl, durationEl, ...opts } = options;
+  const [player, setPlayer] = useState<ReturnType<typeof createPlayer> | null>(null);
 
   useEffect(() => {
-    if (!buttonRef.current || !seekRef.current || !durationRef.current) return;
-    const player = createPlayer({
-      seek: seekRef.current,
-      duration: durationRef.current,
-      playButton: buttonRef.current,
+    if (!buttonEl || !seekEl || !durationEl) return;
+    const p = createPlayer({
+      seek: seekEl,
+      duration: durationEl,
+      playButton: buttonEl,
       ...opts,
     });
-    playerRef.current = player;
-    return () => player.pause();
-  }, [buttonRef, seekRef, durationRef, opts]);
+    setPlayer(p);
+    return () => p.pause();
+  }, [buttonEl, seekEl, durationEl, opts]);
 
-  const stop = useCallback(() => playerRef.current?.stop(), []);
-  const pause = useCallback(() => playerRef.current?.pause(), []);
-  const resume = useCallback(() => playerRef.current?.resume(), []);
-  const isPlaying = useCallback(
-    () => playerRef.current?.isPlaying() ?? false,
-    [],
-  );
+  const stop = useCallback(() => player?.stop(), [player]);
+  const pause = useCallback(() => player?.pause(), [player]);
+  const resume = useCallback(() => player?.resume(), [player]);
+  const isPlaying = useCallback(() => player?.isPlaying() ?? false, [player]);
 
   return { stop, pause, resume, isPlaying };
 };

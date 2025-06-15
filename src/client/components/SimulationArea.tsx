@@ -1,9 +1,4 @@
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-} from 'react';
+import React, { useEffect, useState } from 'react';
 import { createFileSimulation } from '../lines';
 import type { LineCount } from '../types';
 
@@ -15,35 +10,35 @@ export interface SimulationAreaHandle {
 
 interface SimulationAreaProps {
   data: LineCount[];
+  onReady?: (handle: SimulationAreaHandle) => void;
 }
 
-export const SimulationArea = forwardRef<SimulationAreaHandle, SimulationAreaProps>(
-  ({ data }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const simRef = useRef<ReturnType<typeof createFileSimulation> | null>(null);
+export function SimulationArea({ data, onReady }: SimulationAreaProps): React.JSX.Element {
+  const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
+  const [sim, setSim] = useState<ReturnType<typeof createFileSimulation> | null>(null);
 
-    useEffect(() => {
-      if (!containerRef.current) return;
-      const sim = createFileSimulation(containerRef.current);
-      simRef.current = sim;
-      window.addEventListener('resize', sim.resize);
-      return () => {
-        window.removeEventListener('resize', sim.resize);
-        sim.destroy();
-      };
-    }, []);
+  useEffect(() => {
+    if (!containerEl) return;
+    const s = createFileSimulation(containerEl);
+    setSim(s);
+    window.addEventListener('resize', s.resize);
+    return () => {
+      window.removeEventListener('resize', s.resize);
+      s.destroy();
+    };
+  }, [containerEl]);
 
-    useEffect(() => {
-      if (data.length) simRef.current?.update(data);
-    }, [data]);
+  useEffect(() => {
+    if (data.length) sim?.update(data);
+  }, [data, sim]);
 
-    const pause = (): void => simRef.current?.pause();
-    const resume = (): void => simRef.current?.resume();
-    const setEffectsEnabled = (state: boolean): void =>
-      simRef.current?.setEffectsEnabled(state);
+  const pause = (): void => sim?.pause();
+  const resume = (): void => sim?.resume();
+  const setEffectsEnabled = (state: boolean): void => sim?.setEffectsEnabled(state);
 
-    useImperativeHandle(ref, () => ({ pause, resume, setEffectsEnabled }));
+  useEffect(() => {
+    onReady?.({ pause, resume, setEffectsEnabled });
+  }, [pause, resume, setEffectsEnabled, onReady]);
 
-    return <div id="sim" ref={containerRef} />;
-  },
-);
+  return <div id="sim" ref={setContainerEl} />;
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchCommits, fetchLineCounts } from './api';
 import type { LineCount } from './types';
 import { CommitLog } from './components/CommitLog';
@@ -18,11 +18,11 @@ export function App(): React.JSX.Element {
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const [ready, setReady] = useState(false);
 
-  const seekRef = useRef<HTMLInputElement | null>(null);
-  const durationRef = useRef<HTMLInputElement>(null);
-  const playerRef = useRef<PlayButtonHandle>(null);
-  const simRef = useRef<SimulationAreaHandle>(null);
-  const wasPlaying = useRef(false);
+  const [seekEl, setSeekEl] = useState<HTMLInputElement | null>(null);
+  const [durationEl, setDurationEl] = useState<HTMLInputElement | null>(null);
+  const [player, setPlayer] = useState<PlayButtonHandle | null>(null);
+  const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
+  const [wasPlaying, setWasPlaying] = useState(false);
 
   const json = (input: string) => fetch(input).then((r) => r.json());
 
@@ -54,44 +54,39 @@ export function App(): React.JSX.Element {
     if (!ready) return;
     const onVisibility = () => {
       if (document.hidden) {
-        wasPlaying.current = playerRef.current?.isPlaying() ?? false;
-        playerRef.current?.pause();
-        simRef.current?.pause();
+        setWasPlaying(player?.isPlaying() ?? false);
+        player?.pause();
+        sim?.pause();
       } else {
-        simRef.current?.resume();
-        if (wasPlaying.current) playerRef.current?.resume();
+        sim?.resume();
+        if (wasPlaying) player?.resume();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [ready]);
-
-  useEffect(() => {
-    if (!ready) return;
-    seekRef.current = document.querySelector<HTMLInputElement>('input[type="range"]');
-  }, [ready]);
+  }, [ready, player, sim, wasPlaying]);
 
   return (
     <>
       {ready && (
         <div id="controls">
           <PlayButton
-            ref={playerRef}
-            seekRef={seekRef}
-            durationRef={durationRef}
+            seekEl={seekEl}
+            durationEl={durationEl}
             start={start}
             end={end}
-            onPlayStateChange={(p) => simRef.current?.setEffectsEnabled(p)}
+            onPlayStateChange={(p) => sim?.setEffectsEnabled(p)}
+            onReady={setPlayer}
           />
-          <button onClick={() => playerRef.current?.stop()}>Stop</button>
-          <SeekBar value={timestamp} onInput={setTimestamp} />
-          <DurationInput ref={durationRef} />s
+          <button onClick={() => player?.stop()}>Stop</button>
+          <SeekBar value={timestamp} onInput={setTimestamp} onReady={setSeekEl} />
+          <DurationInput onReady={setDurationEl} />s
         </div>
       )}
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>
       {ready && (
         <>
-          <SimulationArea ref={simRef} data={lineCounts} />
+          <SimulationArea data={lineCounts} onReady={setSim} />
           <CommitLog
             commits={commits}
             timestamp={timestamp}

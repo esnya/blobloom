@@ -278,34 +278,37 @@ export const createFileSimulation = (
         }
       } else {
         const el = document.createElement('div');
-        const ref = React.createRef<FileCircleHandle>();
+        let handle: FileCircleHandle | null = null;
         const root = createRoot(el);
         flushSync(() =>
           root.render(
             <FileCircle
-              ref={ref}
               file={file.file}
               lines={lines}
               initialRadius={r}
               engine={engine}
               width={width}
               height={height}
+              onReady={(h) => {
+                handle = h;
+              }}
             />,
           ),
         );
         container.appendChild(el);
-        const handle = ref.current as FileCircleHandle;
+        if (!handle) throw new Error('FileCircle not ready');
+        const h = handle as FileCircleHandle;
         bodies[file.file] = {
           el,
-          body: handle.body,
+          body: h.body,
           r,
-          handle,
-          charsEl: handle.charsEl as HTMLDivElement,
+          handle: h,
+          charsEl: h.charsEl as HTMLDivElement,
           root,
         };
         displayCounts[file.file] = lines;
         spawnChars(bodies[file.file]!, file.file, added, removed);
-        if (effectsEnabled) handle.showGlow('glow-new');
+        if (effectsEnabled) h.showGlow('glow-new');
       }
     }
   };

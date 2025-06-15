@@ -25,12 +25,9 @@ describe('usePlayer', () => {
     const button = document.createElement('button');
     const seek = document.createElement('input');
     const duration = document.createElement('input');
-    const buttonRef = { current: button } as React.RefObject<HTMLButtonElement>;
-    const seekRef = { current: seek } as React.RefObject<HTMLInputElement>;
-    const durationRef = { current: duration } as React.RefObject<HTMLInputElement>;
 
     const { result } = renderHook(() =>
-      usePlayer(buttonRef, { seekRef, durationRef, start: 0, end: 10 }),
+      usePlayer(button, { seekEl: seek, durationEl: duration, start: 0, end: 10 }),
     );
 
     expect(createPlayer).toHaveBeenCalledWith({
@@ -57,12 +54,9 @@ describe('usePlayer', () => {
     const button = document.createElement('button');
     const seek = document.createElement('input');
     const duration = document.createElement('input');
-    const buttonRef = { current: button } as React.RefObject<HTMLButtonElement>;
-    const seekRef = { current: seek } as React.RefObject<HTMLInputElement>;
-    const durationRef = { current: duration } as React.RefObject<HTMLInputElement>;
 
     const { unmount } = renderHook(() =>
-      usePlayer(buttonRef, { seekRef, durationRef, start: 0, end: 10 }),
+      usePlayer(button, { seekEl: seek, durationEl: duration, start: 0, end: 10 }),
     );
     unmount();
     expect(mockPlayer.pause).toHaveBeenCalled();

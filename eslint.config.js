@@ -22,7 +22,24 @@ const eslintrc = {
   rules: {
     semi: ['error', 'always'],
     quotes: ['error', 'single'],
-    '@typescript-eslint/no-unused-vars': ['error']
+    '@typescript-eslint/no-unused-vars': ['error'],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'react',
+            importNames: [
+              'useRef',
+              'forwardRef',
+              'createRef',
+              'useImperativeHandle'
+            ],
+            message: 'Ref-based APIs are disallowed. Use callbacks or context.'
+          }
+        ]
+      }
+    ]
   }
 };
 

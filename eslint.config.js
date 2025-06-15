@@ -34,7 +34,26 @@ const eslintrc = {
     // TODO: change to 'error' after verifying hook usage
     'react-hooks/rules-of-hooks': 'warn',
     // TODO: change to 'error' after verifying dependencies
-    'react-hooks/exhaustive-deps': 'warn'
+    'react-hooks/exhaustive-deps': 'warn',
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: "JSXAttribute[name.name='ref']",
+        message: 'React ref props are disallowed'
+      },
+      {
+        selector: "Identifier[name='useRef']",
+        message: 'useRef is prohibited'
+      },
+      {
+        selector: "Identifier[name='createRef']",
+        message: 'createRef is prohibited'
+      },
+      {
+        selector: "Identifier[name='forwardRef']",
+        message: 'forwardRef is prohibited'
+      }
+    ]
   },
   settings: {
     react: {

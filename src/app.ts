@@ -8,9 +8,10 @@ export interface CreateAppOptions {
   repo: string;
   branch?: string;
   ignore?: string[];
+  serveStatic?: boolean;
 }
 
-export const createApp = async ({ repo, branch: inputBranch, ignore = [] }: CreateAppOptions) => {
+export const createApp = async ({ repo, branch: inputBranch, ignore = [], serveStatic = true }: CreateAppOptions) => {
   const repoDir = path.resolve(repo);
   if (!fs.existsSync(path.join(repoDir, '.git'))) {
     throw new Error(`${repoDir} is not a git repository.`);
@@ -30,7 +31,9 @@ export const createApp = async ({ repo, branch: inputBranch, ignore = [] }: Crea
 
   const app = express();
 
-  app.use(express.static('dist'));
+  if (serveStatic) {
+    app.use(express.static('dist'));
+  }
 
   app.get('/api/commits', (_, res) => {
     res.json(commits);

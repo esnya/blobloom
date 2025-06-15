@@ -3,22 +3,16 @@ import type { Commit } from '../types';
 
 export interface CommitLogProps {
   commits: Commit[];
-  seek: HTMLInputElement;
+  timestamp: number;
+  onTimestampChange?: (n: number) => void;
   visible?: number;
 }
 
-export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): React.JSX.Element => {
+export const CommitLog = ({ commits, timestamp, visible = 15 }: CommitLogProps): React.JSX.Element => {
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const [timestamp, setTimestamp] = useState(() => Number(seek.value));
   const [offset, setOffset] = useState(0);
 
-  useEffect(() => {
-    const onInput = () => setTimestamp(Number(seek.value));
-    seek.addEventListener('input', onInput);
-    onInput();
-    return () => seek.removeEventListener('input', onInput);
-  }, [seek]);
 
   const index = useMemo(() => {
     let idx = commits.findIndex((c) => c.commit.committer.timestamp * 1000 <= timestamp);

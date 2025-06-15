@@ -72,7 +72,8 @@ export const createApiMiddlewareFromApp = (app: Application): express.Router => 
   const repoDir = (): string =>
     path.resolve((app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd());
 
-  const ignorePatterns = (): string[] => app.get(appSettings.ignore.description!) ?? [];
+  const ignorePatterns = (): string[] =>
+    (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [];
 
   router.get('/api/commits', async (_req, res) => {
     const dir = repoDir();
@@ -81,7 +82,10 @@ export const createApiMiddlewareFromApp = (app: Application): express.Router => 
       return;
     }
     try {
-      const branch = await resolveBranch(dir, app.get(appSettings.branch.description!));
+      const branch = await resolveBranch(
+        dir,
+        app.get(appSettings.branch.description!) as string | undefined,
+      );
       const commits = await git.log({ fs, dir, ref: branch });
       res.json(commits);
     } catch (error) {
@@ -96,7 +100,10 @@ export const createApiMiddlewareFromApp = (app: Application): express.Router => 
       return;
     }
     try {
-      const branch = await resolveBranch(dir, app.get(appSettings.branch.description!));
+      const branch = await resolveBranch(
+        dir,
+        app.get(appSettings.branch.description!) as string | undefined,
+      );
       const tsParam = req.query.ts as string | undefined;
       const ignore = ignorePatterns();
 

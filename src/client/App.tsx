@@ -19,7 +19,6 @@ export function App(): React.JSX.Element {
   const [ready, setReady] = useState(false);
 
   const seekRef = useRef<HTMLInputElement>(null);
-  const [seek, setSeek] = useState<HTMLInputElement | null>(null);
   const durationRef = useRef<HTMLInputElement>(null);
   const playerRef = useRef<PlayButtonHandle>(null);
   const simRef = useRef<SimulationAreaHandle>(null);
@@ -83,7 +82,6 @@ export function App(): React.JSX.Element {
           <SeekBar
             ref={(el) => {
               seekRef.current = el;
-              setSeek(el);
             }}
             onInput={setTimestamp}
           />
@@ -94,7 +92,11 @@ export function App(): React.JSX.Element {
       {ready && (
         <>
           <SimulationArea ref={simRef} data={lineCounts} />
-          {seek && <CommitLog commits={commits} seek={seek} />}
+          <CommitLog
+            commits={commits}
+            timestamp={timestamp}
+            onTimestampChange={setTimestamp}
+          />
         </>
       )}
     </>

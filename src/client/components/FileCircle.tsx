@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useState, useCallback } from 'react';
+/* eslint-disable no-restricted-syntax */
+import React, { useEffect, useId, useState, useCallback, useRef } from 'react';
 import { usePhysics } from '../hooks';
 import * as Physics from '../physics';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
@@ -11,6 +12,7 @@ export interface FileCircleHandle extends FileCircleContentHandle {
   updateRadius: (r: number) => void;
   showGlow: (cls: string) => void;
   hide: () => void;
+  el: HTMLElement;
 }
 
 interface FileCircleProps {
@@ -35,6 +37,7 @@ export function FileCircle({
   const PhysicsLib = usePhysics();
   const { Bodies, Body, Composite } = PhysicsLib;
   const containerId = useId();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);
   const [startGlow, glowProps] = useGlowAnimation();
@@ -86,6 +89,7 @@ export function FileCircle({
       ...contentHandle,
       showGlow,
       hide,
+      el: containerRef.current!,
     });
   }, [contentHandle, onReady, body, radius, updateRadius, showGlow, hide]);
 
@@ -96,6 +100,7 @@ export function FileCircle({
     <div
       className={`file-circle ${glowProps.className}`}
       id={containerId}
+      ref={containerRef}
       onAnimationEnd={glowProps.onAnimationEnd}
       style={{
         position: 'absolute',

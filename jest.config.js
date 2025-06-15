@@ -9,6 +9,7 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
+  testTimeout: 10000,
   collectCoverage: true,
   collectCoverageFrom: [
     'src/math.ts',

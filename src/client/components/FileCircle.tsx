@@ -1,12 +1,12 @@
 import React, { useEffect, useId, useState, useCallback } from 'react';
-import { useMatter } from '../hooks';
-import type Matter from 'matter-js';
+import { usePhysics } from '../hooks';
+import * as Physics from '../physics';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
 import { colorForFile } from '../lines';
 import { useGlowAnimation } from '../hooks';
 
 export interface FileCircleHandle extends FileCircleContentHandle {
-  body: Matter.Body;
+  body: Physics.Body;
   radius: number;
   updateRadius: (r: number) => void;
   showGlow: (cls: string) => void;
@@ -17,7 +17,7 @@ interface FileCircleProps {
   file: string;
   lines: number;
   initialRadius: number;
-  engine: Matter.Engine;
+  engine: Physics.Engine;
   width: number;
   height: number;
   onReady?: (handle: FileCircleHandle) => void;
@@ -32,8 +32,8 @@ export function FileCircle({
   height,
   onReady,
 }: FileCircleProps): React.JSX.Element {
-  const Matter = useMatter();
-  const { Bodies, Body, Composite } = Matter;
+  const PhysicsLib = usePhysics();
+  const { Bodies, Body, Composite } = PhysicsLib;
   const containerId = useId();
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);

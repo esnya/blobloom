@@ -4,7 +4,7 @@ import path from 'path';
 import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import express from 'express';
-import { createApiMiddleware } from '../apiMiddleware';
+import { apiMiddleware } from '../apiMiddleware';
 import { fetchCommits, fetchLineCounts, JsonFetcher } from '../client/api';
 
 const author = { name: 'a', email: 'a@example.com' };
@@ -22,7 +22,9 @@ describe('server e2e', () => {
     await git.commit({ fs, dir, author, message: 'init' });
 
     const app = express();
-    app.use(await createApiMiddleware({ repo: dir, branch: 'HEAD' }));
+    app.set('repo', dir);
+    app.set('branch', 'HEAD');
+    app.use(apiMiddleware);
     const server = app.listen(0);
     const { port } = server.address() as AddressInfo;
 

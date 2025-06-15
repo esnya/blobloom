@@ -1,6 +1,6 @@
 import express from 'express';
 import { Command } from 'commander';
-import { createApiMiddleware } from './apiMiddleware';
+import { apiMiddleware } from './apiMiddleware';
 
 const defaultIgnore = [
   '**/*.lock',
@@ -33,8 +33,10 @@ const { host, port, branch, ignore } = program.opts<{
 }>();
 
 const app = express();
+app.set('branch', branch);
+app.set('ignore', ignore);
 app.use(express.static('dist'));
-app.use(await createApiMiddleware({ branch, ignore }));
+app.use(apiMiddleware);
 
 app.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);

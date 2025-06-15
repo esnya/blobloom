@@ -4,20 +4,16 @@ import fs from 'fs';
 import path from 'path';
 import { getLineCounts, LineCount } from './lineCounts';
 
-export interface CreateApiMiddlewareOptions {
-  repo?: string;
-  branch?: string;
-  ignore?: string[];
-}
+const router = express.Router();
 
-export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputBranch, ignore = [] }: CreateApiMiddlewareOptions = {}) => {
-  const repoDir = path.resolve(repo);
-  if (!fs.existsSync(path.join(repoDir, '.git'))) {
-    throw new Error(`${repoDir} is not a git repository.`);
+const getSettings = async (req: express.Request) => {
+  const repo = path.resolve(req.app.get('repo') ?? process.cwd());
+  if (!fs.existsSync(path.join(repo, '.git'))) {
+    throw new Error(`${repo} is not a git repository.`);
   }
 
-  const branches = await git.listBranches({ fs, dir: repoDir });
-  let branch = inputBranch;
+  const branches = await git.listBranches({ fs, dir: repo });
+  let branch = req.app.get('branch') as string | undefined;
   if (!branch) {
     branch = ['main', 'master', 'trunk'].find((b) => branches.includes(b)) ?? branches[0];
   }
@@ -25,16 +21,25 @@ export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputB
     throw new Error('No branch found.');
   }
 
-  const commits = await git.log({ fs, dir: repoDir, ref: branch });
-  const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch, ignore });
+  const ignore = (req.app.get('ignore') as string[]) ?? [];
 
-  const router = express.Router();
+  return { repo, branch, ignore };
+};
 
-  router.get('/api/commits', (_, res) => {
+router.get('/api/commits', async (req, res) => {
+  try {
+    const { repo, branch } = await getSettings(req);
+    const commits = await git.log({ fs, dir: repo, ref: branch });
     res.json(commits);
-  });
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
 
-  router.get('/api/lines', async (req, res) => {
+router.get('/api/lines', async (req, res) => {
+  try {
+    const { repo, branch, ignore } = await getSettings(req);
+    const commits = await git.log({ fs, dir: repo, ref: branch });
     const tsParam = req.query.ts as string | undefined;
     if (tsParam) {
       const ts = Number(tsParam) / 1000;
@@ -43,16 +48,16 @@ export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputB
         res.status(404).json({ error: 'Commit not found' });
         return;
       }
-      try {
-        const counts = await getLineCounts({ dir: repoDir, ref: commit.oid, ignore });
-        res.json(counts);
-      } catch (error) {
-        res.status(500).json({ error: (error as Error).message });
-      }
-    } else {
-      res.json(lineCounts);
+      const counts = await getLineCounts({ dir: repo, ref: commit.oid, ignore });
+      res.json(counts);
+      return;
     }
-  });
 
-  return router;
-};
+    const lineCounts: LineCount[] = await getLineCounts({ dir: repo, ref: branch, ignore });
+    res.json(lineCounts);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+export const apiMiddleware = router;

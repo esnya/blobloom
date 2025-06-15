@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "npm run build && tsx src/server.ts",
-    "lint": "eslint \"**/*.ts\" --max-warnings=0",
+    "lint": "eslint \"**/*.ts?(x)\" --max-warnings=0",
     "build": "tsc -p tsconfig.client.json",
     "test": "jest",
     "rename-demo": "tsx src/renameDemo.ts"
@@ -30,6 +30,8 @@
     "eslint": "^8.56.0",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
+    "@testing-library/react": "^14.2.2",
+    "@testing-library/jest-dom": "^6.4.2",
     "ts-jest": "^29.4.0",
     "tsx": "^4.6.3",
     "typescript": "^5.2.2"

@@ -4,6 +4,7 @@ import { PhysicsProvider, useEngine } from '../hooks';
 import { FileCircle, type FileCircleHandle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../lines';
+import { Body, Engine } from '../physics';
 
 interface FileCircleSimulationProps {
   data: LineCount[];
@@ -42,6 +43,35 @@ interface FileCircleListProps {
 function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Element {
   const engine = useEngine();
   const handles = useRef<Record<string, FileCircleHandle>>({});
+
+  useEffect(() => {
+    let frameId = 0;
+    let last = performance.now();
+    const step = (time: number): void => {
+      Engine.update(engine, time - last);
+      last = time;
+      Object.values(handles.current).forEach((h) => {
+        const { x, y } = h.body.position;
+        const r = h.radius;
+        h.el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${h.body.angle}rad)`;
+        if (
+          x < -r ||
+          x > bounds.width + r ||
+          y > bounds.height + r ||
+          y < -bounds.height - r
+        ) {
+          Body.setVelocity(h.body, { x: 0, y: 0 });
+          Body.setPosition(h.body, {
+            x: Math.random() * (engine.bounds.width - 2 * r) + r,
+            y: -r,
+          });
+        }
+      });
+      frameId = requestAnimationFrame(step);
+    };
+    frameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frameId);
+  }, [engine, bounds.width, bounds.height]);
 
   useEffect(() => {
     engine.bounds.width = bounds.width;

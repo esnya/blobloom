@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { fetchCommits, fetchLineCounts } from './api';
-import type { LineCount } from './types';
+import React, { useState } from 'react';
 import { CommitLog } from './components/CommitLog';
 import { DurationInput } from './components/DurationInput';
 import { PlayButton } from './components/PlayButton';
@@ -8,52 +6,28 @@ import { SeekBar } from './components/SeekBar';
 import { SimulationArea } from './components/SimulationArea';
 import type { SimulationAreaHandle } from './components/SimulationArea';
 import { useTimelinePlayback } from './hooks';
-import type { Commit } from './types';
 
 export function App(): React.JSX.Element {
-  const [commits, setCommits] = useState<Commit[]>([]);
-  const [start, setStart] = useState(0);
-  const [end, setEnd] = useState(0);
-  const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
-  const [ready, setReady] = useState(false);
   const [duration, setDuration] = useState(20);
 
   const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
 
   const playback = useTimelinePlayback({
     duration,
-    start,
-    end,
     onPlayStateChange: (p) => sim?.setEffectsEnabled(p),
     onVisibilityChange: (h) => (h ? sim?.pause() : sim?.resume()),
+    json: (input: string) => fetch(input).then((r) => r.json()),
   });
-  const { timestamp, setTimestamp, ...player } = playback;
-
-  const json = (input: string) => fetch(input).then((r) => r.json());
-
-  useEffect(() => {
-    void (async () => {
-      const commitData = await fetchCommits(json);
-      setCommits(commitData);
-      const s = commitData[commitData.length - 1]!.commit.committer.timestamp * 1000;
-      const e = commitData[0]!.commit.committer.timestamp * 1000;
-      setStart(s);
-      setEnd(e);
-      setTimestamp(s);
-      setReady(true);
-    })();
-  }, [setTimestamp]);
-
-  useEffect(() => {
-    if (!ready) return;
-    void (async () => {
-      const counts = await fetchLineCounts(json, timestamp);
-      setLineCounts(counts);
-      if (timestamp >= end) {
-        console.log('[debug] physics area updated for final commit at', timestamp);
-      }
-    })();
-  }, [ready, timestamp, end]);
+  const {
+    timestamp,
+    setTimestamp,
+    start,
+    end,
+    ready,
+    commits,
+    lineCounts,
+    ...player
+  } = playback;
 
 
 

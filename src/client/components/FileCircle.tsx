@@ -1,9 +1,8 @@
 import React, { useEffect, useId, useState, useCallback } from 'react';
-import Matter from 'matter-js';
+import { useMatter } from '../hooks';
+import type Matter from 'matter-js';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
 import { colorForFile } from '../lines';
-
-const { Bodies, Body, Composite } = Matter;
 
 export interface FileCircleHandle extends FileCircleContentHandle {
   body: Matter.Body;
@@ -32,6 +31,8 @@ export function FileCircle({
   height,
   onReady,
 }: FileCircleProps): React.JSX.Element {
+  const Matter = useMatter();
+  const { Bodies, Body, Composite } = Matter;
   const containerId = useId();
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);
@@ -51,7 +52,7 @@ export function FileCircle({
     return () => {
       Composite.remove(engine.world, body);
     };
-  }, [engine, body]);
+  }, [engine, body, Composite]);
 
   const updateRadius = useCallback((r: number): void => {
     if (r === radius) return;
@@ -62,7 +63,7 @@ export function FileCircle({
       el.style.width = `${r * 2}px`;
       el.style.height = `${r * 2}px`;
     }
-  }, [radius, body, containerId]);
+  }, [radius, body, containerId, Body]);
 
   const showGlow = useCallback((cls: string, ms = 500): void => {
     setGlow(cls);

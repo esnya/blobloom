@@ -59,7 +59,7 @@ export function FileCircleContent({
       },
     };
     onReady(handle);
-  }, [onReady]);
+  }, [onReady, nextId]);
 
   return (
     <>

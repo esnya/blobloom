@@ -29,3 +29,4 @@ npm install --no-save playwright
 npx playwright install chromium
 npx playwright test
 ```
+Playwright tests live in the `playwright` directory.

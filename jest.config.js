@@ -16,9 +16,8 @@ export default {
     'src/client/**/*.{ts,tsx}',
   ],
   coverageThreshold: {
-    // TODO: increase to 80 once additional tests are added
     global: {
-      lines: 75,
+      lines: 80,
     },
   },
 };

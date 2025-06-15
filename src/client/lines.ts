@@ -119,6 +119,11 @@ export const createFileSimulation = (
   let effectsEnabled = false;
   let activeCharCount = 0;
 
+  const addGlow = (el: HTMLElement, cls: string, ms = 500): void => {
+    el.classList.add(cls);
+    setTimeout(() => el.classList.remove(cls), ms);
+  };
+
   const spawnChar = (
     parent: HTMLElement,
     cls: string,
@@ -207,6 +212,15 @@ export const createFileSimulation = (
       spawnChar(info.charsEl, 'remove-char', offset, () => {});
     }
     Composite.remove(engine.world, info.body);
+    const glow = document.createElement('div');
+    glow.className = 'file-circle glow-disappear';
+    glow.style.position = 'absolute';
+    glow.style.width = `${info.r * 2}px`;
+    glow.style.height = `${info.r * 2}px`;
+    glow.style.borderRadius = '50%';
+    glow.style.transform = info.el.style.transform;
+    container.appendChild(glow);
+    setTimeout(() => glow.remove(), 500);
     delete bodies[name];
     delete displayCounts[name];
     setTimeout(
@@ -254,6 +268,8 @@ export const createFileSimulation = (
         existing.el.style.width = `${r * 2}px`;
         existing.el.style.height = `${r * 2}px`;
         spawnChars(existing, file.file, added, removed);
+        if (added > removed) addGlow(existing.el, 'glow-grow');
+        else if (removed > added) addGlow(existing.el, 'glow-shrink');
       } else {
         const el = document.createElement('div');
         el.className = 'file-circle';
@@ -288,6 +304,7 @@ export const createFileSimulation = (
         displayCounts[file.file] = lines;
         Composite.add(engine.world, body);
         spawnChars(bodies[file.file], file.file, added, removed);
+        addGlow(el, 'glow-new');
       }
     }
   };

@@ -100,6 +100,30 @@
         inset: 0;
         overflow: visible;
       }
+      .glow-new {
+        box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8);
+        animation: fadeGlow 0.5s forwards;
+      }
+      .glow-grow {
+        box-shadow: 0 0 6px 2px rgba(0, 255, 0, 0.8);
+        animation: fadeGlow 0.5s forwards;
+      }
+      .glow-shrink {
+        box-shadow: 0 0 6px 2px rgba(255, 0, 0, 0.8);
+        animation: fadeGlow 0.5s forwards;
+      }
+      .glow-disappear {
+        box-shadow: 0 0 6px 2px rgba(255, 0, 0, 0.8);
+        animation: fadeOut 0.5s forwards;
+      }
+      @keyframes fadeGlow {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
       .add-char, .remove-char {
         position: absolute;
         left: 50%;

@@ -18,7 +18,7 @@ export function App(): React.JSX.Element {
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const [ready, setReady] = useState(false);
 
-  const seekRef = useRef<HTMLInputElement>(null);
+  const seekRef = useRef<HTMLInputElement | null>(null);
   const [seek, setSeek] = useState<HTMLInputElement | null>(null);
   const durationRef = useRef<HTMLInputElement>(null);
   const playerRef = useRef<PlayButtonHandle>(null);
@@ -67,6 +67,13 @@ export function App(): React.JSX.Element {
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [ready]);
 
+  useEffect(() => {
+    if (!ready) return;
+    const el = document.querySelector<HTMLInputElement>('input[type="range"]');
+    seekRef.current = el;
+    setSeek(el);
+  }, [ready]);
+
   return (
     <>
       {ready && (
@@ -80,13 +87,7 @@ export function App(): React.JSX.Element {
             onPlayStateChange={(p) => simRef.current?.setEffectsEnabled(p)}
           />
           <button onClick={() => playerRef.current?.stop()}>Stop</button>
-          <SeekBar
-            ref={(el) => {
-              seekRef.current = el;
-              setSeek(el);
-            }}
-            onInput={setTimestamp}
-          />
+          <SeekBar value={timestamp} onInput={setTimestamp} />
           <DurationInput ref={durationRef} />s
         </div>
       )}

@@ -13,6 +13,7 @@ export const useCssAnimation = (
 ): UseCssAnimationResult => {
   const [active, setActive] = useState(false);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const start = useCallback(() => {
     if (!active) setActive(true);
   }, [active, ...deps]);
@@ -20,6 +21,7 @@ export const useCssAnimation = (
   const onAnimationEnd = useCallback(() => {
     if (active) setActive(false);
   }, [active, ...deps]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   return [start, { className: active ? cls : '', onAnimationEnd }];
 };

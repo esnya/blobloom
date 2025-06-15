@@ -125,4 +125,5 @@ export const usePlayer = (options: PlayerOptions) => {
 };
 
 export { useCssAnimation, makeUseCssAnimation } from './useCssAnimation';
+export { useGlowAnimation } from './useGlowAnimation';
 export { usePageVisibility } from './usePageVisibility';

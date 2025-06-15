@@ -2,6 +2,7 @@ import React, { useEffect, useId, useState, useCallback } from 'react';
 import Matter from 'matter-js';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
 import { colorForFile } from '../lines';
+import { useGlowAnimation } from '../hooks';
 
 const { Bodies, Body, Composite } = Matter;
 
@@ -9,7 +10,7 @@ export interface FileCircleHandle extends FileCircleContentHandle {
   body: Matter.Body;
   radius: number;
   updateRadius: (r: number) => void;
-  showGlow: (cls: string, ms?: number) => void;
+  showGlow: (cls: string) => void;
   hide: () => void;
 }
 
@@ -35,7 +36,7 @@ export function FileCircle({
   const containerId = useId();
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);
-  const [glow, setGlow] = useState('');
+  const [startGlow, glowProps] = useGlowAnimation();
   const [hidden, setHidden] = useState(false);
   const [body] = useState(() =>
     Bodies.circle(
@@ -64,10 +65,12 @@ export function FileCircle({
     }
   }, [radius, body, containerId]);
 
-  const showGlow = useCallback((cls: string, ms = 500): void => {
-    setGlow(cls);
-    setTimeout(() => setGlow(''), ms);
-  }, []);
+  const showGlow = useCallback(
+    (cls: string): void => {
+      startGlow(cls);
+    },
+    [startGlow],
+  );
 
   const hide = useCallback((): void => {
     setHidden(true);
@@ -90,8 +93,9 @@ export function FileCircle({
 
   return (
     <div
-      className={`file-circle ${glow}`}
+      className={`file-circle ${glowProps.className}`}
       id={containerId}
+      onAnimationEnd={glowProps.onAnimationEnd}
       style={{
         position: 'absolute',
         width: `${radius * 2}px`,

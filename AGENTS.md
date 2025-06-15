@@ -13,3 +13,4 @@
 - Run `npm audit` and address reported vulnerabilities.
 - Investigate any `deprecated` warnings from package installs.
 - Make these checks part of the regular workflow and account for them when updating CI.
+* TODO: add more hook tests and restore coverage threshold to 80.

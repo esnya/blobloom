@@ -1,6 +1,7 @@
 export interface PlayerOptions {
-  seek: HTMLInputElement;
-  duration: HTMLInputElement;
+  getSeek: () => number;
+  setSeek: (value: number) => void;
+  duration: number;
   playButton: HTMLButtonElement;
   start: number;
   end: number;
@@ -10,7 +11,8 @@ export interface PlayerOptions {
 }
 
 export const createPlayer = ({
-  seek,
+  getSeek,
+  setSeek,
   duration,
   playButton,
   start,
@@ -28,13 +30,12 @@ export const createPlayer = ({
       raf(tick);
       return;
     }
-    const total = parseFloat(duration.value) * 1000;
+    const total = duration * 1000;
     const factor = (end - start) / total;
     const dt = (time - lastTime) * factor;
     lastTime = time;
-    const next = Math.min(Number(seek.value) + dt, end);
-    seek.value = String(next);
-    seek.dispatchEvent(new Event('input'));
+    const next = Math.min(getSeek() + dt, end);
+    setSeek(next);
     if (next < end) {
       raf(tick);
     } else {
@@ -48,16 +49,15 @@ export const createPlayer = ({
     if (playing) {
       lastTime = now();
       raf(tick);
-    } else if (Number(seek.value) >= end) {
-      console.log('[debug] seekbar final update processed at', seek.value);
+    } else if (getSeek() >= end) {
+      console.log('[debug] seekbar final update processed at', getSeek());
     }
     onPlayStateChange?.(playing);
   };
 
   const togglePlay = (): void => {
-    if (!playing && Number(seek.value) >= end) {
-      seek.value = String(start);
-      seek.dispatchEvent(new Event('input'));
+    if (!playing && getSeek() >= end) {
+      setSeek(start);
     }
     setPlaying(!playing);
   };
@@ -65,18 +65,14 @@ export const createPlayer = ({
   const pause = (): void => setPlaying(false);
   const stop = (): void => {
     setPlaying(false);
-    seek.value = String(start);
-    seek.dispatchEvent(new Event('input'));
+    setSeek(start);
   };
   const resume = (): void => setPlaying(true);
   const isPlaying = (): boolean => playing;
 
   playButton.addEventListener('click', togglePlay);
 
-  seek.min = String(start);
-  seek.max = String(end);
-  seek.value = String(start);
-  seek.dispatchEvent(new Event('input'));
+  setSeek(start);
 
   return { togglePlay, pause, resume, stop, isPlaying };
 };

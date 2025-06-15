@@ -61,25 +61,28 @@ export const useAnimatedSimulation = (
 
 export const usePlayer = (
   buttonRef: React.RefObject<HTMLButtonElement | null>,
-  options: Omit<PlayerOptions, 'playButton' | 'seek' | 'duration'> & {
-    seekRef: React.RefObject<HTMLInputElement | null>;
-    durationRef: React.RefObject<HTMLInputElement | null>;
-  },
+  options: Omit<PlayerOptions, 'playButton'>,
 ) => {
-  const { seekRef, durationRef, ...opts } = options;
+  const { getSeek, setSeek, duration, start, end, raf, now, onPlayStateChange } =
+    options;
   const playerRef = useRef<ReturnType<typeof createPlayer> | null>(null);
 
   useEffect(() => {
-    if (!buttonRef.current || !seekRef.current || !durationRef.current) return;
+    if (!buttonRef.current) return;
     const player = createPlayer({
-      seek: seekRef.current,
-      duration: durationRef.current,
+      getSeek,
+      setSeek,
+      duration,
       playButton: buttonRef.current,
-      ...opts,
+      start,
+      end,
+      raf,
+      now,
+      onPlayStateChange,
     });
     playerRef.current = player;
     return () => player.pause();
-  }, [buttonRef, seekRef, durationRef, opts]);
+  }, [buttonRef, getSeek, setSeek, duration, start, end, raf, now, onPlayStateChange]);
 
   const stop = useCallback(() => playerRef.current?.stop(), []);
   const pause = useCallback(() => playerRef.current?.pause(), []);

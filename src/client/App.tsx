@@ -37,7 +37,7 @@ export function App(): React.JSX.Element {
             value={timestamp}
             min={start}
             max={end}
-            onInput={setTimestamp}
+            onChange={setTimestamp}
           />
           <DurationInput defaultValue={duration} onInput={setDuration} />s
         </div>

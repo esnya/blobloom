@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchCommits, fetchLineCounts } from './api';
 import type { LineCount } from './types';
 import { CommitLog } from './components/CommitLog';
@@ -19,8 +19,7 @@ export function App(): React.JSX.Element {
   const [ready, setReady] = useState(false);
   const [duration, setDuration] = useState(20);
 
-  const simRef = useRef<SimulationAreaHandle>(null);
-  const wasPlaying = useRef(false);
+  const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
 
   const player = usePlayer({
     getSeek: () => timestamp,
@@ -28,7 +27,7 @@ export function App(): React.JSX.Element {
     duration,
     start,
     end,
-    onPlayStateChange: (p) => simRef.current?.setEffectsEnabled(p),
+    onPlayStateChange: (p) => sim?.setEffectsEnabled(p),
   });
 
   const json = (input: string) => fetch(input).then((r) => r.json());
@@ -59,19 +58,20 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
+    let was = false;
     const onVisibility = () => {
       if (document.hidden) {
-        wasPlaying.current = player.isPlaying();
+        was = player.isPlaying();
         player.pause();
-        simRef.current?.pause();
+        sim?.pause();
       } else {
-        simRef.current?.resume();
-        if (wasPlaying.current) player.resume();
+        sim?.resume();
+        if (was) player.resume();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [ready, player]);
+  }, [ready, player, sim]);
 
 
   return (
@@ -87,7 +87,7 @@ export function App(): React.JSX.Element {
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>
       {ready && (
         <>
-          <SimulationArea ref={simRef} data={lineCounts} />
+          <SimulationArea onReady={setSim} data={lineCounts} />
           <CommitLog
             commits={commits}
             timestamp={timestamp}

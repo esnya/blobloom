@@ -25,9 +25,8 @@ describe('useFileSimulation', () => {
 
   it('initializes simulation and forwards controls', () => {
     const container = document.createElement('div');
-    const ref = { current: container } as React.RefObject<HTMLDivElement>;
 
-    const { result } = renderHook(() => useFileSimulation(ref));
+    const { result } = renderHook(() => useFileSimulation(container));
 
     expect(createFileSimulation).toHaveBeenCalledWith(container, {});
 
@@ -46,9 +45,8 @@ describe('useFileSimulation', () => {
 
   it('cleans up on unmount', () => {
     const container = document.createElement('div');
-    const ref = { current: container } as React.RefObject<HTMLDivElement>;
 
-    const { unmount } = renderHook(() => useFileSimulation(ref));
+    const { unmount } = renderHook(() => useFileSimulation(container));
     unmount();
 
     expect(mockSim.destroy).toHaveBeenCalled();

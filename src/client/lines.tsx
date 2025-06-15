@@ -70,8 +70,8 @@ interface BodyInfo {
   el: HTMLElement;
   body: Matter.Body;
   r: number;
-  handle: FileCircleHandle;
-  charsEl: HTMLDivElement;
+  handle?: FileCircleHandle;
+  charsEl?: HTMLDivElement;
   root: Root;
 }
 
@@ -170,9 +170,10 @@ export const createFileSimulation = (
   ): void => {
     if (!effectsEnabled) {
       displayCounts[file] = (displayCounts[file] ?? 0) + add - remove;
-      info.handle.setCount(displayCounts[file]);
+      info.handle?.setCount(displayCounts[file]);
       return;
     }
+    if (!info.charsEl) return;
     const { x, y } = info.body.position;
     for (let i = 0; i < add; i++) {
       const offset = {
@@ -181,7 +182,7 @@ export const createFileSimulation = (
       };
       spawnChar(info.charsEl, 'add-char', offset, () => {
         displayCounts[file] = (displayCounts[file] ?? 0) + 1;
-        info.handle.setCount(displayCounts[file]);
+        info.handle?.setCount(displayCounts[file]);
       });
     }
     for (let i = 0; i < remove; i++) {
@@ -191,7 +192,7 @@ export const createFileSimulation = (
       };
       spawnChar(info.charsEl, 'remove-char', offset, () => {
         displayCounts[file] = (displayCounts[file] ?? 0) - 1;
-        info.handle.setCount(displayCounts[file]);
+        info.handle?.setCount(displayCounts[file]);
       });
     }
   };
@@ -206,12 +207,14 @@ export const createFileSimulation = (
       }
     }
     info.el.style.background = 'transparent';
-    for (let i = 0; i < count; i++) {
-      const offset = {
-        x: Math.random() * window.innerWidth - (rect.left + info.body.position.x),
-        y: Math.random() * window.innerHeight - (rect.top + info.body.position.y),
-      };
-      spawnChar(info.charsEl, 'remove-char', offset, () => {});
+    if (info.charsEl) {
+      for (let i = 0; i < count; i++) {
+        const offset = {
+          x: Math.random() * window.innerWidth - (rect.left + info.body.position.x),
+          y: Math.random() * window.innerHeight - (rect.top + info.body.position.y),
+        };
+        spawnChar(info.charsEl, 'remove-char', offset, () => {});
+      }
     }
     Composite.remove(engine.world, info.body);
     const glow = document.createElement('div');
@@ -269,43 +272,42 @@ export const createFileSimulation = (
         continue;
       }
       if (existing) {
-        existing.handle.updateRadius(r);
+        existing.handle?.updateRadius(r);
         existing.r = r;
         spawnChars(existing, file.file, added, removed);
         if (effectsEnabled) {
-          if (added > removed) existing.handle.showGlow('glow-grow');
-          else if (removed > added) existing.handle.showGlow('glow-shrink');
+          if (added > removed) existing.handle?.showGlow('glow-grow');
+          else if (removed > added) existing.handle?.showGlow('glow-shrink');
         }
       } else {
         const el = document.createElement('div');
-        const ref = React.createRef<FileCircleHandle>();
         const root = createRoot(el);
         flushSync(() =>
           root.render(
             <FileCircle
-              ref={ref}
               file={file.file}
               lines={lines}
               initialRadius={r}
               engine={engine}
               width={width}
               height={height}
+              onReady={(handle) => {
+                bodies[file.file] = {
+                  el,
+                  body: handle.body,
+                  r,
+                  handle,
+                  charsEl: handle.charsEl as HTMLDivElement,
+                  root,
+                };
+                displayCounts[file.file] = lines;
+                spawnChars(bodies[file.file]!, file.file, added, removed);
+                if (effectsEnabled) handle.showGlow('glow-new');
+              }}
             />,
           ),
         );
         container.appendChild(el);
-        const handle = ref.current as FileCircleHandle;
-        bodies[file.file] = {
-          el,
-          body: handle.body,
-          r,
-          handle,
-          charsEl: handle.charsEl as HTMLDivElement,
-          root,
-        };
-        displayCounts[file.file] = lines;
-        spawnChars(bodies[file.file]!, file.file, added, removed);
-        if (effectsEnabled) handle.showGlow('glow-new');
       }
     }
   };

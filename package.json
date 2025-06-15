@@ -11,6 +11,7 @@
     "dev": "vite",
     "test": "jest",
     "test:playwright": "playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "rename-demo": "tsx src/renameDemo.ts"
   },
   "dependencies": {

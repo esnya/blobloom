@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { FileCircle, type FileCircleHandle } from './components/FileCircle';
 import * as Physics from './physics';
-const { Bodies, Body, Composite, Engine } = Physics;
+const { Body, Composite, Engine } = Physics;
 
 const MIN_CIRCLE_SIZE = 1;
 const CHAR_ANIMATION_MS = 1500;
@@ -113,7 +113,7 @@ export const createFileSimulation = (
   let rect = container.getBoundingClientRect();
   let width = rect.width;
   let height = rect.height;
-  const engine = Engine.create();
+  const engine = Engine.create(width, height);
   engine.gravity.y = 1;
   engine.gravity.scale = 0.001;
 
@@ -208,14 +208,6 @@ export const createFileSimulation = (
       container.removeChild(info.el);
     }, CHAR_ANIMATION_MS + 100);
   };
-  const createWalls = (w: number, h: number): Physics.Body[] => [
-    Bodies.rectangle(w / 2, h + 10, w, 20, { isStatic: true }),
-    Bodies.rectangle(w / 2, -h - 10, w, 20, { isStatic: true }),
-    Bodies.rectangle(-10, 0, 20, h * 2, { isStatic: true }),
-    Bodies.rectangle(w + 10, 0, 20, h * 2, { isStatic: true }),
-  ];
-  let walls = createWalls(width, height);
-  Composite.add(engine.world, walls);
 
   const update = (data: LineCount[]): void => {
     currentData = data;
@@ -298,7 +290,10 @@ export const createFileSimulation = (
       el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
       if (x < -r || x > width + r || y > height + r || y < -height - r) {
         Body.setVelocity(body, { x: 0, y: 0 });
-        Body.setPosition(body, { x: Math.random() * (width - 2 * r) + r, y: -r });
+        Body.setPosition(body, {
+          x: Math.random() * (engine.bounds.width - 2 * r) + r,
+          y: -r,
+        });
       }
     }
     frameId = raf(step);
@@ -319,9 +314,8 @@ export const createFileSimulation = (
     rect = container.getBoundingClientRect();
     width = rect.width;
     height = rect.height;
-    Composite.remove(engine.world, walls);
-    walls = createWalls(width, height);
-    Composite.add(engine.world, walls);
+    engine.bounds.width = width;
+    engine.bounds.height = height;
     if (currentData.length) update(currentData);
   };
   const destroy = (): void => {

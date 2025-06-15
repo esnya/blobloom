@@ -1,7 +1,8 @@
-import { fetchCommits, fetchLineCounts } from './api.js';
+import { fetchCommits } from './api.js';
 import { createPlayer } from './player.js';
 import { createFileSimulation } from './lines.js';
 import { createCommitLog } from './commitLog.js';
+import { createUpdateLines } from './updateLines.js';
 
 const json = (input: string) => fetch(input).then((r) => r.json());
 const commits = await fetchCommits(json);
@@ -24,14 +25,7 @@ const updateTimestamp = () => {
   timestampEl.textContent = date.toLocaleString();
 };
 
-const updateLines = async (): Promise<void> => {
-  const ts = Number(seek.value);
-  const counts = await fetchLineCounts(json, ts);
-  update(counts);
-  if (ts >= end) {
-    console.log('[debug] physics area updated for final commit at', ts);
-  }
-};
+export const updateLines = createUpdateLines({ seek, update, json, end });
 
 seek.addEventListener('input', () => {
   updateLines();

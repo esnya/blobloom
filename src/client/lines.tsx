@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createPortal, flushSync } from 'react-dom';
 import { FileCircle, type FileCircleHandle } from './components/FileCircle';
+import { PhysicsProvider } from './hooks';
 import * as Physics from './physics';
 const { Body, Composite, Engine } = Physics;
 
@@ -132,9 +133,6 @@ export const createFileSimulation = (
           file={name}
           lines={prevCounts[name] ?? 0}
           initialRadius={info.r}
-          engine={engine}
-          width={width}
-          height={height}
           onReady={(handle) => {
             info.body = handle.body;
             info.handle = handle;
@@ -143,7 +141,13 @@ export const createFileSimulation = (
         info.el,
       ),
     );
-    flushSync(() => root.render(<>{portals}</>));
+    flushSync(() =>
+      root.render(
+        <PhysicsProvider bounds={{ width, height }} engine={engine}>
+          <>{portals}</>
+        </PhysicsProvider>,
+      ),
+    );
   };
 
   const spawnChar = (

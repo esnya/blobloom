@@ -53,7 +53,6 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
       Object.values(handles.current).forEach((h) => {
         const { x, y } = h.body.position;
         const r = h.radius;
-        h.el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${h.body.angle}rad)`;
         if (
           x < -r ||
           x > bounds.width + r ||
@@ -101,9 +100,6 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
             file={d.file}
             lines={d.lines}
             initialRadius={r}
-            engine={engine}
-            width={bounds.width}
-            height={bounds.height}
             onReady={(h) => {
               handles.current[d.file] = h;
             }}

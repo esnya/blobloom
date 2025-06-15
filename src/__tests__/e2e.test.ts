@@ -31,7 +31,7 @@ describe('server e2e', () => {
     const commits = await fetchCommits(json);
     const counts = await fetchLineCounts(json);
 
-    expect(commits[0].commit.message).toBe('init\n');
+    expect(commits[0]!.commit.message).toBe('init\n');
     expect(counts[0]?.file).toBe('a.txt');
 
     server.close();
@@ -57,11 +57,11 @@ describe('server e2e', () => {
 
     const json = makeJsonFetcher(port);
     const commitsHead = await fetchCommits(json);
-    expect(commitsHead[0].commit.message).toBe('feat: update\n');
+    expect(commitsHead[0]!.commit.message).toBe('feat: update\n');
 
     app.set(appSettings.branch.description!, 'feature');
     const commitsFeature = await fetchCommits(json);
-    expect(commitsFeature[0].commit.message).toBe('init\n');
+    expect(commitsFeature[0]!.commit.message).toBe('init\n');
 
     server.close();
   });

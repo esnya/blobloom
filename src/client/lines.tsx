@@ -183,7 +183,7 @@ export const createFileSimulation = (
         y: Math.random() * height - y,
       };
       spawnChar(info.charsEl, 'add-char', offset, () => {
-        displayCounts[file]++;
+        displayCounts[file] = (displayCounts[file] ?? 0) + 1;
         info.handle.setCount(displayCounts[file]);
       });
     }
@@ -193,7 +193,7 @@ export const createFileSimulation = (
         y: Math.random() * window.innerHeight - (rect.top + y),
       };
       spawnChar(info.charsEl, 'remove-char', offset, () => {
-        displayCounts[file]--;
+        displayCounts[file] = (displayCounts[file] ?? 0) - 1;
         info.handle.setCount(displayCounts[file]);
       });
     }
@@ -244,7 +244,12 @@ export const createFileSimulation = (
 
   const update = (data: LineCount[]): void => {
     currentData = data;
-    const scale = computeScale(width, height, data, { linear: opts.linear });
+    const scale = computeScale(
+      width,
+      height,
+      data,
+      opts.linear !== undefined ? { linear: opts.linear } : {},
+    );
     const exp = opts.linear ? 1 : 0.5;
     const names = new Set(data.map((d) => d.file));
     for (const [name, info] of Object.entries(bodies)) {
@@ -320,8 +325,8 @@ export const createFileSimulation = (
         };
         displayCounts[file.file] = lines;
         Composite.add(engine.world, body);
-        spawnChars(bodies[file.file], file.file, added, removed);
-        if (effectsEnabled) bodies[file.file].handle.showGlow('glow-new');
+        spawnChars(bodies[file.file]!, file.file, added, removed);
+        if (effectsEnabled) bodies[file.file]!.handle.showGlow('glow-new');
       }
     }
   };

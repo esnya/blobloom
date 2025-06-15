@@ -21,6 +21,21 @@ export const useBody = (options: BodyOptions) => {
     ),
   );
 
+  const [, setTransform] = useState(() => ({
+    position: { ...body.position },
+    angle: body.angle,
+  }));
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      setTransform({ position: { ...body.position }, angle: body.angle });
+      frame = requestAnimationFrame(update);
+    };
+    update();
+    return () => cancelAnimationFrame(frame);
+  }, [body]);
+
   useEffect(() => {
     Physics.Composite.add(engine.world, body);
     return () => {

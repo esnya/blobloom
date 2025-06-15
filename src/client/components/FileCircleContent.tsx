@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState, useMemo } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 
 export interface FileCircleContentHandle {
   setCount: (n: number) => void;
@@ -27,13 +27,9 @@ export function FileCircleContent({
 }: FileCircleContentProps): React.JSX.Element {
   const [currentCount, setCurrentCount] = useState(count);
   const charsId = useId();
-  const nextId = useMemo(() => {
-    let id = 0;
-    return () => id++;
-  }, []);
   const [chars, setChars] = useState<
     Array<{
-      id: number;
+      id: string;
       cls: string;
       char: string;
       offset: { x: number; y: number };
@@ -49,9 +45,8 @@ export function FileCircleContent({
     const handle: FileCircleContentHandle = {
       setCount: setCurrentCount,
       spawnChar: (cls, offset, onEnd, color) => {
-        const id = nextId();
         const effect = {
-          id,
+          id: Math.random().toString(36).slice(2),
           cls,
           char: Math.random().toString(36).charAt(2),
           offset,

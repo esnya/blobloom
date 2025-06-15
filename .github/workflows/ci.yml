@@ -26,5 +26,5 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-playwright-
       - run: npx playwright install --with-deps
-      - run: npm run test:playwright
       - run: npm run build
+      - run: npm run test:playwright

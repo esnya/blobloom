@@ -31,6 +31,7 @@ npx playwright install
 Run end-to-end tests with:
 
 ```bash
+npm run build
 npm run test:playwright
 ```
 Playwright tests live in the `playwright` directory.

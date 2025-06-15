@@ -10,6 +10,7 @@ describe('usePlayer', () => {
     stop: jest.fn(),
     pause: jest.fn(),
     resume: jest.fn(),
+    togglePlay: jest.fn(),
     isPlaying: jest.fn(() => true),
   };
 
@@ -22,21 +23,17 @@ describe('usePlayer', () => {
   });
 
   it('creates player and exposes controls', () => {
-    const button = document.createElement('button');
-    const seek = document.createElement('input');
-    const duration = document.createElement('input');
-    const buttonRef = { current: button } as React.RefObject<HTMLButtonElement>;
-    const seekRef = { current: seek } as React.RefObject<HTMLInputElement>;
-    const durationRef = { current: duration } as React.RefObject<HTMLInputElement>;
+    const getSeek = jest.fn(() => 0);
+    const setSeek = jest.fn();
 
     const { result } = renderHook(() =>
-      usePlayer(buttonRef, { seekRef, durationRef, start: 0, end: 10 }),
+      usePlayer({ getSeek, setSeek, duration: 1, start: 0, end: 10 }),
     );
 
     expect(createPlayer).toHaveBeenCalledWith({
-      seek,
-      duration,
-      playButton: button,
+      getSeek,
+      setSeek,
+      duration: 1,
       start: 0,
       end: 10,
     });
@@ -45,6 +42,7 @@ describe('usePlayer', () => {
       result.current.pause();
       result.current.resume();
       result.current.stop();
+      result.current.togglePlay();
     });
 
     expect(mockPlayer.pause).toHaveBeenCalled();
@@ -54,15 +52,14 @@ describe('usePlayer', () => {
   });
 
   it('pauses on unmount', () => {
-    const button = document.createElement('button');
-    const seek = document.createElement('input');
-    const duration = document.createElement('input');
-    const buttonRef = { current: button } as React.RefObject<HTMLButtonElement>;
-    const seekRef = { current: seek } as React.RefObject<HTMLInputElement>;
-    const durationRef = { current: duration } as React.RefObject<HTMLInputElement>;
-
     const { unmount } = renderHook(() =>
-      usePlayer(buttonRef, { seekRef, durationRef, start: 0, end: 10 }),
+      usePlayer({
+        getSeek: () => 0,
+        setSeek: () => undefined,
+        duration: 1,
+        start: 0,
+        end: 10,
+      }),
     );
     unmount();
     expect(mockPlayer.pause).toHaveBeenCalled();

@@ -304,7 +304,7 @@ export const createFileSimulation = (
           root,
         };
         displayCounts[file.file] = lines;
-        spawnChars(bodies[file.file], file.file, added, removed);
+        spawnChars(bodies[file.file]!, file.file, added, removed);
         if (effectsEnabled) handle.showGlow('glow-new');
       }
     }

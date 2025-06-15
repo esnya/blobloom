@@ -11,6 +11,7 @@ export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): Reac
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const [timestamp, setTimestamp] = useState(() => Number(seek.value));
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     const onInput = () => setTimestamp(Number(seek.value));
@@ -42,7 +43,8 @@ export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): Reac
     if (!list || !container) return;
     const current = list.querySelector<HTMLLIElement>('li.current');
     if (!current) return;
-    let offset = container.clientHeight / 2 - (current.offsetTop + current.offsetHeight / 2);
+    let nextOffset =
+      container.clientHeight / 2 - (current.offsetTop + current.offsetHeight / 2);
     const prevCommit = index > 0 ? commits[index - 1] : null;
     const prevLi = current.previousElementSibling as HTMLLIElement | null;
     if (prevCommit && prevLi) {
@@ -52,17 +54,19 @@ export const CommitLog = ({ commits, seek, visible = 15 }: CommitLogProps): Reac
         (timestamp - commits[index].commit.committer.timestamp * 1000) / diffMs;
       const prevCenter = prevLi.offsetTop + prevLi.offsetHeight / 2;
       const currCenter = current.offsetTop + current.offsetHeight / 2;
-      offset -= (prevCenter - currCenter) * ratio;
+      nextOffset -= (prevCenter - currCenter) * ratio;
     }
-    list.style.transform = `translateY(${offset}px)`;
-    if (index === 0) {
-      console.log('[debug] commit log rendered final commit at', timestamp);
-    }
+    setOffset(nextOffset);
+    if (index === 0) container.dispatchEvent(new Event('end'));
   }, [slice, timestamp, index, commits]);
 
   return (
     <div id="commit-log" ref={containerRef}>
-      <ul className="commit-list" ref={listRef}>
+      <ul
+        className="commit-list"
+        ref={listRef}
+        style={{ transform: `translateY(${offset}px)` }}
+      >
         {slice.map((c, i) => {
           const diff =
             i > 0

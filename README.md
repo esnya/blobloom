@@ -15,7 +15,7 @@ npm test
 npm run build            # client build with Vite
 npm start                # defaults to current directory
 # npm start -- --repo path/to/repo
-# npm run dev            # Vite dev server
+# npm run dev            # start Vite dev server with API
 ```
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.

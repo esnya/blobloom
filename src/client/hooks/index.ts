@@ -91,3 +91,5 @@ export const usePlayer = (
 
   return { stop, pause, resume, isPlaying };
 };
+
+export { useCssAnimation, makeUseCssAnimation } from './useCssAnimation';

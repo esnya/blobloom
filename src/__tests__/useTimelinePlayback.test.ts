@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTimelinePlayback } from '../client/hooks/useTimelinePlayback';
 import { usePlayer } from '../client/hooks';
 import { usePageVisibility } from '../client/hooks/usePageVisibility';
@@ -36,22 +36,35 @@ afterEach(() => {
 });
 
 describe('useTimelinePlayback', () => {
-  it('forwards options and manages timestamp', () => {
-  const { result } = renderHook(() =>
-    useTimelinePlayback({ duration: 1, start: 0, end: 10 }),
-  );
+  it('forwards options and manages timestamp', async () => {
+    const commits = [
+      { commit: { message: 'a', committer: { timestamp: 2 } } },
+      { commit: { message: 'b', committer: { timestamp: 1 } } },
+    ];
+    const json = jest.fn((input: string) => {
+      if (input.startsWith('/api/commits')) return Promise.resolve(commits);
+      if (input.startsWith('/api/lines')) return Promise.resolve([]);
+      return Promise.reject(new Error(`unexpected ${input}`));
+    });
 
-  const options = usePlayerMock.mock.calls[0]![0] as {
-    duration: number;
-    start: number;
-    end: number;
-    getSeek: () => number;
-    setSeek: (n: number) => void;
-  };
+    const { result } = renderHook(() =>
+      useTimelinePlayback({ duration: 1, json }),
+    );
+
+    await waitFor(() => expect(result.current.ready).toBe(true));
+
+    const options =
+      usePlayerMock.mock.calls[usePlayerMock.mock.calls.length - 1]![0] as {
+        duration: number;
+        start: number;
+        end: number;
+        getSeek: () => number;
+        setSeek: (n: number) => void;
+      };
+
     expect(options.duration).toBe(1);
-    expect(options.start).toBe(0);
-    expect(options.end).toBe(10);
-    expect(options.getSeek()).toBe(0);
+    expect(options.start).toBe(1000);
+    expect(options.end).toBe(2000);
 
     void act(() => {
       options.setSeek(5);
@@ -61,7 +74,7 @@ describe('useTimelinePlayback', () => {
 
   it('responds to visibility changes', () => {
     const { rerender } = renderHook(() =>
-      useTimelinePlayback({ duration: 1, start: 0, end: 10 }),
+      useTimelinePlayback({ duration: 1 }),
     );
 
     visibility.value = true;
@@ -73,16 +86,22 @@ describe('useTimelinePlayback', () => {
     expect(mockPlayer.resume).toHaveBeenCalled();
   });
 
-  it('resets timestamp when start changes', () => {
-    const { result, rerender } = renderHook(
-      ({ s }: { s: number }) =>
-        useTimelinePlayback({ duration: 1, start: s, end: 10 }),
-      { initialProps: { s: 0 } },
+  it('sets timestamp after commits load', async () => {
+    const commits = [
+      { commit: { message: 'a', committer: { timestamp: 2 } } },
+      { commit: { message: 'b', committer: { timestamp: 1 } } },
+    ];
+    const json = jest.fn((input: string) => {
+      if (input.startsWith('/api/commits')) return Promise.resolve(commits);
+      if (input.startsWith('/api/lines')) return Promise.resolve([]);
+      return Promise.reject(new Error(`unexpected ${input}`));
+    });
+
+    const { result } = renderHook(() =>
+      useTimelinePlayback({ duration: 1, json }),
     );
 
-    expect(result.current.timestamp).toBe(0);
-
-    rerender({ s: 3 });
-    expect(result.current.timestamp).toBe(3);
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    expect(result.current.timestamp).toBe(1000);
   });
 });

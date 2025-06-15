@@ -5,16 +5,19 @@ export interface DurationInputProps {
   onInput?: (value: number) => void;
 }
 
-export const DurationInput = React.forwardRef<HTMLInputElement, DurationInputProps>(
-  ({ defaultValue = 20, onInput }, ref) => (
+export function DurationInput({
+  defaultValue = 20,
+  onInput,
+}: DurationInputProps): React.JSX.Element {
+  return (
     <input
       type="number"
-      ref={ref}
       defaultValue={defaultValue}
       min={1}
       onInput={
         onInput ? (e) => onInput(Number((e.target as HTMLInputElement).value)) : undefined
       }
     />
-  ),
-);
+  );
+}
+

@@ -1,45 +1,45 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createFileSimulation } from '../lines';
 import { createPlayer } from '../player';
 import type { LineCount } from '../types';
 import type { PlayerOptions } from '../player';
 
 export const useFileSimulation = (
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  container: HTMLElement | null,
   opts: {
     raf?: (cb: FrameRequestCallback) => number;
     now?: () => number;
     linear?: boolean;
   } = {},
 ) => {
-  const simRef = useRef<ReturnType<typeof createFileSimulation> | null>(null);
+  const [sim, setSim] = useState<ReturnType<typeof createFileSimulation> | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    const sim = createFileSimulation(containerRef.current, opts);
-    simRef.current = sim;
-    window.addEventListener('resize', sim.resize);
+    if (!container) return;
+    const instance = createFileSimulation(container, opts);
+    setSim(instance);
+    window.addEventListener('resize', instance.resize);
     return () => {
-      window.removeEventListener('resize', sim.resize);
-      sim.destroy();
+      window.removeEventListener('resize', instance.resize);
+      instance.destroy();
     };
-  }, [containerRef, opts]);
+  }, [container, opts]);
 
   const update = useCallback((data: LineCount[]) => {
-    simRef.current?.update(data);
-  }, []);
-  const pause = useCallback(() => simRef.current?.pause(), []);
-  const resume = useCallback(() => simRef.current?.resume(), []);
+    sim?.update(data);
+  }, [sim]);
+  const pause = useCallback(() => sim?.pause(), [sim]);
+  const resume = useCallback(() => sim?.resume(), [sim]);
   const setEffectsEnabled = useCallback(
-    (state: boolean) => simRef.current?.setEffectsEnabled(state),
-    [],
+    (state: boolean) => sim?.setEffectsEnabled(state),
+    [sim],
   );
 
   return { update, pause, resume, setEffectsEnabled };
 };
 
 export const useAnimatedSimulation = (
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  container: HTMLElement | null,
   data: LineCount[],
   opts: {
     raf?: (cb: FrameRequestCallback) => number;
@@ -47,10 +47,7 @@ export const useAnimatedSimulation = (
     linear?: boolean;
   } = {},
 ) => {
-  const { update, pause, resume, setEffectsEnabled } = useFileSimulation(
-    containerRef,
-    opts,
-  );
+  const { update, pause, resume, setEffectsEnabled } = useFileSimulation(container, opts);
 
   useEffect(() => {
     if (data.length) update(data);
@@ -61,25 +58,22 @@ export const useAnimatedSimulation = (
 
 export const usePlayer = (options: PlayerOptions) => {
   const { onPlayStateChange, ...opts } = options;
-  const playerRef = useRef<ReturnType<typeof createPlayer> | null>(null);
+  const [player, setPlayer] = useState<ReturnType<typeof createPlayer> | null>(null);
 
   useEffect(() => {
-    const player = createPlayer({
+    const instance = createPlayer({
       ...opts,
       ...(onPlayStateChange ? { onPlayStateChange } : {}),
     });
-    playerRef.current = player;
-    return () => player.pause();
+    setPlayer(instance);
+    return () => instance.pause();
   }, [opts.getSeek, opts.setSeek, opts.duration, opts.start, opts.end, opts.raf, opts.now, onPlayStateChange]);
 
-  const stop = useCallback(() => playerRef.current?.stop(), []);
-  const pause = useCallback(() => playerRef.current?.pause(), []);
-  const resume = useCallback(() => playerRef.current?.resume(), []);
-  const togglePlay = useCallback(() => playerRef.current?.togglePlay(), []);
-  const isPlaying = useCallback(
-    () => playerRef.current?.isPlaying() ?? false,
-    [],
-  );
+  const stop = useCallback(() => player?.stop(), [player]);
+  const pause = useCallback(() => player?.pause(), [player]);
+  const resume = useCallback(() => player?.resume(), [player]);
+  const togglePlay = useCallback(() => player?.togglePlay(), [player]);
+  const isPlaying = useCallback(() => player?.isPlaying() ?? false, [player]);
 
   return { stop, pause, resume, togglePlay, isPlaying };
 };

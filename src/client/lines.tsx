@@ -3,8 +3,8 @@ import React from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { FileCircle, type FileCircleHandle } from './components/FileCircle';
-import Matter from 'matter-js';
-const { Bodies, Body, Composite, Engine } = Matter;
+import * as Physics from './physics';
+const { Bodies, Body, Composite, Engine } = Physics;
 
 const MIN_CIRCLE_SIZE = 1;
 const CHAR_ANIMATION_MS = 1500;
@@ -68,7 +68,7 @@ export const colorForFile = (name: string): string => {
 
 interface BodyInfo {
   el: HTMLElement;
-  body: Matter.Body;
+  body: Physics.Body;
   r: number;
   handle?: FileCircleHandle;
   root: Root;
@@ -208,7 +208,7 @@ export const createFileSimulation = (
       container.removeChild(info.el);
     }, CHAR_ANIMATION_MS + 100);
   };
-  const createWalls = (w: number, h: number): Matter.Body[] => [
+  const createWalls = (w: number, h: number): Physics.Body[] => [
     Bodies.rectangle(w / 2, h + 10, w, 20, { isStatic: true }),
     Bodies.rectangle(w / 2, -h - 10, w, 20, { isStatic: true }),
     Bodies.rectangle(-10, 0, 20, h * 2, { isStatic: true }),

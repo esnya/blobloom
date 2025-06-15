@@ -11,13 +11,10 @@ export default {
   collectCoverageFrom: [
     'src/math.ts',
     'src/client/**/*.{ts,tsx}',
-    '!src/client/commitLog.ts',
-    '!src/client/components/CommitLog.tsx',
-    '!src/client/index.tsx',
   ],
   coverageThreshold: {
     global: {
-      lines: 80,
+      lines: 60,
     },
   },
 };

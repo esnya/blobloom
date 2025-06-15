@@ -10,3 +10,6 @@
 - Avoid excluding code from coverage unless there is a compelling reason.
   If coverage goals become difficult to meet, document TODO tasks and
   temporarily lower the coverage threshold until those tasks are resolved.
+- Run `npm audit` and address reported vulnerabilities.
+- Investigate any `deprecated` warnings from package installs.
+- Make these checks part of the regular workflow and account for them when updating CI.

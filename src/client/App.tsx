@@ -7,31 +7,27 @@ import { PlayButton } from './components/PlayButton';
 import { SeekBar } from './components/SeekBar';
 import { SimulationArea } from './components/SimulationArea';
 import type { SimulationAreaHandle } from './components/SimulationArea';
-import { usePlayer, usePageVisibility } from './hooks';
+import { useTimelinePlayback } from './hooks';
 import type { Commit } from './types';
 
 export function App(): React.JSX.Element {
   const [commits, setCommits] = useState<Commit[]>([]);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
-  const [timestamp, setTimestamp] = useState(0);
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const [ready, setReady] = useState(false);
   const [duration, setDuration] = useState(20);
 
   const [sim, setSim] = useState<SimulationAreaHandle | null>(null);
 
-  const hidden = usePageVisibility();
-  const [wasPlaying, setWasPlaying] = useState(false);
-
-  const player = usePlayer({
-    getSeek: () => timestamp,
-    setSeek: setTimestamp,
+  const playback = useTimelinePlayback({
     duration,
     start,
     end,
     onPlayStateChange: (p) => sim?.setEffectsEnabled(p),
+    onVisibilityChange: (h) => (h ? sim?.pause() : sim?.resume()),
   });
+  const { timestamp, setTimestamp, ...player } = playback;
 
   const json = (input: string) => fetch(input).then((r) => r.json());
 
@@ -46,7 +42,7 @@ export function App(): React.JSX.Element {
       setTimestamp(s);
       setReady(true);
     })();
-  }, []);
+  }, [setTimestamp]);
 
   useEffect(() => {
     if (!ready) return;
@@ -59,17 +55,7 @@ export function App(): React.JSX.Element {
     })();
   }, [ready, timestamp, end]);
 
-  useEffect(() => {
-    if (!ready) return;
-    if (hidden) {
-      setWasPlaying(player.isPlaying());
-      player.pause();
-      sim?.pause();
-    } else {
-      sim?.resume();
-      if (wasPlaying) player.resume();
-    }
-  }, [hidden, ready, player, sim, wasPlaying]);
+
 
 
   return (

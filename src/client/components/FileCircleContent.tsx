@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
+import { useCharEffects } from '../hooks';
 
 export interface FileCircleContentHandle {
   setCount: (n: number) => void;
@@ -27,39 +28,16 @@ export function FileCircleContent({
 }: FileCircleContentProps): React.JSX.Element {
   const [currentCount, setCurrentCount] = useState(count);
   const charsId = useId();
-  const [chars, setChars] = useState<
-    Array<{
-      id: string;
-      cls: string;
-      char: string;
-      offset: { x: number; y: number };
-      rotate: string;
-      delay: number;
-      color?: string;
-      onEnd: () => void;
-    }>
-  >([]);
+  const { chars, spawnChar, removeChar } = useCharEffects();
 
   useEffect(() => {
     if (!onReady) return;
     const handle: FileCircleContentHandle = {
       setCount: setCurrentCount,
-      spawnChar: (cls, offset, onEnd, color) => {
-        const effect = {
-          id: Math.random().toString(36).slice(2),
-          cls,
-          char: Math.random().toString(36).charAt(2),
-          offset,
-          rotate: `${Math.random() * 360}deg`,
-          delay: Math.random() * 0.5,
-          onEnd,
-          ...(color ? { color } : {}),
-        };
-        setChars((prev) => [...prev, effect]);
-      },
+      spawnChar,
     };
     onReady(handle);
-  }, [onReady]);
+  }, [onReady, spawnChar]);
 
   return (
     <>
@@ -79,7 +57,7 @@ export function FileCircleContent({
               color: c.color,
             } as React.CSSProperties}
             onAnimationEnd={() => {
-              setChars((prev) => prev.filter((e) => e.id !== c.id));
+              removeChar(c.id);
               c.onEnd();
             }}
           >

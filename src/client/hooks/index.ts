@@ -38,6 +38,27 @@ export const useFileSimulation = (
   return { update, pause, resume, setEffectsEnabled };
 };
 
+export const useAnimatedSimulation = (
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  data: LineCount[],
+  opts: {
+    raf?: (cb: FrameRequestCallback) => number;
+    now?: () => number;
+    linear?: boolean;
+  } = {},
+) => {
+  const { update, pause, resume, setEffectsEnabled } = useFileSimulation(
+    containerRef,
+    opts,
+  );
+
+  useEffect(() => {
+    if (data.length) update(data);
+  }, [data, update]);
+
+  return { pause, resume, setEffectsEnabled };
+};
+
 export const usePlayer = (
   buttonRef: React.RefObject<HTMLButtonElement | null>,
   options: Omit<PlayerOptions, 'playButton' | 'seek' | 'duration'> & {

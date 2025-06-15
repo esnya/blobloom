@@ -1,7 +1,6 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { useFileSimulation } from '../hooks';
-import { fetchLineCounts } from '../api';
-import type { JsonFetcher } from '../api';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { useAnimatedSimulation } from '../hooks';
+import type { LineCount } from '../types';
 
 export interface SimulationAreaHandle {
   pause: () => void;
@@ -10,25 +9,13 @@ export interface SimulationAreaHandle {
 }
 
 interface SimulationAreaProps {
-  timestamp: number;
-  end: number;
-  json: JsonFetcher;
+  data: LineCount[];
 }
 
 export const SimulationArea = forwardRef<SimulationAreaHandle, SimulationAreaProps>(
-  ({ timestamp, end, json }, ref) => {
+  ({ data }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { update, pause, resume, setEffectsEnabled } = useFileSimulation(containerRef);
-
-    useEffect(() => {
-      (async () => {
-        const counts = await fetchLineCounts(json, timestamp);
-        update(counts);
-        if (timestamp >= end) {
-          console.log('[debug] physics area updated for final commit at', timestamp);
-        }
-      })();
-    }, [timestamp, json, end, update]);
+    const { pause, resume, setEffectsEnabled } = useAnimatedSimulation(containerRef, data);
 
     useImperativeHandle(ref, () => ({
       pause,

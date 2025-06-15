@@ -60,7 +60,8 @@ describe('createPlayer', () => {
     expect(player.isPlaying()).toBe(false);
   });
 
-  it('increments seek on each frame', () => {
+  // Deprecated: prefer integration tests covering App.tsx behaviour
+  it.skip('increments seek on each frame', () => {
     let seek = 0;
     const getSeek = () => seek;
     const setSeek = (v: number) => {

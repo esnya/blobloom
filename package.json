@@ -44,6 +44,9 @@
     "vite": "^6.3.5",
     "@vitejs/plugin-react": "^4.5.2"
   },
+  "overrides": {
+    "test-exclude": "^7.0.1"
+  },
   "engines": {
     "node": ">=20"
   }

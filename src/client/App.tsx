@@ -31,8 +31,8 @@ export function App(): React.JSX.Element {
     void (async () => {
       const commitData = await fetchCommits(json);
       setCommits(commitData);
-      const s = commitData[commitData.length - 1].commit.committer.timestamp * 1000;
-      const e = commitData[0].commit.committer.timestamp * 1000;
+      const s = commitData[commitData.length - 1]!.commit.committer.timestamp * 1000;
+      const e = commitData[0]!.commit.committer.timestamp * 1000;
       setStart(s);
       setEnd(e);
       setTimestamp(s);

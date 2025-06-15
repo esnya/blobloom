@@ -5,7 +5,9 @@ export default {
   transform: {
     '^.+\\.[tj]sx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json', useESM: true }],
   },
-  moduleNameMapper: {},
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
   collectCoverage: true,
   collectCoverageFrom: [

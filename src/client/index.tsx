@@ -6,7 +6,7 @@ import { createFileSimulation } from './lines.js';
 import { CommitLog } from './components/CommitLog.js';
 import type { Commit } from './types.js';
 
-function App(): JSX.Element {
+function App(): React.JSX.Element {
   const [commits, setCommits] = useState<Commit[]>([]);
   const [seekEl, setSeekEl] = useState<HTMLInputElement | null>(null);
 

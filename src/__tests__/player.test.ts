@@ -191,4 +191,38 @@ describe('createPlayer', () => {
     callbacks[1]?.(2000);
     expect(stateListener).toHaveBeenLastCalledWith(false);
   });
+
+  it('stops scheduling frames when paused', () => {
+    let seek = 0;
+    const getSeek = () => seek;
+    const setSeek = (v: number) => {
+      seek = v;
+    };
+
+    let cb: any = null;
+    const raf = jest.fn((fn: FrameRequestCallback) => {
+      cb = fn;
+      return 1;
+    });
+
+    const player = createPlayer({
+      getSeek,
+      setSeek,
+      duration: 1,
+      start: 0,
+      end: 2,
+      raf,
+      now: () => 0,
+    });
+
+    player.resume();
+    expect(raf).toHaveBeenCalledTimes(1);
+    if (cb) cb(0 as unknown as DOMHighResTimeStamp);
+    expect(raf).toHaveBeenCalledTimes(2);
+
+    player.pause();
+    if (cb) cb(16 as unknown as DOMHighResTimeStamp);
+
+    expect(raf).toHaveBeenCalledTimes(2);
+  });
 });

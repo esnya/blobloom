@@ -24,8 +24,6 @@ export const createPlayer = ({
 
   const tick = (time: number): void => {
     if (!playing) {
-      lastTime = time;
-      raf(tick);
       return;
     }
     const total = duration * 1000;

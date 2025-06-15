@@ -5,7 +5,9 @@ export default function viteExpress(): Plugin {
   return {
     name: 'vite-express',
     async configureServer(server) {
-      server.middlewares.use(await createApiMiddleware());
+      const middleware = await createApiMiddleware();
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      server.middlewares.use(middleware);
     },
   };
 }

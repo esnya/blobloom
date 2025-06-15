@@ -28,7 +28,7 @@ export function App(): React.JSX.Element {
   const json = (input: string) => fetch(input).then((r) => r.json());
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       const commitData = await fetchCommits(json);
       setCommits(commitData);
       const s = commitData[commitData.length - 1].commit.committer.timestamp * 1000;
@@ -42,7 +42,7 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    (async () => {
+    void (async () => {
       const counts = await fetchLineCounts(json, timestamp);
       setLineCounts(counts);
       if (timestamp >= end) {

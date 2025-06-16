@@ -20,8 +20,9 @@ export const useTimelineData = ({ json, timestamp }: TimelineDataOptions) => {
       const data = await fetchCommits(json);
       setCommits(data);
       if (data.length) {
-        const s = data[data.length - 1]!.commit.committer.timestamp * 1000;
-        const e = data[0]!.commit.committer.timestamp * 1000;
+        const timestamps = data.map((c) => c.commit.committer.timestamp * 1000);
+        const s = Math.min(...timestamps);
+        const e = Math.max(...timestamps);
         setStart(s);
         setEnd(e);
       }

@@ -17,7 +17,10 @@ describe('App commit log', () => {
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       if (typeof input === 'string' && input.startsWith('/api/commits')) {
         if (input.endsWith('/lines')) {
-          return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
+          return Promise.resolve({
+            json: () =>
+              Promise.resolve({ counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }] }),
+          });
         }
         return Promise.resolve({ json: () => Promise.resolve({ commits }) });
       }

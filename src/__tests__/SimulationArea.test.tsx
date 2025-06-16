@@ -12,7 +12,7 @@ const update = jest.fn();
   update,
 });
 
-const data: LineCount[] = [{ file: 'a', lines: 1 }];
+const data: LineCount[] = [{ file: 'a', lines: 1, added: 0, removed: 0 }];
 
 describe('SimulationArea', () => {
   beforeEach(() => {

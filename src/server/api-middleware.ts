@@ -21,6 +21,8 @@ const commitSchema = z.object({
 const lineCountSchema = z.object({
   file: z.string(),
   lines: z.number(),
+  added: z.number(),
+  removed: z.number(),
 });
 
 const commitsResponseSchema = z.object({
@@ -113,7 +115,14 @@ apiMiddleware.get(
       const ignore = ignorePatterns(app);
 
       await git.resolveRef({ fs, dir, ref: req.params.commitId });
-      const counts = await getLineCounts({ dir, ref: req.params.commitId, ignore });
+      const options = { dir, ref: req.params.commitId, ignore } as {
+        dir: string;
+        ref: string;
+        ignore: string[];
+        parent?: string;
+      };
+      if (params.data.parent) options.parent = params.data.parent;
+      const counts = await getLineCounts(options);
       const renames = params.data.parent
         ? await getRenameMap({
             dir,

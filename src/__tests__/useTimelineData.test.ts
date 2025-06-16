@@ -15,8 +15,8 @@ describe('useTimelineData', () => {
       { id: 'c1', message: 'a', timestamp: 2 },
       { id: 'c2', message: 'b', timestamp: 1 },
     ];
-    const linesFirst = [{ file: 'a', lines: 1 }];
-    const linesSecond = [{ file: 'a', lines: 2 }];
+    const linesFirst = [{ file: 'a', lines: 1, added: 0, removed: 0 }];
+    const linesSecond = [{ file: 'a', lines: 2, added: 1, removed: 0 }];
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       const url =
         typeof input === 'string'
@@ -72,8 +72,8 @@ describe('useTimelineData', () => {
       { id: 'c1', message: 'a', timestamp: 2 },
       { id: 'c2', message: 'b', timestamp: 1 },
     ];
-    const linesFirst = [{ file: 'a', lines: 1 }];
-    const linesSecond = [{ file: 'a', lines: 2 }];
+    const linesFirst = [{ file: 'a', lines: 1, added: 0, removed: 0 }];
+    const linesSecond = [{ file: 'a', lines: 2, added: 1, removed: 0 }];
     let resolveFirst: (() => void) | undefined;
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       const url =
@@ -132,8 +132,8 @@ describe('useTimelineData', () => {
       { id: 'c1', message: 'rename', timestamp: 2 },
       { id: 'c0', message: 'init', timestamp: 1 },
     ];
-    const linesInit = [{ file: 'a.txt', lines: 1 }];
-    const linesRenamed = [{ file: 'b.txt', lines: 1 }];
+    const linesInit = [{ file: 'a.txt', lines: 1, added: 0, removed: 0 }];
+    const linesRenamed = [{ file: 'b.txt', lines: 1, added: 0, removed: 0 }];
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       const url =
         typeof input === 'string'
@@ -169,7 +169,9 @@ describe('useTimelineData', () => {
 
     rerender({ ts: 2000 });
     await waitFor(() =>
-      expect(result.current.lineCounts).toEqual([{ file: 'a.txt', lines: 1 }]),
+      expect(result.current.lineCounts).toEqual([
+        { file: 'a.txt', lines: 1, added: 0, removed: 0 },
+      ]),
     );
   });
 });

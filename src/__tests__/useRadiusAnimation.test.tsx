@@ -1,10 +1,10 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { useRadiusAnimation } from '../client/hooks/useRadiusAnimation';
+import { useAnimatedNumber } from '../client/hooks/useAnimatedNumber';
 
 jest.useFakeTimers();
 
-describe('useRadiusAnimation', () => {
+describe('useAnimatedNumber', () => {
   const originalRaf = global.requestAnimationFrame;
   let now = 0;
 
@@ -26,7 +26,7 @@ describe('useRadiusAnimation', () => {
   });
 
   it('eases to the target within duration', () => {
-    const { result } = renderHook(() => useRadiusAnimation(10, 100));
+    const { result } = renderHook(() => useAnimatedNumber(10, { duration: 100 }));
 
     act(() => {
       result.current[1](20);
@@ -44,7 +44,7 @@ describe('useRadiusAnimation', () => {
   });
 
   it('returns a stable animate function', () => {
-    const { result } = renderHook(() => useRadiusAnimation(10, 100));
+    const { result } = renderHook(() => useAnimatedNumber(10, { duration: 100 }));
     const animate = result.current[1];
 
     act(() => {

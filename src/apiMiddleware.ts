@@ -4,6 +4,7 @@ import * as git from 'isomorphic-git';
 import fs from 'fs';
 import path from 'path';
 import { getLineCounts, LineCount } from './lineCounts';
+import { defaultIgnore } from './ignoreDefaults';
 
 export interface CreateApiMiddlewareOptions {
   repo?: string;
@@ -26,7 +27,11 @@ const resolveBranch = async (
   return branch;
 };
 
-export const createApiMiddleware = async ({ repo = process.cwd(), branch: inputBranch, ignore = [] }: CreateApiMiddlewareOptions = {}) => {
+export const createApiMiddleware = async ({
+  repo = process.cwd(),
+  branch: inputBranch,
+  ignore = [...defaultIgnore],
+}: CreateApiMiddlewareOptions = {}) => {
   const repoDir = path.resolve(repo);
   if (!fs.existsSync(path.join(repoDir, '.git'))) {
     throw new Error(`${repoDir} is not a git repository.`);

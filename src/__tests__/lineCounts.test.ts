@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import * as git from 'isomorphic-git';
 import { getLineCounts } from '../lineCounts';
+import { defaultIgnore } from '../ignoreDefaults';
 
 const author = { name: 'a', email: 'a@example.com' };
 
@@ -30,5 +31,16 @@ describe('getLineCounts', () => {
 
     const counts = await getLineCounts({ dir, ref: 'HEAD' });
     expect(counts.find((c) => c.file === 'b.bin')).toBeUndefined();
+  });
+
+  it('ignores files matched by patterns', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
+    await git.init({ fs, dir });
+    await fs.promises.writeFile(path.join(dir, 'package-lock.json'), '0');
+    await git.add({ fs, dir, filepath: 'package-lock.json' });
+    await git.commit({ fs, dir, author, message: 'init' });
+
+    const counts = await getLineCounts({ dir, ref: 'HEAD', ignore: defaultIgnore });
+    expect(counts.find((c) => c.file === 'package-lock.json')).toBeUndefined();
   });
 });

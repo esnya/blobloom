@@ -12,7 +12,7 @@
     "test": "jest",
     "test:playwright": "playwright test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "rename-demo": "tsx src/renameDemo.ts"
+    "rename-demo": "tsx legacy/rename-demo.ts"
   },
   "dependencies": {
     "commander": "^14.0.0",

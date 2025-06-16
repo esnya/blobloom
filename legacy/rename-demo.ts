@@ -3,7 +3,7 @@ import { setTimeout as wait } from 'timers/promises';
 
 const [from, to] = process.argv.slice(2);
 if (!from || !to) {
-  console.error('Usage: tsx src/renameDemo.ts <from> <to>');
+  console.error('Usage: tsx legacy/rename-demo.ts <from> <to>');
   process.exit(1);
 }
 

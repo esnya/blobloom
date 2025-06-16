@@ -27,6 +27,7 @@
 
 ## TODO
 - Add more hook tests and restore coverage threshold to 80.
-- Verify character effect rendering once React flushing is reliable (`src/__tests__/lines.test.ts`).
+- Coverage threshold temporarily lowered to 70 due to test removal.
 - Move FileCircle refs into custom hooks; restrict `no-restricted-syntax` overrides to necessary lines.
+- Legacy file simulation and associated tests removed.
 - Remove or replace `src/renameDemo.ts` if no longer needed.

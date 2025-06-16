@@ -6,7 +6,7 @@ import { useGlowControl } from '../hooks/useGlowControl';
 import { useGlobalCharEffects } from '../hooks/useGlobalCharEffects';
 import { useRadiusAnimation } from '../hooks/useRadiusAnimation';
 import { usePrevious } from '../hooks/usePrevious';
-import { MAX_EFFECT_CHARS } from '../fileSimulation';
+const MAX_EFFECT_CHARS = 100;
 
 interface FileCircleProps {
   file: string;

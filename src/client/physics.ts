@@ -305,11 +305,17 @@ export class Engine {
     const dy = b.position.y - a.position.y;
     const r = (a.radius ?? 0) + (b.radius ?? 0);
     const distSq = dx * dx + dy * dy;
-    if (distSq >= r * r || distSq === 0) return;
+    if (distSq >= r * r) return;
 
     const dist = Math.sqrt(distSq);
-    const nx = dx / dist;
-    const ny = dy / dist;
+    let nx = 0;
+    let ny = 0;
+    if (dist === 0) {
+      nx = 1;
+    } else {
+      nx = dx / dist;
+      ny = dy / dist;
+    }
     const tx = -ny;
     const ty = nx;
 
@@ -317,33 +323,33 @@ export class Engine {
     const relVelY = a.velocity.y - b.velocity.y;
 
     const relNormal = relVelX * nx + relVelY * ny;
-    if (relNormal > 0) return;
-
     const e = Math.min(a.restitution, b.restitution);
     const m1 = a.mass;
     const m2 = b.mass;
 
-    const j = (-(1 + e) * relNormal) / (1 / m1 + 1 / m2);
+    if (relNormal > 0) {
+      const j = (-(1 + e) * relNormal) / (1 / m1 + 1 / m2);
 
-    a.velocity.x += (j / m1) * nx;
-    a.velocity.y += (j / m1) * ny;
-    b.velocity.x -= (j / m2) * nx;
-    b.velocity.y -= (j / m2) * ny;
+      a.velocity.x += (j / m1) * nx;
+      a.velocity.y += (j / m1) * ny;
+      b.velocity.x -= (j / m2) * nx;
+      b.velocity.y -= (j / m2) * ny;
 
-    const relTang = relVelX * tx + relVelY * ty;
-    const mu = (a.friction + b.friction) / 2;
-    let jt = -relTang / (1 / m1 + 1 / m2);
-    const maxJt = Math.abs(j) * mu;
-    if (jt > maxJt) jt = maxJt;
-    if (jt < -maxJt) jt = -maxJt;
+      const relTang = relVelX * tx + relVelY * ty;
+      const mu = (a.friction + b.friction) / 2;
+      let jt = -relTang / (1 / m1 + 1 / m2);
+      const maxJt = Math.abs(j) * mu;
+      if (jt > maxJt) jt = maxJt;
+      if (jt < -maxJt) jt = -maxJt;
 
-    a.velocity.x += (jt / m1) * tx;
-    a.velocity.y += (jt / m1) * ty;
-    b.velocity.x -= (jt / m2) * tx;
-    b.velocity.y -= (jt / m2) * ty;
+      a.velocity.x += (jt / m1) * tx;
+      a.velocity.y += (jt / m1) * ty;
+      b.velocity.x -= (jt / m2) * tx;
+      b.velocity.y -= (jt / m2) * ty;
 
-    if (a.radius) a.angularVelocity -= (jt / m1) / a.radius;
-    if (b.radius) b.angularVelocity += (jt / m2) / b.radius;
+      if (a.radius) a.angularVelocity -= (jt / m1) / a.radius;
+      if (b.radius) b.angularVelocity += (jt / m2) / b.radius;
+    }
 
     const overlap = r - dist;
     const correction = overlap / (m1 + m2);

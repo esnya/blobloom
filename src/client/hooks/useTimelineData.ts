@@ -8,6 +8,7 @@ const useLineCountsQueue = (baseUrl?: string) => {
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const renameMapRef = useRef<Record<string, string>>({});
   const token = useRef(0);
+  const processed = useRef(0);
   const socketRef = useRef<WebSocket | null>(null);
   const queuedRef = useRef<string | null>(null);
 
@@ -20,7 +21,13 @@ const useLineCountsQueue = (baseUrl?: string) => {
 
   const handleMessage = useCallback((ev: MessageEvent) => {
     const payload = JSON.parse(ev.data as string) as (LineCountsResponse | ApiError) & { token?: number };
-    if ('counts' in payload && payload.token === token.current && payload.counts.length > 0) {
+    if (
+      'counts' in payload &&
+      payload.token !== undefined &&
+      payload.token > processed.current &&
+      payload.counts.length > 0
+    ) {
+      processed.current = payload.token;
       if (payload.renames) {
         for (const [to, from] of Object.entries(payload.renames)) {
           renameMapRef.current[to] = renameMapRef.current[from] ?? from;
@@ -68,6 +75,7 @@ const useLineCountsQueue = (baseUrl?: string) => {
     renameMapRef.current = {};
     setLineCounts([]);
     token.current += 1;
+    processed.current = token.current;
     socketRef.current?.close();
   }, [baseUrl]);
 
@@ -75,6 +83,7 @@ const useLineCountsQueue = (baseUrl?: string) => {
     () => () => {
       socketRef.current?.close();
       token.current += 1;
+      processed.current = token.current;
     },
     [],
   );

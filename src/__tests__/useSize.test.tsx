@@ -1,12 +1,12 @@
 /** @jest-environment jsdom */
 import React from 'react';
 import { render, act } from '@testing-library/react';
-import { useElementSize } from '../client/hooks/useElementSize';
+import { useSize } from '../client/hooks/useSize';
 
-describe('useElementSize', () => {
+describe('useSize', () => {
   it('updates size on resize', () => {
     function Component() {
-      const { ref, size } = useElementSize<HTMLDivElement>();
+      const { ref, size } = useSize<HTMLDivElement>();
       return (
         // eslint-disable-next-line no-restricted-syntax
         <div ref={ref} data-width={size.width} data-height={size.height}></div>

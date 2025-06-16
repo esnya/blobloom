@@ -6,12 +6,13 @@ interface BodyOptions {
   radius: number;
   restitution?: number;
   frictionAir?: number;
+  friction?: number;
   onUpdate?: (body: Physics.Body) => void;
 }
 
 export const useBody = (options: BodyOptions) => {
   const engine = useEngine();
-  const { radius, restitution = 0, frictionAir = 0 } = options;
+  const { radius, restitution = 0, frictionAir = 0, friction = 0 } = options;
 
   const [, setTransform] = useState(() => ({
     position: { x: 0, y: 0 },
@@ -23,7 +24,7 @@ export const useBody = (options: BodyOptions) => {
       Math.random() * (engine.bounds.width - radius * 2) + radius,
       -radius,
       radius,
-      { restitution, frictionAir },
+      { restitution, frictionAir, friction },
     );
     setTransform({ position: { ...b.position }, angle: b.angle });
     return b;

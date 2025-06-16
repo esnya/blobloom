@@ -1,4 +1,5 @@
 /** @jest-environment jsdom */
+import React, { Suspense } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useTimelineData } from '../client/hooks/useTimelineData';
 
@@ -28,7 +29,7 @@ describe('useTimelineData', () => {
       if (url.startsWith('/api/commits')) {
         return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
       }
-      if (url === '/api/lines?ts=0') {
+      if (url === '/api/lines?ts=1000') {
         return Promise.resolve({ json: () => Promise.resolve({ counts: linesFirst }) } as unknown as Response);
       }
       if (url === '/api/lines?ts=1') {
@@ -37,12 +38,15 @@ describe('useTimelineData', () => {
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
 
-    const { result, rerender } = renderHook(({ ts }) =>
-      useTimelineData({ timestamp: ts }),
-    { initialProps: { ts: 0 } });
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Suspense, { fallback: 'loading' }, children);
 
-    await waitFor(() => expect(result.current.ready).toBe(true));
-    expect(result.current.start).toBe(1000);
+    const { result, rerender } = renderHook(
+      ({ ts }) => useTimelineData({ timestamp: ts }),
+      { initialProps: { ts: 0 }, wrapper },
+    );
+
+    await waitFor(() => expect(result.current.start).toBe(1000));
     expect(result.current.end).toBe(2000);
     await waitFor(() =>
       expect(result.current.lineCounts).toEqual(linesFirst),

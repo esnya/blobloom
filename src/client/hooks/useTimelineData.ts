@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { fetchCommits, fetchLineCounts } from '../api';
-import type { Commit, LineCount } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchLineCounts } from '../api';
+import { readCommits } from '../commitsResource';
+import type { LineCount } from '../types';
 
 interface TimelineDataOptions {
   baseUrl?: string | undefined;
@@ -8,30 +9,24 @@ interface TimelineDataOptions {
 }
 
 export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => {
-  const [commits, setCommits] = useState<Commit[]>([]);
+  const commits = readCommits(baseUrl);
+
+  const start = useMemo(
+    () => (commits.length ? commits[commits.length - 1]!.timestamp * 1000 : 0),
+    [commits],
+  );
+  const end = useMemo(
+    () => (commits.length ? commits[0]!.timestamp * 1000 : 0),
+    [commits],
+  );
+
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
-  const [start, setStart] = useState(0);
-  const [end, setEnd] = useState(0);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      const data = await fetchCommits(baseUrl);
-      setCommits(data);
-      if (data.length) {
-        const s = data[data.length - 1]!.timestamp * 1000;
-        const e = data[0]!.timestamp * 1000;
-        setStart(s);
-        setEnd(e);
-      }
-      setReady(true);
-    })();
-  }, [baseUrl]);
+    const ts = timestamp === 0 ? start : timestamp;
+    if (ts === 0) return;
+    void fetchLineCounts(ts, baseUrl).then(setLineCounts);
+  }, [timestamp, start, baseUrl]);
 
-  useEffect(() => {
-    if (!ready) return;
-    void fetchLineCounts(timestamp, baseUrl).then(setLineCounts);
-  }, [timestamp, ready, baseUrl]);
-
-  return { commits, lineCounts, start, end, ready };
+  return { commits, lineCounts, start, end };
 };

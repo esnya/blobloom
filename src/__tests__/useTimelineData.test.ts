@@ -67,7 +67,7 @@ describe('useTimelineData', () => {
     expect(calls).toHaveLength(3);
   });
 
-  it('queues requests while one is in flight', async () => {
+  it('ignores outdated responses', async () => {
     const commits = [
       { id: 'c1', message: 'a', timestamp: 2 },
       { id: 'c2', message: 'b', timestamp: 1 },
@@ -115,7 +115,7 @@ describe('useTimelineData', () => {
 
     rerender({ ts: 2000 });
 
-    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(2);
+    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(3);
 
     resolveFirst?.();
 

@@ -7,19 +7,13 @@ import type { LineCount } from '../types';
 const useLineCountsQueue = (baseUrl?: string) => {
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const renameMapRef = useRef<Record<string, string>>({});
-  const pending = useRef<{ id: string; parent?: string } | null>(null);
-  const inflight = useRef(false);
   const token = useRef(0);
 
-  const run = useCallback(() => {
-    if (inflight.current || !pending.current) return;
-    inflight.current = true;
-    const { id, parent } = pending.current;
-    pending.current = null;
-    const current = token.current;
-    void fetchLineCounts(id, baseUrl, parent)
-      .then(({ counts, renames }) => {
-        if (token.current !== current || pending.current) return;
+  const update = useCallback(
+    (id: string, parent?: string) => {
+      const current = ++token.current;
+      void fetchLineCounts(id, baseUrl, parent).then(({ counts, renames }) => {
+        if (token.current !== current) return;
         if (renames) {
           for (const [to, from] of Object.entries(renames)) {
             renameMapRef.current[to] = renameMapRef.current[from] ?? from;
@@ -30,19 +24,9 @@ const useLineCountsQueue = (baseUrl?: string) => {
           file: renameMapRef.current[c.file] ?? c.file,
         }));
         setLineCounts(mapped);
-      })
-      .finally(() => {
-        inflight.current = false;
-        run();
       });
-  }, [baseUrl]);
-
-  const update = useCallback(
-    (id: string, parent?: string) => {
-      pending.current = parent ? { id, parent } : { id };
-      run();
     },
-    [run],
+    [baseUrl],
   );
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useId } from 'react';
 import { useCharEffects } from '../hooks/useCharEffects';
 import { useCountAnimation } from '../hooks/useCountAnimation';
+import { FilePathDisplay } from './FilePathDisplay';
 
 export interface FileCircleContentHandle {
   setCount: (n: number) => void;
@@ -42,8 +43,7 @@ export function FileCircleContent({
 
   return (
     <>
-      <div className="path" style={{ display: hidden ? 'none' : undefined }}>{path}</div>
-      <div className="name" style={{ display: hidden ? 'none' : undefined }}>{name}</div>
+      <FilePathDisplay path={path} name={name} hidden={hidden} />
       <div className="count" style={{ display: hidden ? 'none' : undefined }}>{currentCount}</div>
       <div className="chars" id={charsId}>
         {chars.map((c) => (

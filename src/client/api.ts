@@ -1,11 +1,16 @@
 import type { Commit, LineCount } from './types';
+import type { ApiError, CommitsResponse, LineCountsResponse } from '../api/types';
 
 export type JsonFetcher = (input: string) => Promise<unknown>;
 
 export const fetchCommits = async (
   json: JsonFetcher,
 ): Promise<Commit[]> => {
-  return (await json('/api/commits')) as Commit[];
+  const data = (await json('/api/commits')) as CommitsResponse | ApiError;
+  if ('commits' in data) {
+    return data.commits;
+  }
+  throw new Error(data.error);
 };
 
 export const fetchLineCounts = async (
@@ -14,6 +19,9 @@ export const fetchLineCounts = async (
 ): Promise<LineCount[]> => {
   const url =
     timestamp === undefined ? '/api/lines' : `/api/lines?ts=${timestamp}`;
-  const data = await json(url);
-  return Array.isArray(data) ? (data as LineCount[]) : [];
+  const result = (await json(url)) as LineCountsResponse | ApiError;
+  if ('counts' in result) {
+    return result.counts;
+  }
+  throw new Error(result.error);
 };

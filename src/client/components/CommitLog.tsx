@@ -1,5 +1,5 @@
-// eslint-disable-next-line no-restricted-syntax
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useElementSize } from '../hooks/useElementSize';
 import type { Commit } from '../types';
 
 export interface CommitLogProps {
@@ -11,10 +11,7 @@ export interface CommitLogProps {
 
 export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 }: CommitLogProps): React.JSX.Element => {
   const [offset, setOffset] = useState(0);
-  /* eslint-disable no-restricted-syntax */
-  const containerRef = useRef<HTMLDivElement>(null);
-  /* eslint-enable no-restricted-syntax */
-  const [containerHeight, setContainerHeight] = useState(1);
+  const { ref: containerRef, size } = useElementSize<HTMLDivElement>();
 
   useEffect(() => {
     onTimestampChange?.(timestamp);
@@ -34,19 +31,11 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
     [commits, start, end]
   );
 
-  useEffect(() => {
-    const updateHeight = () =>
-      setContainerHeight(containerRef.current?.clientHeight ?? 1);
-    updateHeight();
-    window.addEventListener('resize', updateHeight);
-    return () => window.removeEventListener('resize', updateHeight);
-  }, []);
-
   const spanMs =
     slice.length > 1
       ? (slice[0]!.timestamp - slice[slice.length - 1]!.timestamp) * 1000
       : 1;
-  const msPerPx = spanMs / Math.max(containerHeight, 1);
+  const msPerPx = spanMs / Math.max(size.height, 1);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -67,7 +56,7 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
     }
     setOffset(nextOffset);
     if (index === 0) container.dispatchEvent(new Event('end'));
-  }, [timestamp, index, commits]);
+  }, [timestamp, index, commits, containerRef]);
 
   return (
     // eslint-disable-next-line no-restricted-syntax

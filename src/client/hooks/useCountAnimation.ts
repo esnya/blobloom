@@ -15,10 +15,12 @@ export const useCountAnimation = (
 
   const step = useCallback(
     (time: number) => {
-      const progress = Math.min(1, (time - startRef.current) / duration);
-      const next = fromRef.current + (targetRef.current - fromRef.current) * progress;
+      const linear = Math.min(1, (time - startRef.current) / duration);
+      const progress = 1 - (1 - linear) ** 2;
+      const next =
+        fromRef.current + (targetRef.current - fromRef.current) * progress;
       setValue(Math.round(next));
-      if (progress < 1) {
+      if (linear < 1) {
         frameRef.current = requestAnimationFrame(step);
       } else {
         fromRef.current = targetRef.current;

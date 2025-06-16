@@ -11,8 +11,8 @@ describe('useTimelineData', () => {
 
   it('fetches commits and line counts', async () => {
     const commits = [
-      { commit: { message: 'a', committer: { timestamp: 2 } } },
-      { commit: { message: 'b', committer: { timestamp: 1 } } },
+      { message: 'a', timestamp: 2 },
+      { message: 'b', timestamp: 1 },
     ];
     const linesFirst = [{ file: 'a', lines: 1 }];
     const linesSecond = [{ file: 'a', lines: 2 }];

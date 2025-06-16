@@ -19,8 +19,8 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
       const data = await fetchCommits(baseUrl);
       setCommits(data);
       if (data.length) {
-        const s = data[data.length - 1]!.commit.committer.timestamp * 1000;
-        const e = data[0]!.commit.committer.timestamp * 1000;
+        const s = data[data.length - 1]!.timestamp * 1000;
+        const e = data[0]!.timestamp * 1000;
         setStart(s);
         setEnd(e);
       }

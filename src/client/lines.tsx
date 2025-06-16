@@ -55,7 +55,8 @@ const hsl = ({ h, s, l }: { h: number; s: number; l: number }): string =>
   `hsl(${h},${s}%,${l}%)`;
 
 export const colorForFile = (name: string): string => {
-  const ext = name.slice(name.lastIndexOf('.'));
+  const i = name.lastIndexOf('.');
+  const ext = i >= 0 ? name.slice(i).toLowerCase() : '';
   const offset = (hashHue(name) % 20) - 10;
   const base = fileColors[ext];
   if (base) {

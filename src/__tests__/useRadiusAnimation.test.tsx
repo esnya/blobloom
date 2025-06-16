@@ -42,4 +42,16 @@ describe('useRadiusAnimation', () => {
     });
     expect(result.current[0]).toBeCloseTo(20);
   });
+
+  it('returns a stable animate function', () => {
+    const { result } = renderHook(() => useRadiusAnimation(10, 100));
+    const animate = result.current[1];
+
+    act(() => {
+      result.current[1](20);
+      jest.advanceTimersByTime(120);
+    });
+
+    expect(result.current[1]).toBe(animate);
+  });
 });

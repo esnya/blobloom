@@ -9,6 +9,7 @@ export const useRadiusAnimation = (
   /* eslint-disable no-restricted-syntax */
   const fromRef = useRef(initial);
   const targetRef = useRef(initial);
+  const valueRef = useRef(initial);
   const startRef = useRef(0);
   const frameRef = useRef<number | null>(null);
   /* eslint-enable no-restricted-syntax */
@@ -29,16 +30,20 @@ export const useRadiusAnimation = (
     [duration],
   );
 
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
   const animateTo = useCallback(
     (n: number) => {
-      fromRef.current = value;
+      fromRef.current = valueRef.current;
       targetRef.current = n;
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       startRef.current = performance.now();
       setValue(fromRef.current + (n - fromRef.current) * 0.1);
       frameRef.current = requestAnimationFrame(step);
     },
-    [step, value],
+    [step],
   );
 
   useEffect(

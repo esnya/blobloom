@@ -6,7 +6,6 @@ export interface FileCircleContentProps {
   path: string;
   name: string;
   count: number;
-  radius: number;
   hidden?: boolean;
 }
 
@@ -14,7 +13,6 @@ export function FileCircleContent({
   path,
   name,
   count,
-  radius,
   hidden,
 }: FileCircleContentProps): React.JSX.Element {
   const [currentCount, animateCount] = useAnimatedNumber(count, { round: true });
@@ -25,17 +23,12 @@ export function FileCircleContent({
 
   return (
     <>
-      <FilePathDisplay
-        path={path}
-        name={name}
-        radius={radius}
-        hidden={hidden}
-      />
+      <FilePathDisplay path={path} name={name} hidden={hidden} />
       <div
         className="count"
         style={{
           display: hidden ? 'none' : undefined,
-          fontSize: `${radius * 0.3}px`,
+          fontSize: 'calc(var(--radius) * 0.3)',
         }}
       >
         {currentCount}

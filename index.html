@@ -90,6 +90,8 @@
         pointer-events: none;
         position: absolute;
         transition: width 1s ease, height 1s ease;
+        width: calc(var(--radius) * 2);
+        height: calc(var(--radius) * 2);
       }
       .file-circle .path,
       .file-circle .name,
@@ -101,17 +103,20 @@
       }
       .file-circle .path {
         top: 30%;
+        font-size: calc(var(--radius) * 0.3);
         width: 90%;
         max-width: 90%;
         opacity: 0.7;
       }
       .file-circle .name {
         top: 50%;
+        font-size: calc(var(--radius) * 0.35);
         width: 100%;
         max-width: 100%;
       }
       .file-circle .count {
         top: 70%;
+        font-size: calc(var(--radius) * 0.3);
         width: 90%;
         max-width: 90%;
       }

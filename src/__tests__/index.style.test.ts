@@ -13,6 +13,6 @@ describe('index.html style', () => {
     expect(html).toMatch(/\.file-circle .path {[^}]*max-width: 90%/);
     expect(html).toMatch(/\.file-circle .name {[^}]*max-width: 100%/);
     expect(html).toMatch(/\.file-circle .count {[^}]*max-width: 90%/);
-    expect(html).not.toMatch(/calc\(var\(--r\)/);
+    expect(html).toMatch(/width: calc\(var\(--radius\)/);
   });
 });

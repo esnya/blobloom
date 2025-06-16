@@ -1,11 +1,13 @@
 // eslint-disable-next-line no-restricted-syntax
 import React, { useEffect, useRef, useState } from 'react';
-import { PhysicsProvider, useEngine } from '../hooks/useEngine';
+import { PhysicsProvider } from '../hooks/useEngine';
+import { PhysicsRunner, useEngineRunner } from '../hooks/useEngineRunner';
+import { useEngine } from '../hooks/useEngine';
 import { useFileCircleHandles } from '../hooks/useFileCircleHandles';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
-import { Body, Engine } from '../physics';
+import { Body } from '../physics';
 
 interface FileCircleSimulationProps {
   data: LineCount[];
@@ -32,7 +34,9 @@ export function FileCircleSimulation({ data }: FileCircleSimulationProps): React
     <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
       {bounds.width > 0 && (
         <PhysicsProvider bounds={bounds}>
-          <FileCircleList data={data} bounds={bounds} />
+          <PhysicsRunner>
+            <FileCircleList data={data} bounds={bounds} />
+          </PhysicsRunner>
         </PhysicsProvider>
       )}
     </div>
@@ -48,12 +52,10 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
   const engine = useEngine();
   const { register, forEach, get } = useFileCircleHandles();
 
+  useEngineRunner();
+
   useEffect(() => {
-    let frameId = 0;
-    let last = performance.now();
-    const step = (time: number): void => {
-      Engine.update(engine, time - last);
-      last = time;
+    const handleOutOfBounds = (): void => {
       forEach((h) => {
         const { x, y } = h.body.position;
         const r = h.radius;
@@ -70,10 +72,12 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
           });
         }
       });
-      frameId = requestAnimationFrame(step);
     };
-    frameId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frameId);
+    const id = requestAnimationFrame(function loop() {
+      handleOutOfBounds();
+      requestAnimationFrame(loop);
+    });
+    return () => cancelAnimationFrame(id);
   }, [engine, bounds.width, bounds.height, forEach]);
 
   useEffect(() => {

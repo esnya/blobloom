@@ -58,7 +58,9 @@ export function FileCircle({
 
   useEffect(() => {
     if (radius !== currentRadius) animateRadius(radius);
-  }, [radius, currentRadius, animateRadius]);
+    // currentRadius intentionally omitted from deps to avoid update loops
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [radius, animateRadius]);
 
   useEffect(() => {
     setBodyRadius(currentRadius);

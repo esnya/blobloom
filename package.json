@@ -12,6 +12,7 @@
     "dev": "vite",
     "test": "jest",
     "test:playwright": "playwright test",
+    "capture:screenshot": "tsx scripts/capture-timeline-mid.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

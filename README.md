@@ -30,6 +30,10 @@ npm start                # defaults to current directory
 
 CLI options can also be provided via environment variables with the `BLOBLOOM_` prefix.
 For example, set `BLOBLOOM_REPO` to specify the repository path.
+`BLOBLOOM_HOST` overrides the host name.
+`BLOBLOOM_PORT` sets the listening port.
+`BLOBLOOM_BRANCH` chooses the branch to inspect.
+`BLOBLOOM_IGNORE` is a comma-separated list of glob patterns to ignore.
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 

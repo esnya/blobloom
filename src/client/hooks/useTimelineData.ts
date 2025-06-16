@@ -1,59 +1,79 @@
 /* eslint-disable no-restricted-syntax */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { fetchLineCounts } from '../api';
 import { readCommits } from '../commitsResource';
 import type { LineCount } from '../types';
+import type { LineCountsResponse, ApiError } from '../../api/types';
 
 const useLineCountsQueue = (baseUrl?: string) => {
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const renameMapRef = useRef<Record<string, string>>({});
   const token = useRef(0);
-  const inFlight = useRef(false);
-  const nextRef = useRef<{ id: string; parent?: string } | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const queuedRef = useRef<string | null>(null);
 
-  const run = useCallback(() => {
-    if (inFlight.current || !nextRef.current) return;
-    const { id, parent } = nextRef.current;
-    nextRef.current = null;
-    const current = ++token.current;
-    inFlight.current = true;
-    void fetchLineCounts(id, baseUrl, parent)
-      .then(({ counts, renames }) => {
-        if (token.current !== current) return;
-        if (renames) {
-          for (const [to, from] of Object.entries(renames)) {
-            renameMapRef.current[to] = renameMapRef.current[from] ?? from;
-          }
+  const sendQueued = useCallback(() => {
+    if (socketRef.current && socketRef.current.readyState === 1 && queuedRef.current) {
+      socketRef.current.send(queuedRef.current);
+      queuedRef.current = null;
+    }
+  }, []);
+
+  const handleMessage = useCallback((ev: MessageEvent) => {
+    const payload = JSON.parse(ev.data as string) as (LineCountsResponse | ApiError) & { token?: number };
+    if ('counts' in payload && payload.token === token.current && payload.counts.length > 0) {
+      if (payload.renames) {
+        for (const [to, from] of Object.entries(payload.renames)) {
+          renameMapRef.current[to] = renameMapRef.current[from] ?? from;
         }
-        const mapped = counts.map((c) => ({
-          ...c,
-          file: renameMapRef.current[c.file] ?? c.file,
-        }));
-        setLineCounts(mapped);
-      })
-      .finally(() => {
-        inFlight.current = false;
-        run();
-      });
-  }, [baseUrl]);
+      }
+      const mapped = payload.counts.map((c) => ({
+        ...c,
+        file: renameMapRef.current[c.file] ?? c.file,
+      }));
+      setLineCounts(mapped);
+    }
+  }, []);
+
+  const connect = useCallback(() => {
+    if (socketRef.current) return;
+    const secure = baseUrl
+      ? baseUrl.startsWith('https')
+      : typeof window !== 'undefined' && window.location.protocol === 'https:';
+    const protocol = secure ? 'wss' : 'ws';
+    const origin = baseUrl
+      ? baseUrl.replace(/^https?:\/\//, '')
+      : typeof window !== 'undefined'
+        ? window.location.host
+        : '';
+    const socket = new WebSocket(`${protocol}://${origin}/ws/lines`);
+    socket.addEventListener('open', sendQueued);
+    socket.addEventListener('message', handleMessage);
+    socket.addEventListener('close', () => {
+      socketRef.current = null;
+    });
+    socketRef.current = socket;
+  }, [baseUrl, handleMessage, sendQueued]);
 
   const update = useCallback(
     (id: string, parent?: string) => {
-      nextRef.current = parent ? { id, parent } : { id };
-      run();
+      token.current += 1;
+      connect();
+      queuedRef.current = JSON.stringify({ id, parent, token: token.current });
+      sendQueued();
     },
-    [run],
+    [connect, sendQueued],
   );
 
   useEffect(() => {
     renameMapRef.current = {};
     setLineCounts([]);
     token.current += 1;
-    nextRef.current = null;
+    socketRef.current?.close();
   }, [baseUrl]);
 
   useEffect(
     () => () => {
+      socketRef.current?.close();
       token.current += 1;
     },
     [],

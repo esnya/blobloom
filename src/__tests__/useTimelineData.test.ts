@@ -5,9 +5,11 @@ import { useTimelineData } from '../client/hooks/useTimelineData';
 
 describe('useTimelineData', () => {
   const originalFetch = global.fetch;
+  const originalWebSocket = global.WebSocket;
 
   afterEach(() => {
     global.fetch = originalFetch;
+    global.WebSocket = originalWebSocket;
   });
 
   it('fetches commits and line counts', async () => {
@@ -32,25 +34,25 @@ describe('useTimelineData', () => {
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
 
-    let openCb: (() => void) | undefined;
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
-    global.WebSocket = jest.fn(() => ({
-      send: jest.fn((data: string) => {
-        const { id } = JSON.parse(data) as { id: string };
-        const counts = id === 'c2' ? linesFirst : linesSecond;
-        messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts }) }));
-      }),
-      close: jest.fn(),
-      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
-        if (ev === 'open') {
-          openCb = () => cb(new MessageEvent('open'));
-          if (messageHandler) openCb();
-        } else if (ev === 'message') {
-          messageHandler = cb;
-          openCb?.();
-        }
-      },
-    })) as unknown as typeof WebSocket;
+    global.WebSocket = jest.fn(() => {
+      const socket = {
+        readyState: 1,
+        send: jest.fn((data: string) => {
+          const { id, token } = JSON.parse(data) as { id: string; token: number };
+          const counts = id === 'c2' ? linesFirst : linesSecond;
+          messageHandler?.(
+            new MessageEvent('message', { data: JSON.stringify({ counts, token }) }),
+          );
+        }),
+        close: jest.fn(),
+        addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+          if (ev === 'message') messageHandler = cb;
+          if (ev === 'open') cb(new Event('open') as MessageEvent);
+        },
+      } as unknown as WebSocket;
+      return socket;
+    }) as unknown as typeof WebSocket;
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Suspense, { fallback: 'loading' }, children);
@@ -104,29 +106,36 @@ describe('useTimelineData', () => {
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
 
-    let openCb: (() => void) | undefined;
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
-    global.WebSocket = jest.fn(() => ({
-      send: jest.fn((data: string) => {
-        const { id } = JSON.parse(data) as { id: string };
-        if (id === 'c2') {
-          resolveFirst?.();
-          messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts: linesFirst }) }));
-        } else {
-          messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts: linesSecond }) }));
-        }
-      }),
-      close: jest.fn(),
-      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
-        if (ev === 'open') {
-          openCb = () => cb(new MessageEvent('open'));
-          if (messageHandler) openCb();
-        } else if (ev === 'message') {
-          messageHandler = cb;
-          openCb?.();
-        }
-      },
-    })) as unknown as typeof WebSocket;
+    global.WebSocket = jest.fn(() => {
+      const socket = {
+        readyState: 1,
+        send: jest.fn((data: string) => {
+          const { id, token } = JSON.parse(data) as { id: string; token: number };
+          if (id === 'c2') {
+            resolveFirst = () => {
+              messageHandler?.(
+                new MessageEvent('message', {
+                  data: JSON.stringify({ counts: linesFirst, token }),
+                }),
+              );
+            };
+          } else {
+            messageHandler?.(
+              new MessageEvent('message', {
+                data: JSON.stringify({ counts: linesSecond, token }),
+              }),
+            );
+          }
+        }),
+        close: jest.fn(),
+        addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+          if (ev === 'message') messageHandler = cb;
+          if (ev === 'open') cb(new Event('open') as MessageEvent);
+        },
+      } as unknown as WebSocket;
+      return socket;
+    }) as unknown as typeof WebSocket;
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Suspense, { fallback: 'loading' }, children);
@@ -171,30 +180,32 @@ describe('useTimelineData', () => {
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
 
-    let openCb: (() => void) | undefined;
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
-    global.WebSocket = jest.fn(() => ({
-      send: jest.fn((data: string) => {
-        const { id } = JSON.parse(data) as { id: string };
-        if (id === 'c0') {
-          messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts: linesInit }) }));
-        } else {
-          messageHandler?.(
-            new MessageEvent('message', { data: JSON.stringify({ counts: linesRenamed, renames: { 'b.txt': 'a.txt' } }) }),
-          );
-        }
-      }),
-      close: jest.fn(),
-      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
-        if (ev === 'open') {
-          openCb = () => cb(new MessageEvent('open'));
-          if (messageHandler) openCb();
-        } else if (ev === 'message') {
-          messageHandler = cb;
-          openCb?.();
-        }
-      },
-    })) as unknown as typeof WebSocket;
+    global.WebSocket = jest.fn(() => {
+      const socket = {
+        readyState: 1,
+        send: jest.fn((data: string) => {
+          const { id, token } = JSON.parse(data) as { id: string; token: number };
+          if (id === 'c0') {
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ counts: linesInit, token }) }),
+            );
+          } else {
+            messageHandler?.(
+              new MessageEvent('message', {
+                data: JSON.stringify({ counts: linesRenamed, renames: { 'b.txt': 'a.txt' }, token }),
+              }),
+            );
+          }
+        }),
+        close: jest.fn(),
+        addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+          if (ev === 'message') messageHandler = cb;
+          if (ev === 'open') cb(new Event('open') as MessageEvent);
+        },
+      } as unknown as WebSocket;
+      return socket;
+    }) as unknown as typeof WebSocket;
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Suspense, { fallback: 'loading' }, children);

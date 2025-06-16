@@ -13,6 +13,7 @@ import { getLineCounts, getRenameMap } from './line-counts';
 export interface LineCountsRequest {
   id: string;
   parent?: string;
+  token?: number;
 }
 
 export const setupLineCountWs = (app: express.Application, server: Server) => {
@@ -29,40 +30,57 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
   });
 
   wss.on('connection', (ws: WebSocket) => {
-    ws.on('message', (data: WebSocket.RawData) => {
-      void (async () => {
-        try {
-          const raw =
-            typeof data === 'string'
-              ? data
-              : Array.isArray(data)
-                ? Buffer.concat(data).toString('utf8')
-                : Buffer.from(data).toString('utf8');
-          const message = JSON.parse(raw) as LineCountsRequest;
-          const dir = path.resolve(
-            (app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd(),
-          );
-          const ignore =
-            (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [...defaultIgnore];
+    let previous: string | undefined;
+    let processing = false;
+    let next: LineCountsRequest | null = null;
 
-          await git.resolveRef({ fs, dir, ref: message.id });
-          const options = { dir, ref: message.id, ignore } as {
-            dir: string;
-            ref: string;
-            ignore: string[];
-            parent?: string;
-          };
-          if (message.parent) options.parent = message.parent;
-          const counts = await getLineCounts(options);
-          const renames = message.parent
-            ? await getRenameMap({ dir, ref: message.id, parent: message.parent, ignore })
-            : undefined;
-          const payload = renames ? { counts, renames } : { counts };
-          ws.send(JSON.stringify(payload));
-        } catch (error) {
-          ws.send(JSON.stringify({ error: (error as Error).message }));
-        }
-      })();
+    const run = async (): Promise<void> => {
+      if (processing || !next) return;
+      const { id, parent, token } = next;
+      next = null;
+      processing = true;
+      try {
+        const dir = path.resolve(
+          (app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd(),
+        );
+        const ignore =
+          (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [...defaultIgnore];
+
+        await git.resolveRef({ fs, dir, ref: id });
+        const parentId = previous ?? parent;
+        previous = id;
+        const options = { dir, ref: id, ignore } as {
+          dir: string;
+          ref: string;
+          ignore: string[];
+          parent?: string;
+        };
+        if (parentId) options.parent = parentId;
+        const counts = await getLineCounts(options);
+        const renames = parentId
+          ? await getRenameMap({ dir, ref: id, parent: parentId, ignore })
+          : undefined;
+        const payload = renames ? { counts, renames, token } : { counts, token };
+        ws.send(JSON.stringify(payload));
+      } catch (error) {
+        ws.send(
+          JSON.stringify({ error: (error as Error).message, token }),
+        );
+      } finally {
+        processing = false;
+        void run();
+      }
+    };
+
+    ws.on('message', (data: WebSocket.RawData) => {
+      const raw =
+        typeof data === 'string'
+          ? data
+          : Array.isArray(data)
+            ? Buffer.concat(data).toString('utf8')
+            : Buffer.from(data).toString('utf8');
+      next = JSON.parse(raw) as LineCountsRequest;
+      void run();
     });
   });
 };

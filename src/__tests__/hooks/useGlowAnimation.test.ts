@@ -1,19 +1,40 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { useGlowAnimation } from '../../client/hooks/useGlowAnimation';
+import {
+  useGlowAnimation,
+  type UseGlowAnimationResult,
+} from '../../client/hooks/useGlowAnimation';
+import { useGlowControl } from '../../client/hooks/useGlowControl';
 
-describe('useGlowAnimation', () => {
+type ControlResult = ReturnType<typeof useGlowControl>;
+
+type GlowHookResult = UseGlowAnimationResult | ControlResult;
+
+const getHandlers = (current: GlowHookResult) =>
+  Array.isArray(current)
+    ? { startGlow: current[0], glowProps: current[1] }
+    : { startGlow: current.startGlow, glowProps: current.glowProps };
+
+describe.each([
+  { name: 'useGlowAnimation', hook: useGlowAnimation },
+  { name: 'useGlowControl', hook: useGlowControl },
+])('$name', ({ hook }) => {
   it('starts and clears class', () => {
-    const { result } = renderHook(() => useGlowAnimation());
+    const { result } = renderHook(() => hook());
 
     act(() => {
-      result.current[0]('glow');
+      const { startGlow } = getHandlers(result.current as GlowHookResult);
+      startGlow('glow');
     });
-    expect(result.current[1].className).toBe('glow');
+    expect(
+      getHandlers(result.current as GlowHookResult).glowProps.className,
+    ).toBe('glow');
 
     act(() => {
-      result.current[1].onAnimationEnd();
+      getHandlers(result.current as GlowHookResult).glowProps.onAnimationEnd();
     });
-    expect(result.current[1].className).toBe('');
+    expect(
+      getHandlers(result.current as GlowHookResult).glowProps.className,
+    ).toBe('');
   });
 });

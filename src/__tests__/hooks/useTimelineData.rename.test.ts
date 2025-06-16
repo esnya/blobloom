@@ -1,0 +1,83 @@
+/** @jest-environment jsdom */
+import React, { Suspense } from 'react';
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { useTimelineData } from '../../client/hooks/useTimelineData';
+
+describe('useTimelineData', () => {
+  const originalFetch = global.fetch;
+  const originalWebSocket = global.WebSocket;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    global.WebSocket = originalWebSocket;
+  });
+
+  it('maps renamed files to previous names', async () => {
+    const commits = [
+      { id: 'c1', message: 'rename', timestamp: 2 },
+      { id: 'c0', message: 'init', timestamp: 1 },
+    ];
+    const linesInit = [{ file: 'a.txt', lines: 1, added: 0, removed: 0 }];
+    const linesRenamed = [{ file: 'b.txt', lines: 1, added: 0, removed: 0 }];
+    global.fetch = jest.fn((input: RequestInfo | URL) => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input instanceof Request
+              ? input.url
+              : '';
+      if (url.startsWith('/rename/api/commits')) {
+        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
+      }
+      return Promise.reject(new Error(`unexpected ${url}`));
+    }) as unknown as typeof fetch;
+
+    let messageHandler: ((ev: MessageEvent) => void) | undefined;
+    global.WebSocket = jest.fn(() => {
+      const socket = {
+        readyState: 1,
+        send: jest.fn((data: string) => {
+          const { id, token } = JSON.parse(data) as { id: string; token: number };
+          if (id === 'c0') {
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ counts: linesInit, token }) }),
+            );
+          } else {
+            messageHandler?.(
+              new MessageEvent('message', {
+                data: JSON.stringify({ counts: linesRenamed, renames: { 'b.txt': 'a.txt' }, token }),
+              }),
+            );
+          }
+        }),
+        close: jest.fn(),
+        addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+          if (ev === 'message') messageHandler = cb;
+          if (ev === 'open') cb(new Event('open') as MessageEvent);
+        },
+      } as unknown as WebSocket;
+      return socket;
+    }) as unknown as typeof WebSocket;
+
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Suspense, { fallback: 'loading' }, children);
+
+    const { result, rerender } = renderHook(
+      ({ ts }) => useTimelineData({ timestamp: ts, baseUrl: '/rename' }),
+      { initialProps: { ts: 0 }, wrapper },
+    );
+
+    await waitFor(() => expect(result.current.lineCounts).toEqual(linesInit));
+
+    act(() => {
+      rerender({ ts: 2000 });
+    });
+    await waitFor(() =>
+      expect(result.current.lineCounts).toEqual([
+        { file: 'a.txt', lines: 1, added: 0, removed: 0 },
+      ]),
+    );
+  });
+});

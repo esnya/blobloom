@@ -32,6 +32,7 @@ describe('App initial pause', () => {
     (performance.now as jest.Mock).mockRestore();
     global.requestAnimationFrame = originalRaf;
     restore();
+    jest.useRealTimers();
   });
 
   it('does not advance timestamp automatically', async () => {

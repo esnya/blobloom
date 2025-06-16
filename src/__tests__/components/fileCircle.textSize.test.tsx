@@ -7,6 +7,9 @@ import { FileCircle } from '../../client/components/FileCircle';
 jest.useFakeTimers();
 
 describe('FileCircle text size', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <PhysicsProvider bounds={{ width: 100, height: 100 }}>{children}</PhysicsProvider>
   );

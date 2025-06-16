@@ -32,6 +32,7 @@ describe('App play/pause', () => {
     (performance.now as jest.Mock).mockRestore();
     global.requestAnimationFrame = originalRaf;
     restore();
+    jest.useRealTimers();
   });
 
   it('pauses and resumes playback when toggled', async () => {

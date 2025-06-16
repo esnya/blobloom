@@ -8,6 +8,7 @@ describe('useTimelineData', () => {
   const originalWebSocket = global.WebSocket;
 
   afterEach(() => {
+    jest.useRealTimers();
     global.fetch = originalFetch;
     global.WebSocket = originalWebSocket;
   });

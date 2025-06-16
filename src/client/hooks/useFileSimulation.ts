@@ -33,10 +33,6 @@ export const useFileSimulation = (
   }, [sim]);
   const pause = useCallback(() => sim?.pause(), [sim]);
   const resume = useCallback(() => sim?.resume(), [sim]);
-  const setEffectsEnabled = useCallback(
-    (state?: boolean) => sim?.setEffectsEnabled(state),
-    [sim],
-  );
 
-  return { update, pause, resume, setEffectsEnabled };
+  return { update, pause, resume };
 };

@@ -11,7 +11,6 @@ const mockSim = {
   resume: jest.fn(),
   resize: jest.fn(),
   destroy: jest.fn(),
-  setEffectsEnabled: jest.fn(),
 };
 
 describe('useFileSimulation', () => {
@@ -34,13 +33,11 @@ describe('useFileSimulation', () => {
       result.current.update([]);
       result.current.pause();
       result.current.resume();
-      result.current.setEffectsEnabled(true);
     });
 
     expect(mockSim.update).toHaveBeenCalledWith([]);
     expect(mockSim.pause).toHaveBeenCalled();
     expect(mockSim.resume).toHaveBeenCalled();
-    expect(mockSim.setEffectsEnabled).toHaveBeenCalledWith(true);
   });
 
   it('cleans up on unmount', () => {

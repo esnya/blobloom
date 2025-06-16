@@ -30,7 +30,6 @@ export const createFileSimulation = (
 
   const root = createRoot(container);
   let currentData: LineCount[] = [];
-  let effectsEnabled = true;
 
   const render = (): void => {
     flushSync(() =>
@@ -39,7 +38,6 @@ export const createFileSimulation = (
           <FileCircleList
             data={currentData}
             bounds={{ width, height }}
-            effectsEnabled={effectsEnabled}
             {...(opts.linear !== undefined ? { linear: opts.linear } : {})}
           />
         </PhysicsProvider>,
@@ -92,12 +90,7 @@ export const createFileSimulation = (
     root.unmount();
   };
 
-  const setEffectsEnabled = (state?: boolean): void => {
-    effectsEnabled = state ?? !effectsEnabled;
-    if (currentData.length) render();
-  };
-
-  return { update, pause, resume, resize, destroy, setEffectsEnabled };
+  return { update, pause, resume, resize, destroy };
 };
 
 export const renderFileSimulation = (

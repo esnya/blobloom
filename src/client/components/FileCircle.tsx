@@ -12,14 +12,12 @@ interface FileCircleProps {
   file: string;
   lines: number;
   radius: number;
-  effectsEnabled?: boolean;
 }
 
 export function FileCircle({
   file,
   lines,
   radius,
-  effectsEnabled = true,
 }: FileCircleProps): React.JSX.Element {
   const [, setTick] = useState(0);
   const forceUpdate = useCallback(() => setTick((t) => t + 1), []);
@@ -39,16 +37,12 @@ export function FileCircle({
   /* eslint-enable no-restricted-syntax */
 
   useEffect(() => {
-    if (effectsEnabled) startGlow('glow-new');
+    startGlow('glow-new');
     prevLines.current = lines;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectsEnabled]);
+  }, []);
 
   useEffect(() => {
-    if (!effectsEnabled) {
-      prevLines.current = lines;
-      return;
-    }
     if (prevLines.current === lines) return;
     if (lines > prevLines.current) startGlow('glow-grow');
     else if (lines < prevLines.current) startGlow('glow-shrink');
@@ -63,7 +57,7 @@ export function FileCircle({
       spawnChar(diff > 0 ? 'add-char' : 'remove-char', offset, () => {});
     }
     prevLines.current = lines;
-  }, [lines, effectsEnabled, startGlow, spawnChar, chars.length, currentRadius]);
+  }, [lines, startGlow, spawnChar, chars.length, currentRadius]);
   useEffect(() => {
     if (radius === currentRadius) return;
     body.scale(radius / currentRadius, radius / currentRadius);

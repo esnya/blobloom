@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-restricted-syntax
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { PhysicsProvider } from '../hooks/useEngine';
 import { PhysicsRunner } from '../hooks/useEngineRunner';
 import { useEngine } from '../hooks/useEngine';
@@ -7,26 +6,14 @@ import { CharEffectsProvider } from '../hooks/useGlobalCharEffects';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
+import { useContainerBounds } from '../hooks/useContainerBounds';
 
 interface FileCircleSimulationProps {
   data: LineCount[];
 }
 
 export function FileCircleSimulation({ data }: FileCircleSimulationProps): React.JSX.Element {
-  /* eslint-disable no-restricted-syntax */
-  const containerRef = useRef<HTMLDivElement>(null);
-  /* eslint-enable no-restricted-syntax */
-  const [bounds, setBounds] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    const updateBounds = () => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      setBounds({ width: rect?.width ?? 0, height: rect?.height ?? 0 });
-    };
-    updateBounds();
-    window.addEventListener('resize', updateBounds);
-    return () => window.removeEventListener('resize', updateBounds);
-  }, []);
+  const { ref: containerRef, bounds } = useContainerBounds();
 
   return (
     // eslint-disable-next-line no-restricted-syntax

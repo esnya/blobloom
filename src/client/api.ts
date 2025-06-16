@@ -15,12 +15,26 @@ export const fetchLineCounts = async (
   baseUrl = '',
   parent?: string,
 ): Promise<LineCountsResult> => {
-  const query = parent ? `?parent=${parent}` : '';
-  const response = await fetch(`${baseUrl}/api/commits/${commitId}/lines${query}`);
-  const result = (await response.json()) as LineCountsResponse | ApiError;
-  if ('counts' in result && result.counts.length > 0) {
-    return result;
-  }
-  const message = 'error' in result ? result.error : 'No line counts';
-  throw new Error(message);
+  const protocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
+  const origin = baseUrl.replace(/^https?:\/\//, '');
+  const url = `${protocol}://${origin}/ws/lines`;
+  return new Promise<LineCountsResult>((resolve, reject) => {
+    const socket = new WebSocket(url);
+    socket.addEventListener('open', () => {
+      socket.send(JSON.stringify({ id: commitId, parent }));
+    });
+    socket.addEventListener('message', (ev) => {
+      const result = JSON.parse(ev.data as string) as LineCountsResponse | ApiError;
+      socket.close();
+      if ('counts' in result && result.counts.length > 0) {
+        resolve(result);
+      } else {
+        const message = 'error' in result ? result.error : 'No line counts';
+        reject(new Error(message));
+      }
+    });
+    socket.addEventListener('error', () => {
+      reject(new Error('WebSocket error'));
+    });
+  });
 };

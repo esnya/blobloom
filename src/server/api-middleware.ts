@@ -56,6 +56,14 @@ export const apiMiddleware = express.Router();
 const repoDir = (app: express.Application): string =>
   path.resolve((app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd());
 
+const resolveRepoDir = (app: express.Application): string => {
+  const dir = repoDir(app);
+  if (!fs.existsSync(path.join(dir, '.git'))) {
+    throw new Error(`${dir} is not a git repository.`);
+  }
+  return dir;
+};
+
 const ignorePatterns = (app: express.Application): string[] =>
   (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [...defaultIgnore];
 
@@ -66,9 +74,11 @@ apiMiddleware.get(
     res: express.Response<CommitsResponse | ApiError>,
   ) => {
     const app = req.app;
-    const dir = repoDir(app);
-    if (!fs.existsSync(path.join(dir, '.git'))) {
-      res.status(500).json({ error: `${dir} is not a git repository.` });
+    let dir: string;
+    try {
+      dir = resolveRepoDir(app);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
       return;
     }
     try {
@@ -101,9 +111,11 @@ apiMiddleware.get(
     res: express.Response<LineCountsResponse | ApiError>,
   ) => {
     const app = req.app;
-    const dir = repoDir(app);
-    if (!fs.existsSync(path.join(dir, '.git'))) {
-      res.status(500).json({ error: `${dir} is not a git repository.` });
+    let dir: string;
+    try {
+      dir = resolveRepoDir(app);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
       return;
     }
     try {

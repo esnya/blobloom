@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useElementSize } from '../hooks/useElementSize';
+import { useSize } from '../hooks/useSize';
 import type { Commit } from '../types';
 
 export interface CommitLogProps {
@@ -11,7 +11,7 @@ export interface CommitLogProps {
 
 export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 }: CommitLogProps): React.JSX.Element => {
   const [offset, setOffset] = useState(0);
-  const { ref: containerRef, size } = useElementSize<HTMLDivElement>();
+  const { ref: containerRef, size } = useSize<HTMLDivElement>();
 
   useEffect(() => {
     onTimestampChange?.(timestamp);

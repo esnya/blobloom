@@ -5,7 +5,24 @@ import { buildWsUrl } from '../ws';
 import type { LineCount } from '../types';
 import type { LineCountsResponse, ApiError } from '../../api/types';
 
-const useLineCountsQueue = (baseUrl?: string) => {
+
+interface TimelineDataOptions {
+  baseUrl?: string | undefined;
+  timestamp: number;
+}
+
+export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => {
+  const commits = readCommits(baseUrl);
+
+  const start = useMemo(
+    () => (commits.length ? commits[commits.length - 1]!.timestamp * 1000 : 0),
+    [commits],
+  );
+  const end = useMemo(
+    () => (commits.length ? commits[0]!.timestamp * 1000 : 0),
+    [commits],
+  );
+
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const renameMapRef = useRef<Record<string, string>>({});
   const token = useRef(0);
@@ -91,28 +108,6 @@ const useLineCountsQueue = (baseUrl?: string) => {
     },
     [],
   );
-
-  return { lineCounts, update };
-};
-
-interface TimelineDataOptions {
-  baseUrl?: string | undefined;
-  timestamp: number;
-}
-
-export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => {
-  const commits = readCommits(baseUrl);
-
-  const start = useMemo(
-    () => (commits.length ? commits[commits.length - 1]!.timestamp * 1000 : 0),
-    [commits],
-  );
-  const end = useMemo(
-    () => (commits.length ? commits[0]!.timestamp * 1000 : 0),
-    [commits],
-  );
-
-  const { lineCounts, update } = useLineCountsQueue(baseUrl);
 
   useEffect(() => {
     const ts = timestamp === 0 ? start : timestamp;

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useBody } from '../hooks/useBody';
 import { FileCircleContent } from './FileCircleContent';
 import { colorForFile } from '../colors';
-import { useGlowControl } from '../hooks/useGlowControl';
+import { useGlowAnimation } from '../hooks/useGlowAnimation';
 import { CharEffects } from './CharEffects';
 import { useCharEffects } from '../hooks/useCharEffects';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
@@ -81,7 +81,7 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
     onUpdate: forceUpdate,
   });
   const [currentRadius, animateRadius] = useAnimatedNumber(radius);
-  const { startGlow, glowProps } = useGlowControl();
+  const [startGlow, glowProps] = useGlowAnimation();
   const { chars, spawnChar, removeChar } = useCharEffects();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const color = useMemo(() => colorForFile(file), []);

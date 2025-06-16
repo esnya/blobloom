@@ -67,7 +67,7 @@ describe('useTimelineData', () => {
     expect(calls).toHaveLength(3);
   });
 
-  it('ignores results from outdated requests', async () => {
+  it('queues requests while one is in flight', async () => {
     const commits = [
       { id: 'c1', message: 'a', timestamp: 2 },
       { id: 'c2', message: 'b', timestamp: 1 },
@@ -114,12 +114,17 @@ describe('useTimelineData', () => {
     await waitFor(() => expect(result.current.start).toBe(1000));
 
     rerender({ ts: 2000 });
-    await waitFor(() => expect(result.current.lineCounts).toEqual(linesSecond));
+
+    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(2);
 
     resolveFirst?.();
-    await Promise.resolve();
 
-    expect(result.current.lineCounts).toEqual(linesSecond);
+    await waitFor(() => expect(result.current.lineCounts).toEqual(linesSecond));
+
+    const lineCalls = (global.fetch as jest.Mock).mock.calls.filter(
+      ([u]) => typeof u === 'string' && u.includes('/lines'),
+    );
+    expect(lineCalls).toHaveLength(2);
   });
 
   it('maps renamed files to previous names', async () => {

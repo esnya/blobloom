@@ -1,8 +1,65 @@
 /* eslint-disable no-restricted-syntax */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchLineCounts } from '../api';
 import { readCommits } from '../commitsResource';
 import type { LineCount } from '../types';
+
+const useLineCountsQueue = (baseUrl?: string) => {
+  const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
+  const renameMapRef = useRef<Record<string, string>>({});
+  const pending = useRef<{ id: string; parent?: string } | null>(null);
+  const inflight = useRef(false);
+  const token = useRef(0);
+
+  const run = useCallback(() => {
+    if (inflight.current || !pending.current) return;
+    inflight.current = true;
+    const { id, parent } = pending.current;
+    pending.current = null;
+    const current = token.current;
+    void fetchLineCounts(id, baseUrl, parent)
+      .then(({ counts, renames }) => {
+        if (token.current !== current || pending.current) return;
+        if (renames) {
+          for (const [to, from] of Object.entries(renames)) {
+            renameMapRef.current[to] = renameMapRef.current[from] ?? from;
+          }
+        }
+        const mapped = counts.map((c) => ({
+          ...c,
+          file: renameMapRef.current[c.file] ?? c.file,
+        }));
+        setLineCounts(mapped);
+      })
+      .finally(() => {
+        inflight.current = false;
+        run();
+      });
+  }, [baseUrl]);
+
+  const update = useCallback(
+    (id: string, parent?: string) => {
+      pending.current = parent ? { id, parent } : { id };
+      run();
+    },
+    [run],
+  );
+
+  useEffect(() => {
+    renameMapRef.current = {};
+    setLineCounts([]);
+    token.current += 1;
+  }, [baseUrl]);
+
+  useEffect(
+    () => () => {
+      token.current += 1;
+    },
+    [],
+  );
+
+  return { lineCounts, update };
+};
 
 interface TimelineDataOptions {
   baseUrl?: string | undefined;
@@ -21,8 +78,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     [commits],
   );
 
-  const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
-  const renameMapRef = useRef<Record<string, string>>({});
+  const { lineCounts, update } = useLineCountsQueue(baseUrl);
 
   useEffect(() => {
     const ts = timestamp === 0 ? start : timestamp;
@@ -31,24 +87,8 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     if (index === -1) return;
     const commit = commits[index]!;
     const parent = commits[index + 1]?.id;
-    let ignore = false;
-    void fetchLineCounts(commit.id, baseUrl, parent).then(({ counts, renames }) => {
-      if (ignore) return;
-      if (renames) {
-        for (const [to, from] of Object.entries(renames)) {
-          renameMapRef.current[to] = renameMapRef.current[from] ?? from;
-        }
-      }
-      const mapped = counts.map((c) => ({
-        ...c,
-        file: renameMapRef.current[c.file] ?? c.file,
-      }));
-      setLineCounts(mapped);
-    });
-    return () => {
-      ignore = true;
-    };
-  }, [timestamp, start, baseUrl, commits]);
+    update(commit.id, parent);
+  }, [timestamp, start, commits, update]);
 
   return { commits, lineCounts, start, end };
 };

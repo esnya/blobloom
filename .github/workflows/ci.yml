@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v3
@@ -21,12 +22,25 @@ jobs:
         timeout-minutes: 5
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm test
+      - run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
       - uses: actions/cache@v3
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-playwright-
       - run: npx playwright install --with-deps
-      - run: npm run build
+      - run: npm test
       - run: npm run test:playwright

@@ -128,6 +128,7 @@ export { useCssAnimation, makeUseCssAnimation } from './useCssAnimation';
 export { useGlowAnimation } from './useGlowAnimation';
 export { useGlowControl } from './useGlowControl';
 export { useCharEffects } from './useCharEffects';
+export { useTypewriter } from './useTypewriter';
 export { usePageVisibility } from './usePageVisibility';
 export { PhysicsProvider, useEngine } from './useEngine';
 export { useBody } from './useBody';

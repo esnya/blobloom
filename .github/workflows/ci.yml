@@ -17,6 +17,8 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
+      - run: npm audit --production
+        timeout-minutes: 5
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test

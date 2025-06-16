@@ -11,6 +11,7 @@ Install dependencies and start the server:
 ```bash
 npm install
 npx playwright install   # install browsers for headless tests
+npm audit --production
 npm run lint
 npm test
 npm run build            # client build with Vite

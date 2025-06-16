@@ -66,6 +66,44 @@ describe('lines module', () => {
     stop();
   });
 
+  it('updates existing simulation when called again', async () => {
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({
+      width: 200,
+      height: 200,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    const callbacks: FrameRequestCallback[] = [];
+    const raf = (cb: FrameRequestCallback): number => {
+      callbacks.push(cb);
+      return 1;
+    };
+    let stop!: () => void;
+    await act(() => {
+      stop = renderFileSimulation(div, [{ file: 'a', lines: 1 }], {
+        raf,
+        now: () => 0,
+      });
+      return Promise.resolve();
+    });
+    callbacks[0]?.(0);
+    const first = div.querySelector('.file-circle');
+    await act(() => {
+      renderFileSimulation(div, [{ file: 'a', lines: 2 }], { raf, now: () => 0 });
+      return Promise.resolve();
+    });
+    callbacks[1]?.(0);
+    const second = div.querySelector('.file-circle');
+    expect(first).toBe(second);
+    stop();
+  });
+
   it('reuses elements with same file name', async () => {
     const div = document.createElement('div');
     div.getBoundingClientRect = () => ({

@@ -8,6 +8,9 @@ import { FileCircle } from '../../client/components/FileCircle';
 jest.useFakeTimers();
 
 describe('FileCircle rotation CSS variable', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
   let engine: Engine | undefined;
   const CaptureEngine = () => {
     engine = useEngine();

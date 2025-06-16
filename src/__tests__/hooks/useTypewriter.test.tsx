@@ -5,6 +5,9 @@ import { useTypewriter } from '../../client/hooks/useTypewriter';
 jest.useFakeTimers();
 
 describe('useTypewriter', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
   it('animates when value changes', () => {
     const { result, rerender } = renderHook(
       ({ text }) => useTypewriter(text, 50),

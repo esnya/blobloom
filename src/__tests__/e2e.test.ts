@@ -28,7 +28,8 @@ describe('server e2e', () => {
 
     const base = `http://localhost:${port}`;
     const commits = await fetchCommits(base);
-    const counts = await fetchLineCounts(undefined, base);
+    const ts = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.commit.committer.timestamp * 1000;
+    const counts = await fetchLineCounts(ts, base);
 
     expect(commits[0]!.message).toBe('init\n');
     expect(counts[0]?.file).toBe('a.txt');
@@ -80,7 +81,8 @@ describe('server e2e', () => {
     const { port } = server.address() as AddressInfo;
 
     const base = `http://localhost:${port}`;
-    await expect(fetchLineCounts(undefined, base)).rejects.toThrow('No line counts');
+    const ts = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.commit.committer.timestamp * 1000;
+    await expect(fetchLineCounts(ts, base)).rejects.toThrow('No line counts');
 
     server.close();
   });

@@ -28,7 +28,7 @@ describe('lines module', () => {
     global.fetch = jest.fn().mockResolvedValue({
       json: () => Promise.resolve({ counts: [] }),
     });
-    await expect(fetchLineCounts()).rejects.toThrow('No line counts');
+    await expect(fetchLineCounts(100)).rejects.toThrow('No line counts');
   });
 
   it('renders circles', async () => {

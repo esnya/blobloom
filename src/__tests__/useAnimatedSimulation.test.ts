@@ -1,10 +1,10 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
 import { useAnimatedSimulation } from '../client/hooks';
-import { createFileSimulation } from '../client/lines';
+import { createFileSimulation } from '../client/fileSimulation';
 import type { LineCount } from '../client/types';
 
-jest.mock('../client/lines');
+jest.mock('../client/fileSimulation');
 
 const mockSim = {
   update: jest.fn(),

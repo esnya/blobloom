@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { PhysicsProvider, useEngine } from '../hooks';
 import { FileCircle, type FileCircleHandle } from './FileCircle';
 import type { LineCount } from '../types';
-import { computeScale } from '../lines';
+import { computeScale } from '../scale';
 import { Body, Engine } from '../physics';
 
 interface FileCircleSimulationProps {

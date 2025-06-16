@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createFileSimulation } from '../lines';
+import { createFileSimulation } from '../fileSimulation';
 import { createPlayer } from '../player';
 import type { LineCount } from '../types';
 import type { PlayerOptions } from '../player';

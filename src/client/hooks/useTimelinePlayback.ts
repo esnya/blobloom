@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { usePlayer } from './index';
 import { usePageVisibility } from './usePageVisibility';
-import { fetchCommits, fetchLineCounts, type JsonFetcher } from '../api';
-import type { Commit, LineCount } from '../types';
+import { useTimelineData } from './useTimelineData';
+import type { JsonFetcher } from '../api';
 import type { PlayerOptions } from '../player';
 
 interface TimelineOptions
@@ -19,44 +19,16 @@ export const useTimelinePlayback = ({
   onVisibilityChange,
   json,
 }: TimelineOptions) => {
-  const [commits, setCommits] = useState<Commit[]>([]);
-  const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
-  const [start, setStart] = useState(0);
-  const [end, setEnd] = useState(0);
-  const [ready, setReady] = useState(false);
   const [timestamp, setTimestamp] = useState(0);
 
-  useEffect(() => {
-    if (!json) return;
-    void (async () => {
-      const data = await fetchCommits(json);
-      setCommits(data);
-      if (data.length) {
-        const s = data[data.length - 1]!.commit.committer.timestamp * 1000;
-        const e = data[0]!.commit.committer.timestamp * 1000;
-        setStart(s);
-        setEnd(e);
-        setTimestamp(s);
-      }
-      setReady(true);
-    })();
-  }, [json]);
+  const { commits, lineCounts, start, end, ready } = useTimelineData({
+    timestamp,
+    ...(json ? { json } : {}),
+  });
 
   useEffect(() => {
-    if (!json || !ready) return;
-    let prev = NaN;
-    let frameId = 0;
-    const step = (): void => {
-      if (prev !== timestamp) {
-        prev = timestamp;
-        void fetchLineCounts(json, timestamp).then(setLineCounts);
-        void fetchCommits(json).then(setCommits);
-      }
-      frameId = (raf ?? requestAnimationFrame)(step);
-    };
-    frameId = (raf ?? requestAnimationFrame)(step);
-    return () => cancelAnimationFrame(frameId);
-  }, [json, raf, ready, timestamp]);
+    if (ready) setTimestamp(start);
+  }, [ready, start]);
 
   const hidden = usePageVisibility();
   const [wasPlaying, setWasPlaying] = useState(false);

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import * as Physics from '../physics';
 import { useEngine } from './useEngine';
 
 interface BodyOptions {
@@ -13,7 +12,7 @@ export const useBody = (options: BodyOptions) => {
   const { radius, restitution = 0, frictionAir = 0 } = options;
 
   const [body] = useState(() =>
-    Physics.Bodies.circle(
+    engine.circle(
       Math.random() * (engine.bounds.width - radius * 2) + radius,
       -radius,
       radius,
@@ -37,16 +36,16 @@ export const useBody = (options: BodyOptions) => {
   }, [body]);
 
   useEffect(() => {
-    Physics.Composite.add(engine.world, body);
+    engine.add(body);
     return () => {
-      Physics.Composite.remove(engine.world, body);
+      engine.remove(body);
     };
   }, [engine, body]);
 
   const setRadius = useCallback(
     (r: number) => {
       if (body.radius === undefined || body.radius === r) return;
-      Physics.Body.scale(body, r / body.radius, r / body.radius);
+      body.scale(r / body.radius, r / body.radius);
     },
     [body],
   );

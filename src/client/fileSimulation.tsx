@@ -6,7 +6,7 @@ import { FileCircle, type FileCircleHandle } from './components/FileCircle';
 import { PhysicsProvider } from './hooks/useEngine';
 import * as Physics from './physics';
 import { computeScale } from './scale';
-const { Body, Composite, Engine } = Physics;
+const { Engine } = Physics;
 
 const MIN_CIRCLE_SIZE = 1;
 const CHAR_ANIMATION_MS = 1500;
@@ -144,7 +144,7 @@ export const createFileSimulation = (
       }
       info.handle.showGlow('glow-disappear');
     }
-    if (info.body) Composite.remove(engine.world, info.body);
+    if (info.body) engine.remove(info.body);
     delete displayCounts[name];
     setTimeout(() => {
       delete bodies[name];
@@ -211,15 +211,15 @@ export const createFileSimulation = (
   let running = true;
   const step = (time: number): void => {
     if (!running) return;
-    Engine.update(engine, time - last);
+    engine.update(time - last);
     last = time;
     for (const { body, handle, r } of Object.values(bodies)) {
       if (!body || !handle) continue;
       const { x, y } = body.position;
       handle.el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
       if (x < -r || x > width + r || y > height + r || y < -height - r) {
-        Body.setVelocity(body, { x: 0, y: 0 });
-        Body.setPosition(body, {
+        body.setVelocity({ x: 0, y: 0 });
+        body.setPosition({
           x: Math.random() * (engine.bounds.width - 2 * r) + r,
           y: -r,
         });

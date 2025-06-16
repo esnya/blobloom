@@ -3,38 +3,143 @@ export interface Vector {
   y: number;
 }
 
-export interface Body {
+interface EngineRunner {
+  frame: number;
+  last: number;
+  running: boolean;
+}
+
+export class Body {
   position: Vector;
   velocity: Vector;
   angle: number;
   angularVelocity: number;
   mass: number;
-  radius?: number;
-  width?: number;
-  height?: number;
-  isStatic?: boolean;
+  radius: number | undefined;
+  width: number | undefined;
+  height: number | undefined;
+  isStatic: boolean | undefined;
   restitution: number;
   frictionAir: number;
+
+  constructor(opts: {
+    position: Vector;
+    mass: number;
+    velocity?: Vector;
+    radius?: number;
+    width?: number;
+    height?: number;
+    isStatic?: boolean;
+    restitution?: number;
+    frictionAir?: number;
+  }) {
+    this.position = { ...opts.position };
+    this.velocity = opts.velocity ?? { x: 0, y: 0 };
+    this.angle = 0;
+    this.angularVelocity = 0;
+    this.mass = opts.mass;
+    this.radius = opts.radius;
+    this.width = opts.width;
+    this.height = opts.height;
+    this.isStatic = opts.isStatic;
+    this.restitution = opts.restitution ?? 0;
+    this.frictionAir = opts.frictionAir ?? 0;
+  }
+
+  setVelocity(vel: Vector) {
+    this.velocity = { ...vel };
+  }
+
+  setPosition(pos: Vector) {
+    this.position = { ...pos };
+  }
+
+  setAngularVelocity(val: number) {
+    this.angularVelocity = val;
+  }
+
+  scale(sx: number, sy: number) {
+    if (this.radius !== undefined) {
+      const f = (sx + sy) / 2;
+      this.radius *= f;
+      this.mass *= f * f;
+    } else {
+      if (this.width !== undefined) this.width *= sx;
+      if (this.height !== undefined) this.height *= sy;
+      this.mass *= sx * sy;
+    }
+  }
 }
 
-export interface Engine {
+export class Engine {
   world: { bodies: Body[] };
-  gravity: { y: number; scale: number };
+  gravity = { y: 1, scale: 0.001 };
   bounds: { width: number; height: number };
-}
+  private runner?: EngineRunner;
 
-export const Engine = {
-  create(width = 0, height = 0): Engine {
-    return {
-      world: { bodies: [] },
-      gravity: { y: 1, scale: 0.001 },
-      bounds: { width, height },
-    };
-  },
-  update(engine: Engine, delta: number) {
-    const g = engine.gravity.y * engine.gravity.scale;
-    const { width, height } = engine.bounds;
-    const bodies = engine.world.bodies;
+  constructor(width = 0, height = 0) {
+    this.world = { bodies: [] };
+    this.bounds = { width, height };
+  }
+
+  static create(width = 0, height = 0): Engine {
+    return new Engine(width, height);
+  }
+
+  circle(
+    x: number,
+    y: number,
+    r: number,
+    opts: Partial<Pick<Body, 'restitution' | 'frictionAir' | 'mass'>> = {},
+  ): Body {
+    return new Body({
+      position: { x, y },
+      mass: opts.mass ?? r * r,
+      radius: r,
+      restitution: opts.restitution ?? 0,
+      frictionAir: opts.frictionAir ?? 0,
+    });
+  }
+
+  rectangle(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    opts: Partial<Pick<Body, 'isStatic' | 'mass'>> = {},
+  ): Body {
+    return new Body({
+      position: { x, y },
+      mass: opts.mass ?? width * height,
+      width,
+      height,
+      isStatic: opts.isStatic ?? false,
+      restitution: 0,
+      frictionAir: 0,
+    });
+  }
+
+  add(body: Body | Body[]) {
+    if (Array.isArray(body)) this.world.bodies.push(...body);
+    else this.world.bodies.push(body);
+  }
+
+  remove(body: Body | Body[]) {
+    if (Array.isArray(body)) {
+      for (const b of body) {
+        const i = this.world.bodies.indexOf(b);
+        if (i >= 0) this.world.bodies.splice(i, 1);
+      }
+    } else {
+      const i = this.world.bodies.indexOf(body);
+      if (i >= 0) this.world.bodies.splice(i, 1);
+    }
+  }
+
+  update(delta: number) {
+    const g = this.gravity.y * this.gravity.scale;
+    const { width, height } = this.bounds;
+    const bodies = this.world.bodies;
     for (const body of bodies) {
       if (body.isStatic) continue;
       body.velocity.y += g * delta;
@@ -109,93 +214,35 @@ export const Engine = {
         const ty = nx;
         const vt = dvx * tx + dvy * ty;
         const friction = 0.01;
-        if (!a.isStatic)
+        if (!a.isStatic && a.radius !== undefined)
           a.angularVelocity -= (vt * friction) / a.radius;
-        if (!b.isStatic)
+        if (!b.isStatic && b.radius !== undefined)
           b.angularVelocity += (vt * friction) / b.radius;
       }
     }
-  },
-};
+  }
 
-export const Bodies = {
-  circle(
-    x: number,
-    y: number,
-    r: number,
-    opts: Partial<Pick<Body, 'restitution' | 'frictionAir' | 'mass'>> = {},
-  ): Body {
-    return {
-      position: { x, y },
-      velocity: { x: 0, y: 0 },
-      angle: 0,
-      angularVelocity: 0,
-      mass: opts.mass ?? r * r,
-      radius: r,
-      restitution: opts.restitution ?? 0,
-      frictionAir: opts.frictionAir ?? 0,
+  start() {
+    if (this.runner?.running) return;
+    const runner: EngineRunner = {
+      frame: 0,
+      last: performance.now(),
+      running: true,
     };
-  },
-  rectangle(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    opts: Partial<Pick<Body, 'isStatic' | 'mass'>> = {},
-  ): Body {
-    const mass = opts.mass ?? width * height;
-    return {
-      position: { x, y },
-      velocity: { x: 0, y: 0 },
-      angle: 0,
-      angularVelocity: 0,
-      mass,
-      width,
-      height,
-      isStatic: opts.isStatic ?? false,
-      restitution: 0,
-      frictionAir: 0,
+    const step = (time: number): void => {
+      if (!runner.running) return;
+      this.update(time - runner.last);
+      runner.last = time;
+      runner.frame = requestAnimationFrame(step);
     };
-  },
-};
+    runner.frame = requestAnimationFrame(step);
+    this.runner = runner;
+  }
 
-export const Body = {
-  setVelocity(body: Body, vel: Vector) {
-    body.velocity = { ...vel };
-  },
-  setPosition(body: Body, pos: Vector) {
-    body.position = { ...pos };
-  },
-  setAngularVelocity(body: Body, val: number) {
-    body.angularVelocity = val;
-  },
-  scale(body: Body, sx: number, sy: number) {
-    if (body.radius !== undefined) {
-      const f = (sx + sy) / 2;
-      body.radius *= f;
-      body.mass *= f * f;
-    } else {
-      if (body.width !== undefined) body.width *= sx;
-      if (body.height !== undefined) body.height *= sy;
-      body.mass *= sx * sy;
-    }
-  },
-};
-
-export const Composite = {
-  add(world: { bodies: Body[] }, body: Body | Body[]) {
-    if (Array.isArray(body)) world.bodies.push(...body);
-    else world.bodies.push(body);
-  },
-  remove(world: { bodies: Body[] }, body: Body | Body[]) {
-    if (Array.isArray(body)) {
-      for (const b of body) {
-        const i = world.bodies.indexOf(b);
-        if (i >= 0) world.bodies.splice(i, 1);
-      }
-    } else {
-      const i = world.bodies.indexOf(body);
-      if (i >= 0) world.bodies.splice(i, 1);
-    }
-  },
-};
+  stop() {
+    const runner = this.runner;
+    if (!runner || !runner.running) return;
+    runner.running = false;
+    cancelAnimationFrame(runner.frame);
+  }
+}

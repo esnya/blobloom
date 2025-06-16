@@ -42,7 +42,7 @@ export function FileCircle({
   const { startGlow, glowProps } = useGlowControl();
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    Physics.Body.setPosition(body, {
+    body.setPosition({
       x: body.position.x,
       y: -Math.random() * (window.innerHeight || 0) - initialRadius,
     });
@@ -50,7 +50,7 @@ export function FileCircle({
 
   const updateRadius = useCallback((r: number): void => {
     if (r === radius) return;
-    Physics.Body.scale(body, r / radius, r / radius);
+    body.scale(r / radius, r / radius);
     setBodyRadius(r);
     setRadius(r);
     const el = document.getElementById(containerId);

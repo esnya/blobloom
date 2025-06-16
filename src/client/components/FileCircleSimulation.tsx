@@ -7,7 +7,6 @@ import { useFileCircleHandles } from '../hooks/useFileCircleHandles';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
-import { Body } from '../physics';
 
 interface FileCircleSimulationProps {
   data: LineCount[];
@@ -65,8 +64,8 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
           y > bounds.height + r ||
           y < -bounds.height - r
         ) {
-          Body.setVelocity(h.body, { x: 0, y: 0 });
-          Body.setPosition(h.body, {
+          h.body.setVelocity({ x: 0, y: 0 });
+          h.body.setPosition({
             x: Math.random() * (engine.bounds.width - 2 * r) + r,
             y: -r,
           });

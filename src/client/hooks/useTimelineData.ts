@@ -31,8 +31,9 @@ export const useTimelineData = ({ json, timestamp }: TimelineDataOptions) => {
 
   useEffect(() => {
     if (!json || !ready) return;
-    void fetchLineCounts(json, timestamp).then(setLineCounts);
-  }, [json, timestamp, ready]);
+    const ts = timestamp || start;
+    void fetchLineCounts(json, ts).then(setLineCounts);
+  }, [json, timestamp, ready, start]);
 
   return { commits, lineCounts, start, end, ready };
 };

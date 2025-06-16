@@ -60,4 +60,22 @@ describe('App API calls', () => {
       fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/commits')),
     ).toHaveLength(1);
   });
+
+  it('passes the timestamp in the lines API request', async () => {
+    const { container } = render(<App />);
+    await waitFor(() => expect(container.querySelector('#commit-log')).toBeTruthy());
+    const fetchMock = global.fetch as jest.Mock;
+    const calls = fetchMock.mock.calls as Array<[string]>;
+    const first = calls.find(([u]) => typeof u === 'string' && u.startsWith('/api/lines'));
+    expect(first?.[0]).toBe('/api/lines?ts=1000');
+
+    const input = container.querySelector('input[type="range"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '1500' } });
+
+    await waitFor(() =>
+      calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/lines')).length === 2,
+    );
+    const second = calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/lines'))[1];
+    expect(second?.[0]).toBe('/api/lines?ts=1500');
+  });
 });

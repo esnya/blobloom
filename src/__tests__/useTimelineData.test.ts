@@ -12,7 +12,7 @@ describe('useTimelineData', () => {
     const linesSecond = [{ file: 'a', lines: 2 }];
     const json = jest.fn((input: string) => {
       if (input.startsWith('/api/commits')) return Promise.resolve({ commits });
-      if (input === '/api/lines?ts=0') return Promise.resolve({ counts: linesFirst });
+      if (input === '/api/lines?ts=1000') return Promise.resolve({ counts: linesFirst });
       if (input === '/api/lines?ts=1') return Promise.resolve({ counts: linesSecond });
       return Promise.reject(new Error(`unexpected ${input}`));
     });

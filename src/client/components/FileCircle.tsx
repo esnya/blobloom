@@ -3,7 +3,8 @@ import { useBody } from '../hooks/useBody';
 import { FileCircleContent } from './FileCircleContent';
 import { colorForFile } from '../colors';
 import { useGlowControl } from '../hooks/useGlowControl';
-import { useGlobalCharEffects } from '../hooks/useGlobalCharEffects';
+import { CharEffects } from './CharEffects';
+import { useCharEffects } from '../hooks/useCharEffects';
 import { useRadiusAnimation } from '../hooks/useRadiusAnimation';
 import { usePrevious } from '../hooks/usePrevious';
 import { MAX_EFFECT_CHARS } from '../fileSimulation';
@@ -29,7 +30,7 @@ export function FileCircle({
   });
   const [currentRadius, animateRadius] = useRadiusAnimation(radius);
   const { startGlow, glowProps } = useGlowControl();
-  const { chars, spawnChar } = useGlobalCharEffects();
+  const { chars, spawnChar, removeChar } = useCharEffects();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const color = useMemo(() => colorForFile(file), []);
   const prevLines = usePrevious(lines);
@@ -55,23 +56,6 @@ export function FileCircle({
     }
   }, [lines, prevLines, startGlow, spawnChar, chars.length, currentRadius]);
 
-  useEffect(
-    () => () => {
-      const active = chars.length;
-      const available = Math.max(0, MAX_EFFECT_CHARS - active);
-      const spawn = Math.min(lines, available);
-      if (spawn === 0) return;
-      queueMicrotask(() => {
-        for (let i = 0; i < spawn; i += 1) {
-          const angle = Math.random() * 2 * Math.PI;
-          const r = Math.sqrt(Math.random()) * currentRadius * 2.5;
-          const offset = { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
-          spawnChar('remove-char', offset, () => {});
-        }
-      });
-    },
-    [lines, spawnChar, chars.length, currentRadius],
-  );
   useEffect(() => {
     if (radius !== currentRadius) animateRadius(radius);
   }, [radius, currentRadius, animateRadius]);
@@ -79,7 +63,6 @@ export function FileCircle({
   useEffect(() => {
     setBodyRadius(currentRadius);
   }, [currentRadius, setBodyRadius]);
-
 
   const dir = file.split('/');
   const name = dir.pop() ?? '';
@@ -104,6 +87,7 @@ export function FileCircle({
           name={name}
           count={lines}
         />
+        <CharEffects effects={{ chars, spawnChar, removeChar }} />
       </div>
     </>
   );

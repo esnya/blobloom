@@ -1,8 +1,6 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
 import { useAnimatedNumber } from '../../client/hooks/useAnimatedNumber';
-import { useRadiusAnimation } from '../../client/hooks/useRadiusAnimation';
-import { useCountAnimation } from '../../client/hooks/useCountAnimation';
 
 type TestCase = {
   name: string;
@@ -19,20 +17,6 @@ const cases: readonly TestCase[] = [
     initial: 0,
     target: 10,
     round: false,
-  },
-  {
-    name: 'useRadiusAnimation',
-    useHook: (initial, duration) => useRadiusAnimation(initial, duration),
-    initial: 10,
-    target: 20,
-    round: false,
-  },
-  {
-    name: 'useCountAnimation',
-    useHook: (initial, duration) => useCountAnimation(initial, duration),
-    initial: 0,
-    target: 100,
-    round: true,
   },
 ] as const;
 

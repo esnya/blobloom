@@ -19,13 +19,16 @@ export interface LineCountsRequest {
 export const setupLineCountWs = (app: express.Application, server: Server) => {
   const wss = new WebSocketServer({ noServer: true });
 
-  server.on('upgrade', (req: IncomingMessage, socket: Socket, head: Buffer) => {
-    if (req.url?.startsWith('/ws/lines')) {
-      wss.handleUpgrade(req, socket, head, (ws) => {
-        wss.emit('connection', ws, req);
-      });
-    }
-  });
+  server.prependListener(
+    'upgrade',
+    (req: IncomingMessage, socket: Socket, head: Buffer) => {
+      if (req.url?.startsWith('/ws/lines')) {
+        wss.handleUpgrade(req, socket, head, (ws) => {
+          wss.emit('connection', ws, req);
+        });
+      }
+    },
+  );
 
   wss.on('connection', (ws: WebSocket) => {
     let previous: string | undefined;

@@ -80,6 +80,7 @@ export const computeScale = (
   data: LineCount[],
   opts: { linear?: boolean } = {},
 ): number => {
+  if (!Array.isArray(data)) return 0;
   const exp = opts.linear ? 1 : 0.5;
   const maxLines = data.reduce(
     (m, d) => Math.max(m, Number.isFinite(d.lines) ? d.lines : 0),

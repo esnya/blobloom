@@ -14,5 +14,6 @@ export const fetchLineCounts = async (
 ): Promise<LineCount[]> => {
   const url =
     timestamp === undefined ? '/api/lines' : `/api/lines?ts=${timestamp}`;
-  return (await json(url)) as LineCount[];
+  const data = await json(url);
+  return Array.isArray(data) ? (data as LineCount[]) : [];
 };

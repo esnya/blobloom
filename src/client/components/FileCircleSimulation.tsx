@@ -52,7 +52,7 @@ export function FileCircleList({ data, bounds, linear }: FileCircleListProps): R
   return (
     <TransitionGroup component={null}>
       {data.map((d) => {
-        const r = (Math.pow(d.lines, 0.5) * scale) / 2;
+        const r = ((d.lines ** 0.5) * scale) / 2;
         if (r * 2 < 1) return null;
         const nodeRef = getRef(d.file);
         return (

@@ -16,7 +16,6 @@
   },
   "include": [
     "src",
-    "legacy",
     "vite.config.ts",
     "playwright.config.ts",
     "playwright"

@@ -273,8 +273,16 @@ export const renderFileSimulation = (
     linear?: boolean;
   } = {},
 ): (() => void) => {
-  container.innerHTML = '';
-  const sim = createFileSimulation(container, opts);
+  const key = Symbol.for('blobloom.renderFileSimulation');
+  let sim = (container as unknown as Record<symbol, ReturnType<typeof createFileSimulation> | undefined>)[key];
+  if (!sim) {
+    container.innerHTML = '';
+    sim = createFileSimulation(container, opts);
+    (container as unknown as Record<symbol, ReturnType<typeof createFileSimulation>>)[key] = sim;
+  }
   sim.update(data);
-  return sim.destroy;
+  return () => {
+    sim?.destroy();
+    delete (container as unknown as Record<symbol, unknown>)[key];
+  };
 };

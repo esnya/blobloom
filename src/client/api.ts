@@ -1,5 +1,6 @@
 import type { Commit, LineCountsResult } from './types';
 import type { ApiError, CommitsResponse, LineCountsResponse } from '../api/types';
+import { buildWsUrl } from './ws';
 
 export const fetchCommits = async (baseUrl = ''): Promise<Commit[]> => {
   const response = await fetch(`${baseUrl}/api/commits`);
@@ -15,16 +16,7 @@ export const fetchLineCounts = async (
   baseUrl = '',
   parent?: string,
 ): Promise<LineCountsResult> => {
-  const secure = baseUrl
-    ? baseUrl.startsWith('https')
-    : typeof window !== 'undefined' && window.location.protocol === 'https:';
-  const protocol = secure ? 'wss' : 'ws';
-  const origin = baseUrl
-    ? baseUrl.replace(/^https?:\/\//, '')
-    : typeof window !== 'undefined'
-      ? window.location.host
-      : '';
-  const url = `${protocol}://${origin}/ws/lines`;
+  const url = buildWsUrl('/ws/lines', baseUrl);
   return new Promise<LineCountsResult>((resolve, reject) => {
     const socket = new WebSocket(url);
     socket.addEventListener('open', () => {

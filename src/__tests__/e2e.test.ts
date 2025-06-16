@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import express from 'express';
+import { createServer } from 'http';
 import { apiMiddleware } from '../server/api-middleware';
 import { appSettings } from '../server/app-settings';
+import { setupLineCountWs } from '../server/ws';
 import { fetchCommits, fetchLineCounts } from '../client/api';
 
 const author = { name: 'a', email: 'a@example.com' };
@@ -23,7 +26,9 @@ describe('server e2e', () => {
     app.set(appSettings.repo.description!, dir);
     app.set(appSettings.branch.description!, 'HEAD');
     app.use(apiMiddleware);
-    const server = app.listen(0);
+    const server = createServer(app);
+    setupLineCountWs(app, server);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
     const { port } = server.address() as AddressInfo;
 
     const base = `http://localhost:${port}`;
@@ -51,7 +56,9 @@ describe('server e2e', () => {
     app.set(appSettings.repo.description!, dir);
     app.set(appSettings.branch.description!, 'HEAD');
     app.use(apiMiddleware);
-    const server = app.listen(0);
+    const server = createServer(app);
+    setupLineCountWs(app, server);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
     const { port } = server.address() as AddressInfo;
 
     const base = `http://localhost:${port}`;
@@ -76,7 +83,9 @@ describe('server e2e', () => {
     app.set(appSettings.repo.description!, dir);
     app.set(appSettings.branch.description!, 'HEAD');
     app.use(apiMiddleware);
-    const server = app.listen(0);
+    const server = createServer(app);
+    setupLineCountWs(app, server);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
     const { port } = server.address() as AddressInfo;
 
     const base = `http://localhost:${port}`;
@@ -103,7 +112,9 @@ describe('server e2e', () => {
     app.set(appSettings.repo.description!, dir);
     app.set(appSettings.branch.description!, 'HEAD');
     app.use(apiMiddleware);
-    const server = app.listen(0);
+    const server = createServer(app);
+    setupLineCountWs(app, server);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
     const { port } = server.address() as AddressInfo;
 
     const base = `http://localhost:${port}`;

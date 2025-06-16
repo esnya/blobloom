@@ -46,18 +46,12 @@ describe('App API calls', () => {
         ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
       ),
     ).toHaveLength(1);
-    expect(
-      fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.includes('/lines')),
-    ).toHaveLength(1);
+    expect(fetchMock.mock.calls.some(([u]) => typeof u === 'string' && u.includes('/lines'))).toBe(false);
 
     const input = container.querySelector('input[type="range"]') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '1500' } });
 
-    await waitFor(() =>
-      expect(
-        fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.includes('/lines')).length,
-      ).toBeGreaterThanOrEqual(2),
-    );
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBe(1));
     expect(
       fetchMock.mock.calls.filter(
         ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),

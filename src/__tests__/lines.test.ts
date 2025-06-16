@@ -4,26 +4,40 @@ import { computeScale } from '../client/scale';
 import type { LineCount } from '../client/types';
 
 describe('lines module', () => {
-  const originalFetch = global.fetch;
+  const originalWebSocket = global.WebSocket;
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    global.WebSocket = originalWebSocket;
   });
 
   it('fetches line counts', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }] }),
-    });
+    const socket = {
+      send: jest.fn(),
+      close: jest.fn(),
+      addEventListener: (event: string, cb: (ev: MessageEvent) => void) => {
+        if (event === 'open') cb(new MessageEvent('open'));
+        if (event === 'message')
+          cb(new MessageEvent('message', { data: JSON.stringify({ counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }] }) }));
+      },
+    } as unknown as WebSocket;
+    global.WebSocket = jest.fn(() => socket) as unknown as typeof WebSocket;
     await expect(fetchLineCounts('abc')).resolves.toEqual({
       counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }],
     });
-    expect(global.fetch).toHaveBeenCalledWith('/api/commits/abc/lines');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(socket.send).toHaveBeenCalledWith(JSON.stringify({ id: 'abc', parent: undefined }));
   });
 
   it('throws on empty counts', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      json: () => Promise.resolve({ counts: [] }),
-    });
+    const socket = {
+      send: jest.fn(),
+      close: jest.fn(),
+      addEventListener: (event: string, cb: (ev: MessageEvent) => void) => {
+        if (event === 'open') cb(new MessageEvent('open'));
+        if (event === 'message') cb(new MessageEvent('message', { data: JSON.stringify({ counts: [] }) }));
+      },
+    } as unknown as WebSocket;
+    global.WebSocket = jest.fn(() => socket) as unknown as typeof WebSocket;
     await expect(fetchLineCounts('abc')).rejects.toThrow('No line counts');
   });
 

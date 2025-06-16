@@ -26,17 +26,31 @@ describe('useTimelineData', () => {
             : input instanceof Request
               ? input.url
               : '';
-      if (url === '/basic/api/commits/c2/lines') {
-        return Promise.resolve({ json: () => Promise.resolve({ counts: linesFirst }) } as unknown as Response);
-      }
-      if (url === '/basic/api/commits/c1/lines?parent=c2') {
-        return Promise.resolve({ json: () => Promise.resolve({ counts: linesSecond }) } as unknown as Response);
-      }
       if (url.startsWith('/basic/api/commits')) {
         return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
       }
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
+
+    let openCb: (() => void) | undefined;
+    let messageHandler: ((ev: MessageEvent) => void) | undefined;
+    global.WebSocket = jest.fn(() => ({
+      send: jest.fn((data: string) => {
+        const { id } = JSON.parse(data) as { id: string };
+        const counts = id === 'c2' ? linesFirst : linesSecond;
+        messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts }) }));
+      }),
+      close: jest.fn(),
+      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+        if (ev === 'open') {
+          openCb = () => cb(new MessageEvent('open'));
+          if (messageHandler) openCb();
+        } else if (ev === 'message') {
+          messageHandler = cb;
+          openCb?.();
+        }
+      },
+    })) as unknown as typeof WebSocket;
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Suspense, { fallback: 'loading' }, children);
@@ -64,7 +78,7 @@ describe('useTimelineData', () => {
         ([u]) => typeof u === 'string' && u.startsWith(`${base}/api/commits`) && !u.includes('/lines'),
       ).length,
     ).toBe(1);
-    expect(calls).toHaveLength(3);
+    expect(calls).toHaveLength(1);
   });
 
   it('ignores outdated responses', async () => {
@@ -84,23 +98,35 @@ describe('useTimelineData', () => {
             : input instanceof Request
               ? input.url
               : '';
-      if (url === '/outdated/api/commits/c2/lines') {
-        return new Promise<Response>((resolve) => {
-          resolveFirst = () => resolve({
-            json: () => Promise.resolve({ counts: linesFirst }),
-          } as unknown as Response);
-        });
-      }
-      if (url === '/outdated/api/commits/c1/lines?parent=c2') {
-        return Promise.resolve({
-          json: () => Promise.resolve({ counts: linesSecond }),
-        } as unknown as Response);
-      }
       if (url.startsWith('/outdated/api/commits')) {
         return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
       }
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
+
+    let openCb: (() => void) | undefined;
+    let messageHandler: ((ev: MessageEvent) => void) | undefined;
+    global.WebSocket = jest.fn(() => ({
+      send: jest.fn((data: string) => {
+        const { id } = JSON.parse(data) as { id: string };
+        if (id === 'c2') {
+          resolveFirst?.();
+          messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts: linesFirst }) }));
+        } else {
+          messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts: linesSecond }) }));
+        }
+      }),
+      close: jest.fn(),
+      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+        if (ev === 'open') {
+          openCb = () => cb(new MessageEvent('open'));
+          if (messageHandler) openCb();
+        } else if (ev === 'message') {
+          messageHandler = cb;
+          openCb?.();
+        }
+      },
+    })) as unknown as typeof WebSocket;
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Suspense, { fallback: 'loading' }, children);
@@ -115,16 +141,12 @@ describe('useTimelineData', () => {
 
     rerender({ ts: 2000 });
 
-    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(2);
+    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(1);
 
     resolveFirst?.();
 
     await waitFor(() => expect(result.current.lineCounts).toEqual(linesSecond));
 
-    const lineCalls = (global.fetch as jest.Mock).mock.calls.filter(
-      ([u]) => typeof u === 'string' && u.includes('/lines'),
-    );
-    expect(lineCalls).toHaveLength(2);
   });
 
   it('maps renamed files to previous names', async () => {
@@ -143,19 +165,36 @@ describe('useTimelineData', () => {
             : input instanceof Request
               ? input.url
               : '';
-      if (url === '/rename/api/commits/c0/lines') {
-        return Promise.resolve({ json: () => Promise.resolve({ counts: linesInit }) } as unknown as Response);
-      }
-      if (url === '/rename/api/commits/c1/lines?parent=c0') {
-        return Promise.resolve({
-          json: () => Promise.resolve({ counts: linesRenamed, renames: { 'b.txt': 'a.txt' } }),
-        } as unknown as Response);
-      }
       if (url.startsWith('/rename/api/commits')) {
         return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
       }
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
+
+    let openCb: (() => void) | undefined;
+    let messageHandler: ((ev: MessageEvent) => void) | undefined;
+    global.WebSocket = jest.fn(() => ({
+      send: jest.fn((data: string) => {
+        const { id } = JSON.parse(data) as { id: string };
+        if (id === 'c0') {
+          messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ counts: linesInit }) }));
+        } else {
+          messageHandler?.(
+            new MessageEvent('message', { data: JSON.stringify({ counts: linesRenamed, renames: { 'b.txt': 'a.txt' } }) }),
+          );
+        }
+      }),
+      close: jest.fn(),
+      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+        if (ev === 'open') {
+          openCb = () => cb(new MessageEvent('open'));
+          if (messageHandler) openCb();
+        } else if (ev === 'message') {
+          messageHandler = cb;
+          openCb?.();
+        }
+      },
+    })) as unknown as typeof WebSocket;
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Suspense, { fallback: 'loading' }, children);

@@ -1,8 +1,10 @@
 import express from 'express';
 import { Command } from 'commander';
+import { createServer } from 'http';
 import { apiMiddleware } from './api-middleware';
 import { appSettings } from './app-settings';
 import { defaultIgnore } from './ignore-defaults';
+import { setupLineCountWs } from './ws';
 
 const collect = (val: string, acc: string[]): string[] => acc.concat(val.split(','));
 
@@ -29,6 +31,10 @@ app.set(appSettings.ignore.description!, ignore);
 app.use(express.static('dist'));
 app.use(apiMiddleware);
 
-app.listen(port, host, () => {
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+const server = createServer(app);
+setupLineCountWs(app, server);
+
+server.listen(port, host, () => {
   console.log(`Server running at http://${host}:${port}`);
 });

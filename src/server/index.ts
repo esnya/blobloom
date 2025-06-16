@@ -10,21 +10,36 @@ const collect = (val: string, acc: string[]): string[] => acc.concat(val.split('
 
 const program = new Command();
 program
-  .option('-b, --branch <name>', 'branch to inspect')
-  .option('-H, --host <host>', 'host name to listen on', 'localhost')
-  .option('-p, --port <number>', 'port to listen on', (v) => Number(v), 3000)
-  .option('-i, --ignore <pattern>', 'glob pattern to ignore', collect, [...defaultIgnore]);
+  .option('-r, --repo <path>', 'git repository path', process.env.BLOBLOOM_REPO)
+  .option('-b, --branch <name>', 'branch to inspect', process.env.BLOBLOOM_BRANCH)
+  .option('-H, --host <host>', 'host name to listen on', process.env.BLOBLOOM_HOST ?? 'localhost')
+  .option(
+    '-p, --port <number>',
+    'port to listen on',
+    (v) => Number(v),
+    process.env.BLOBLOOM_PORT ? Number(process.env.BLOBLOOM_PORT) : 3000,
+  )
+  .option(
+    '-i, --ignore <pattern>',
+    'glob pattern to ignore',
+    collect,
+    process.env.BLOBLOOM_IGNORE
+      ? process.env.BLOBLOOM_IGNORE.split(',')
+      : [...defaultIgnore],
+  );
 
 program.parse();
 
-const { host, port, branch, ignore } = program.opts<{
+const { host, port, branch, ignore, repo } = program.opts<{
   host: string;
   port: number;
   branch?: string;
   ignore: string[];
+  repo?: string;
 }>();
 
 const app = express();
+app.set(appSettings.repo.description!, repo);
 app.set(appSettings.branch.description!, branch);
 app.set(appSettings.ignore.description!, ignore);
 

@@ -24,6 +24,9 @@ npm start                # defaults to current directory
 # npm run dev            # start Vite dev server with API
 ```
 
+CLI options can also be provided via environment variables with the `BLOBLOOM_` prefix.
+For example, set `BLOBLOOM_REPO` to specify the repository path.
+
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Headless Tests

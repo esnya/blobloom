@@ -32,6 +32,9 @@ describe('useTimelineData', () => {
     await waitFor(() =>
       expect(result.current.lineCounts).toEqual(linesSecond),
     );
+
+    expect(json.mock.calls.filter(([u]) => u.startsWith('/api/commits')).length).toBe(1);
+    expect(json.mock.calls).toHaveLength(3);
   });
 });
 

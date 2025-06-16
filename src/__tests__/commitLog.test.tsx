@@ -7,8 +7,8 @@ import type { Commit } from '../client/types';
 describe('CommitLog', () => {
   it('highlights current commit on timestamp change', () => {
     const commits: Commit[] = [
-      { commit: { message: 'new', committer: { timestamp: 2 } } },
-      { commit: { message: 'old', committer: { timestamp: 1 } } },
+      { message: 'new', timestamp: 2 },
+      { message: 'old', timestamp: 1 },
     ];
     const { container, rerender } = render(
       <CommitLog commits={commits} timestamp={1500} visible={2} />,

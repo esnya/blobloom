@@ -13,10 +13,8 @@ import type {
 } from './api/types';
 
 const commitSchema = z.object({
-  commit: z.object({
-    message: z.string(),
-    committer: z.object({ timestamp: z.number() }),
-  }),
+  message: z.string(),
+  timestamp: z.number(),
 });
 
 const lineCountSchema = z.object({
@@ -74,7 +72,11 @@ apiMiddleware.get(
         dir,
         app.get(appSettings.branch.description!) as string | undefined,
       );
-      const commits = await git.log({ fs, dir, ref: branch });
+      const gitCommits = await git.log({ fs, dir, ref: branch });
+      const commits = gitCommits.map((c) => ({
+        message: c.commit.message,
+        timestamp: c.commit.committer.timestamp,
+      }));
       const parsed = commitsResponseSchema.safeParse({ commits });
       if (!parsed.success) {
         res.status(500).json({ error: 'Invalid data' });

@@ -12,7 +12,7 @@ describe('client index', () => {
           json: () =>
             Promise.resolve({
               commits: [
-                { commit: { message: 'msg', committer: { timestamp: 1 } } },
+                { message: 'msg', timestamp: 1 },
               ],
             }),
         });

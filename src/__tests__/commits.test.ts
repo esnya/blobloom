@@ -13,12 +13,12 @@ describe('commits module', () => {
       json: () =>
         Promise.resolve({
           commits: [
-            { commit: { message: 'msg', committer: { timestamp: 1 } } },
+            { message: 'msg', timestamp: 1 },
           ],
         }),
     });
     await expect(fetchCommits()).resolves.toEqual([
-      { commit: { message: 'msg', committer: { timestamp: 1 } } },
+      { message: 'msg', timestamp: 1 },
     ]);
   });
 });

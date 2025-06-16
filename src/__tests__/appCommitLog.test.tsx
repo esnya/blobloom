@@ -4,8 +4,8 @@ import { render, waitFor } from '@testing-library/react';
 import { App } from '../client/App';
 
 const commits = [
-  { commit: { message: 'new', committer: { timestamp: 2 } } },
-  { commit: { message: 'old', committer: { timestamp: 1 } } },
+  { message: 'new', timestamp: 2 },
+  { message: 'old', timestamp: 1 },
 ];
 
 describe('App commit log', () => {

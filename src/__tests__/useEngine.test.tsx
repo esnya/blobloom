@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 import React from 'react';
 import { renderHook } from '@testing-library/react';
-import { PhysicsProvider, useEngine } from '../client/hooks';
+import { PhysicsProvider, useEngine } from '../client/hooks/useEngine';
 
 describe('PhysicsProvider', () => {
   it('updates engine bounds', () => {

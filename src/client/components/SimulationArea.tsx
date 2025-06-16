@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
-import { useFileSimulation } from '../hooks';
+import { useFileSimulation } from '../hooks/useFileSimulation';
 import type { LineCount } from '../types';
 
 export interface SimulationAreaHandle {

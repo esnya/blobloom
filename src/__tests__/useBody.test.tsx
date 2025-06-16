@@ -1,7 +1,8 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
-import { PhysicsProvider, useEngine, useBody } from '../client/hooks';
+import { PhysicsProvider, useEngine } from '../client/hooks/useEngine';
+import { useBody } from '../client/hooks/useBody';
 
 describe('useBody', () => {
   it('adds body to engine and supports size updates', () => {

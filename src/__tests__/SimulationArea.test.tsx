@@ -2,10 +2,10 @@
 import React from 'react';
 import { render, act } from '@testing-library/react';
 import { SimulationArea } from '../client/components/SimulationArea';
-import { useFileSimulation } from '../client/hooks';
+import { useFileSimulation } from '../client/hooks/useFileSimulation';
 import type { LineCount } from '../client/types';
 
-jest.mock('../client/hooks');
+jest.mock('../client/hooks/useFileSimulation');
 
 const update = jest.fn();
 const pause = jest.fn();

@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react'; // eslint-disable-line no-restricted-syntax
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import { PhysicsProvider } from '../hooks/useEngine';
 import { PhysicsRunner } from '../hooks/useEngineRunner';
 import { FileCircle } from './FileCircle';
@@ -34,7 +35,6 @@ export interface FileCircleListProps {
 }
 
 export function FileCircleList({ data, bounds, linear }: FileCircleListProps): React.JSX.Element {
-
   const scale = useMemo(
     () =>
       computeScale(
@@ -46,20 +46,34 @@ export function FileCircleList({ data, bounds, linear }: FileCircleListProps): R
     [bounds.width, bounds.height, data, linear],
   );
 
+  const refs = useRef(new Map<string, React.RefObject<HTMLDivElement>>()); // eslint-disable-line no-restricted-syntax
+
   return (
-    <>
+    <TransitionGroup component={null}>
       {data.map((d) => {
         const r = (Math.pow(d.lines, 0.5) * scale) / 2;
         if (r * 2 < 1) return null;
+        let nodeRef = refs.current.get(d.file);
+        if (!nodeRef) {
+          // eslint-disable-next-line no-restricted-syntax
+          nodeRef = React.createRef<HTMLDivElement>() as React.RefObject<HTMLDivElement>;
+          refs.current.set(d.file, nodeRef);
+        }
         return (
-          <FileCircle
+          <CSSTransition
             key={d.file}
-            file={d.file}
-            lines={d.lines}
-            radius={r}
-          />
+            nodeRef={nodeRef}
+            timeout={500}
+            classNames="file-circle-remove"
+            onExited={() => {
+              refs.current.delete(d.file);
+            }}
+          >
+            {/* eslint-disable-next-line no-restricted-syntax */}
+            <FileCircle ref={nodeRef} file={d.file} lines={d.lines} radius={r} />
+          </CSSTransition>
         );
       })}
-    </>
+    </TransitionGroup>
   );
 }

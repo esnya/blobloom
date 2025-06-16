@@ -15,11 +15,9 @@ interface FileCircleProps {
   radius: number;
 }
 
-export function FileCircle({
-  file,
-  lines,
-  radius,
-}: FileCircleProps): React.JSX.Element {
+// eslint-disable-next-line no-restricted-syntax
+export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
+  ({ file, lines, radius }, ref): React.JSX.Element => {
   const [, setTick] = useState(0);
   const forceUpdate = useCallback(() => setTick((t) => t + 1), []);
   const { body, setRadius: setBodyRadius } = useBody({
@@ -72,6 +70,8 @@ export function FileCircle({
   return (
     <>
       <div
+        // eslint-disable-next-line no-restricted-syntax
+        ref={ref}
         className={`file-circle ${glowProps.className}`.trim()}
         onAnimationEnd={glowProps.onAnimationEnd}
         style={{
@@ -94,5 +94,8 @@ export function FileCircle({
       </div>
     </>
   );
-}
+  },
+);
+
+FileCircle.displayName = 'FileCircle';
 

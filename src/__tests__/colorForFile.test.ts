@@ -1,4 +1,4 @@
-import { colorForFile } from '../client/lines';
+import { colorForFile } from '../client/colors';
 
 describe('colorForFile', () => {
   it('handles extension case-insensitively', () => {

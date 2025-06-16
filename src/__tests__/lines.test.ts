@@ -2,10 +2,10 @@
 import { fetchLineCounts } from '../client/api';
 import {
   renderFileSimulation,
-  computeScale,
   createFileSimulation,
   MAX_EFFECT_CHARS,
-} from '../client/lines';
+} from '../client/fileSimulation';
+import { computeScale } from '../client/scale';
 import { act } from '@testing-library/react';
 import type { LineCount } from '../client/types';
 

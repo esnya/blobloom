@@ -3,7 +3,7 @@ import React, { useEffect, useId, useState, useCallback, useRef } from 'react';
 import { useBody } from '../hooks';
 import * as Physics from '../physics';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
-import { colorForFile } from '../lines';
+import { colorForFile } from '../colors';
 import { useGlowControl } from '../hooks';
 
 export interface FileCircleHandle extends FileCircleContentHandle {

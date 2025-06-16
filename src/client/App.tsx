@@ -6,17 +6,18 @@ import { FileCircleSimulation } from './components/FileCircleSimulation';
 import { useTimelineData } from './hooks/useTimelineData';
 import { usePlayer } from './hooks/usePlayer';
 
-const PLAY_DURATION = 30;
+const DEFAULT_DURATION = 30;
 
 function AppContent(): React.JSX.Element {
   const [timestamp, setTimestamp] = useState(0);
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
   const { commits, lineCounts, start, end } = useTimelineData({ timestamp });
   const [playing, setPlaying] = useState(false);
 
   const { resume, togglePlay } = usePlayer({
     getSeek: () => timestamp,
     setSeek: setTimestamp,
-    duration: PLAY_DURATION,
+    duration,
     start,
     end,
     onPlayStateChange: setPlaying,
@@ -33,20 +34,21 @@ function AppContent(): React.JSX.Element {
     <>
       <div id="controls">
         <PlayPauseButton playing={playing} onToggle={togglePlay} />
-        <SeekBar
-          value={timestamp}
-          min={start}
-          max={end}
-          onChange={setTimestamp}
-        />
+        <SeekBar value={timestamp} min={start} max={end} onChange={setTimestamp} />
+        <label>
+          Duration
+          <input
+            id="duration"
+            type="number"
+            min="1"
+            value={duration}
+            onChange={e => setDuration(Number((e.target as HTMLInputElement).value))}
+          />
+        </label>
       </div>
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>
       <FileCircleSimulation data={lineCounts} />
-      <CommitLog
-        commits={commits}
-        timestamp={timestamp}
-        onTimestampChange={setTimestamp}
-      />
+      <CommitLog commits={commits} timestamp={timestamp} onTimestampChange={setTimestamp} />
     </>
   );
 }

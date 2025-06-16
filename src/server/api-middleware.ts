@@ -4,7 +4,7 @@ import { appSettings } from './app-settings';
 import * as git from 'isomorphic-git';
 import fs from 'fs';
 import path from 'path';
-import { getLineCounts } from './line-counts';
+import { getLineCounts, getRenameMap } from './line-counts';
 import { defaultIgnore } from './ignore-defaults';
 import type {
   ApiError,
@@ -29,6 +29,7 @@ const commitsResponseSchema = z.object({
 
 const lineCountsResponseSchema = z.object({
   counts: z.array(lineCountSchema),
+  renames: z.record(z.string(), z.string()).optional(),
 });
 
 const linesQuerySchema = z.object({ parent: z.string().optional() });
@@ -113,7 +114,16 @@ apiMiddleware.get(
 
       await git.resolveRef({ fs, dir, ref: req.params.commitId });
       const counts = await getLineCounts({ dir, ref: req.params.commitId, ignore });
-      const parsed = lineCountsResponseSchema.safeParse({ counts });
+      const renames = params.data.parent
+        ? await getRenameMap({
+            dir,
+            ref: req.params.commitId,
+            parent: params.data.parent,
+            ignore,
+          })
+        : undefined;
+      const payload = renames ? { counts, renames } : { counts };
+      const parsed = lineCountsResponseSchema.safeParse(payload);
       if (!parsed.success) {
         res.status(500).json({ error: 'Invalid data' });
         return;

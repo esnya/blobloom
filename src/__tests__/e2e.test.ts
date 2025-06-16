@@ -28,7 +28,7 @@ describe('server e2e', () => {
 
     const base = `http://localhost:${port}`;
     const commits = await fetchCommits(base);
-    const counts = await fetchLineCounts(commits[0]!.id, base);
+    const { counts } = await fetchLineCounts(commits[0]!.id, base);
 
     expect(commits[0]!.message).toBe('init\n');
     expect(counts[0]?.file).toBe('a.txt');
@@ -82,6 +82,34 @@ describe('server e2e', () => {
     const base = `http://localhost:${port}`;
     const commitId = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
     await expect(fetchLineCounts(commitId, base)).rejects.toThrow('No line counts');
+
+    server.close();
+  });
+
+  it('returns rename mapping', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
+    await git.init({ fs, dir });
+    await fs.promises.writeFile(path.join(dir, 'a.txt'), '1');
+    await git.add({ fs, dir, filepath: 'a.txt' });
+    await git.commit({ fs, dir, author, message: 'init' });
+    const parent = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
+    await fs.promises.rename(path.join(dir, 'a.txt'), path.join(dir, 'b.txt'));
+    await git.remove({ fs, dir, filepath: 'a.txt' });
+    await git.add({ fs, dir, filepath: 'b.txt' });
+    await git.commit({ fs, dir, author, message: 'rename' });
+    const head = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
+
+    const app = express();
+    app.set(appSettings.repo.description!, dir);
+    app.set(appSettings.branch.description!, 'HEAD');
+    app.use(apiMiddleware);
+    const server = app.listen(0);
+    const { port } = server.address() as AddressInfo;
+
+    const base = `http://localhost:${port}`;
+    const result = await fetchLineCounts(head, base, parent);
+
+    expect(result.renames?.['b.txt']).toBe('a.txt');
 
     server.close();
   });

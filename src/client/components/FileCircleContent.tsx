@@ -1,5 +1,5 @@
-import React, { useEffect, useId, useState } from 'react';
-import { useCharEffects } from '../hooks';
+import React, { useEffect, useId } from 'react';
+import { useCharEffects, useCountAnimation } from '../hooks';
 
 export interface FileCircleContentHandle {
   setCount: (n: number) => void;
@@ -26,18 +26,18 @@ export function FileCircleContent({
   hidden,
   onReady,
 }: FileCircleContentProps): React.JSX.Element {
-  const [currentCount, setCurrentCount] = useState(count);
+  const [currentCount, animateCount] = useCountAnimation(count);
   const charsId = useId();
   const { chars, spawnChar, removeChar } = useCharEffects();
 
   useEffect(() => {
     if (!onReady) return;
     const handle: FileCircleContentHandle = {
-      setCount: setCurrentCount,
+      setCount: animateCount,
       spawnChar,
     };
     onReady(handle);
-  }, [onReady, spawnChar]);
+  }, [onReady, spawnChar, animateCount]);
 
   return (
     <>

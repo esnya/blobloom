@@ -132,5 +132,4 @@ export { usePageVisibility } from './usePageVisibility';
 export { usePhysics } from './usePhysics';
 export { PhysicsProvider, useEngine } from './useEngine';
 export { useBody } from './useBody';
-export { useTimelinePlayback } from './useTimelinePlayback';
 export { useTimelineData } from './useTimelineData';

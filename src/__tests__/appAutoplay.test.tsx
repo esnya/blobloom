@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import React from 'react';
-import { render, waitFor, fireEvent } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import { App } from '../client/App';
 
 const commits = [
@@ -8,10 +8,13 @@ const commits = [
   { id: 'o', message: 'old', timestamp: 1 },
 ];
 
-describe('App API calls', () => {
+describe('App autoplay', () => {
   const originalFetch = global.fetch;
+  const originalRaf = global.requestAnimationFrame;
+  let now = 0;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.resetModules();
     document.body.innerHTML = '<div id="root"></div>';
     global.fetch = jest.fn((input: RequestInfo | URL) => {
@@ -31,37 +34,34 @@ describe('App API calls', () => {
               : '';
       return Promise.reject(new Error(`Unexpected url: ${url}`));
     }) as jest.Mock;
+    jest.spyOn(performance, 'now').mockImplementation(() => now);
+    global.requestAnimationFrame = (cb: FrameRequestCallback) => {
+      return setTimeout(() => {
+        now += 50;
+        cb(now);
+      }, 0) as unknown as number;
+    };
   });
 
   afterEach(() => {
+    jest.clearAllTimers();
+    (performance.now as jest.Mock).mockRestore();
     global.fetch = originalFetch;
+    global.requestAnimationFrame = originalRaf;
   });
 
-  it('fetches commits once and lines on timestamp change', async () => {
+  it('advances timestamp automatically', async () => {
     const { container } = render(<App />);
     await waitFor(() => expect(container.querySelector('#commit-log')).toBeTruthy());
-    const fetchMock = global.fetch as jest.Mock;
-    expect(
-      fetchMock.mock.calls.filter(
-        ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
-      ),
-    ).toHaveLength(1);
-    expect(
-      fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.includes('/lines')),
-    ).toHaveLength(1);
 
     const input = container.querySelector('input[type="range"]') as HTMLInputElement;
-    fireEvent.change(input, { target: { value: '1500' } });
+    const initial = Number(input.value);
 
-    await waitFor(() =>
-      expect(
-        fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.includes('/lines')).length,
-      ).toBeGreaterThanOrEqual(2),
-    );
-    expect(
-      fetchMock.mock.calls.filter(
-        ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
-      ),
-    ).toHaveLength(1);
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => expect(Number(input.value)).toBeGreaterThan(initial));
   });
 });
+

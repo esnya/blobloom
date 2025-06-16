@@ -17,6 +17,14 @@ describe('App duration control', () => {
   beforeEach(() => {
     jest.resetModules();
     document.body.innerHTML = '<div id="root"></div>';
+    global.WebSocket = jest.fn(() => ({
+      send: jest.fn(),
+      close: jest.fn(),
+      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+        if (ev === 'open') cb(new MessageEvent('open'));
+        if (ev === 'message') cb(new MessageEvent('message', { data: JSON.stringify({ counts: [{ file: 'a', lines: 1 }] }) }));
+      },
+    })) as unknown as typeof WebSocket;
     (createPlayer as jest.Mock).mockReturnValue({
       stop: jest.fn(),
       pause: jest.fn(),
@@ -47,6 +55,7 @@ describe('App duration control', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+    delete (global as unknown as { WebSocket?: unknown }).WebSocket;
     jest.clearAllMocks();
   });
 

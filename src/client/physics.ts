@@ -163,21 +163,29 @@ export class Engine {
       if (body.radius !== undefined) {
         if (body.position.x - body.radius < 0) {
           body.position.x = body.radius;
+          const vy = body.velocity.y;
           body.velocity.x *= -body.restitution;
           body.velocity.y *= 1 - body.friction;
+          body.angularVelocity -= (body.velocity.y - vy) / body.radius;
         } else if (body.position.x + body.radius > width) {
           body.position.x = width - body.radius;
+          const vy = body.velocity.y;
           body.velocity.x *= -body.restitution;
           body.velocity.y *= 1 - body.friction;
+          body.angularVelocity += (body.velocity.y - vy) / body.radius;
         }
         if (body.position.y - body.radius < top) {
           body.position.y = top + body.radius;
+          const vx = body.velocity.x;
           body.velocity.y *= -body.restitution;
           body.velocity.x *= 1 - body.friction;
+          body.angularVelocity += (body.velocity.x - vx) / body.radius;
         } else if (body.position.y + body.radius > height) {
           body.position.y = height - body.radius;
+          const vx = body.velocity.x;
           body.velocity.y *= -body.restitution;
           body.velocity.x *= 1 - body.friction;
+          body.angularVelocity -= (body.velocity.x - vx) / body.radius;
         }
       }
 

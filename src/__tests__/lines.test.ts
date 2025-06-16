@@ -1,10 +1,6 @@
 /** @jest-environment jsdom */
 import { fetchLineCounts } from '../client/api';
-import {
-  renderFileSimulation,
-  createFileSimulation,
-  MAX_EFFECT_CHARS,
-} from '../client/fileSimulation';
+import { createFileSimulation, MAX_EFFECT_CHARS } from '../client/fileSimulation';
 import { computeScale } from '../client/scale';
 import { act } from '@testing-library/react';
 import type { LineCount } from '../client/types';
@@ -57,14 +53,18 @@ describe('lines module', () => {
       callbacks.push(cb);
       return 1;
     };
-    let stop!: () => void;
+    let sim!: ReturnType<typeof createFileSimulation>;
     await act(() => {
-      stop = renderFileSimulation(div, data, { raf, now: () => 0 });
+      sim = createFileSimulation(div, { raf, now: () => 0 });
+      return Promise.resolve();
+    });
+    await act(() => {
+      sim.update(data);
       return Promise.resolve();
     });
     callbacks[0]?.(0);
     expect(div.querySelectorAll('.file-circle')).toHaveLength(2);
-    stop();
+    sim.destroy();
   });
 
   it('updates existing simulation when called again', async () => {
@@ -85,27 +85,25 @@ describe('lines module', () => {
       callbacks.push(cb);
       return 1;
     };
-    let stop!: () => void;
+    let sim!: ReturnType<typeof createFileSimulation>;
     await act(() => {
-      stop = renderFileSimulation(div, [{ file: 'a', lines: 1, added: 0, removed: 0 }], {
-        raf,
-        now: () => 0,
-      });
+      sim = createFileSimulation(div, { raf, now: () => 0 });
+      return Promise.resolve();
+    });
+    await act(() => {
+      sim.update([{ file: 'a', lines: 1, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     callbacks[0]?.(0);
     const first = div.querySelector('.file-circle');
     await act(() => {
-      renderFileSimulation(div, [{ file: 'a', lines: 2, added: 0, removed: 0 }], {
-        raf,
-        now: () => 0,
-      });
+      sim.update([{ file: 'a', lines: 2, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     callbacks[1]?.(0);
     const second = div.querySelector('.file-circle');
     expect(first).toBe(second);
-    stop();
+    sim.destroy();
   });
 
   it('reuses elements with same file name', async () => {

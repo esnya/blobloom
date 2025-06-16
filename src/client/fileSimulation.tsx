@@ -96,25 +96,3 @@ export const createFileSimulation = (
   return { update, pause, resume, resize, destroy };
 };
 
-export const renderFileSimulation = (
-  container: HTMLElement,
-  data: LineCount[],
-  opts: {
-    raf?: (cb: FrameRequestCallback) => number;
-    now?: () => number;
-    linear?: boolean;
-  } = {},
-): (() => void) => {
-  const key = Symbol.for('blobloom.renderFileSimulation');
-  let sim = (container as unknown as Record<symbol, ReturnType<typeof createFileSimulation> | undefined>)[key];
-  if (!sim) {
-    container.innerHTML = '';
-    sim = createFileSimulation(container, opts);
-    (container as unknown as Record<symbol, ReturnType<typeof createFileSimulation>>)[key] = sim;
-  }
-  sim.update(data);
-  return () => {
-    sim?.destroy();
-    delete (container as unknown as Record<symbol, unknown>)[key];
-  };
-};

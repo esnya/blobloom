@@ -13,6 +13,11 @@
 - Run `npm audit` and address reported vulnerabilities.
 - Investigate any `deprecated` warnings from package installs.
 - Make these checks part of the regular workflow and account for them when updating CI.
-* TODO: add more hook tests and restore coverage threshold to 80.
 * Use React refs only when absolutely necessary and preferably within custom hooks.
   Override the ESLint ref restriction locally in such files or lines.
+
+## TODO
+- Add more hook tests and restore coverage threshold to 80.
+- Verify character effect rendering once React flushing is reliable (`src/__tests__/lines.test.ts`).
+- Move FileCircle refs into custom hooks; restrict `no-restricted-syntax` overrides to necessary lines.
+- Remove or replace `src/renameDemo.ts` if no longer needed.

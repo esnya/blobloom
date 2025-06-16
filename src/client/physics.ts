@@ -191,9 +191,11 @@ export class Engine {
         if (b.isStatic || b.radius === undefined) continue;
         const dx = b.position.x - a.position.x;
         const dy = b.position.y - a.position.y;
-        const dist = Math.hypot(dx, dy);
-        const overlap = a.radius + b.radius - dist;
-        if (overlap <= 0) continue;
+        const radiusSum = a.radius + b.radius;
+        const distSq = dx * dx + dy * dy;
+        if (distSq >= radiusSum * radiusSum) continue;
+        const dist = Math.sqrt(distSq);
+        const overlap = radiusSum - dist;
         const nx = dx / dist;
         const ny = dy / dist;
         const total = a.mass + b.mass;

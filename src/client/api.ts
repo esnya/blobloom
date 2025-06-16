@@ -15,8 +15,15 @@ export const fetchLineCounts = async (
   baseUrl = '',
   parent?: string,
 ): Promise<LineCountsResult> => {
-  const protocol = baseUrl.startsWith('https') ? 'wss' : 'ws';
-  const origin = baseUrl.replace(/^https?:\/\//, '');
+  const secure = baseUrl
+    ? baseUrl.startsWith('https')
+    : typeof window !== 'undefined' && window.location.protocol === 'https:';
+  const protocol = secure ? 'wss' : 'ws';
+  const origin = baseUrl
+    ? baseUrl.replace(/^https?:\/\//, '')
+    : typeof window !== 'undefined'
+      ? window.location.host
+      : '';
   const url = `${protocol}://${origin}/ws/lines`;
   return new Promise<LineCountsResult>((resolve, reject) => {
     const socket = new WebSocket(url);

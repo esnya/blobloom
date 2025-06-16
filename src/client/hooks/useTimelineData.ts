@@ -28,7 +28,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     const commit = commits.find((c) => c.timestamp * 1000 <= ts);
     if (!commit) return;
     let ignore = false;
-    void fetchLineCounts(commit.id, baseUrl).then((counts) => {
+    void fetchLineCounts(commit.id, baseUrl).then(({ counts }) => {
       if (!ignore) setLineCounts(counts);
     });
     return () => {

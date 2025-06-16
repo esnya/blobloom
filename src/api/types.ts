@@ -10,4 +10,5 @@ export interface CommitsResponse {
 
 export interface LineCountsResponse {
   counts: LineCount[];
+  renames?: Record<string, string> | undefined;
 }

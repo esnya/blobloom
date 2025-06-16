@@ -20,7 +20,9 @@ describe('lines module', () => {
     global.fetch = jest.fn().mockResolvedValue({
       json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }),
     });
-    await expect(fetchLineCounts('abc')).resolves.toEqual([{ file: 'a', lines: 1 }]);
+    await expect(fetchLineCounts('abc')).resolves.toEqual({
+      counts: [{ file: 'a', lines: 1 }],
+    });
     expect(global.fetch).toHaveBeenCalledWith('/api/commits/abc/lines');
   });
 

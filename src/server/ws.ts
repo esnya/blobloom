@@ -24,8 +24,6 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
       wss.handleUpgrade(req, socket, head, (ws) => {
         wss.emit('connection', ws, req);
       });
-    } else {
-      socket.destroy();
     }
   });
 

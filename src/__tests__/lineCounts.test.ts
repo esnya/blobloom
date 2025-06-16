@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import * as git from 'isomorphic-git';
-import { getLineCounts, getRenameMap } from '../server/line-counts';
+import { getLineCounts, getRenameMap } from '../server/line-counts.js';
 import { defaultIgnore } from '../server/ignore-defaults';
 
 const author = { name: 'a', email: 'a@example.com' };

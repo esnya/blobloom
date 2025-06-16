@@ -7,7 +7,7 @@ import { CharEffects } from './CharEffects';
 import { useCharEffects } from '../hooks/useCharEffects';
 import { useRadiusAnimation } from '../hooks/useRadiusAnimation';
 import { usePrevious } from '../hooks/usePrevious';
-import { MAX_EFFECT_CHARS } from '../fileSimulation';
+export const MAX_EFFECT_CHARS = 100;
 
 interface FileCircleProps {
   file: string;

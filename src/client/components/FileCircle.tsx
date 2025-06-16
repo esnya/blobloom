@@ -77,7 +77,7 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
   const forceUpdate = useCallback(() => setTick((t) => t + 1), []);
   const { body, setRadius: setBodyRadius } = useBody({
     radius,
-    restitution: 0.9,
+    restitution: 0.5,
     frictionAir: 0.001,
     onUpdate: forceUpdate,
   });

@@ -1,9 +1,10 @@
 /** @jest-environment jsdom */
 import { renderHook } from '@testing-library/react';
-import { usePlayer } from '../../client/hooks/usePlayer';
-import { createPlayer } from '../../client/player';
+import * as playerHook from '../../client/hooks/usePlayer';
 
-jest.mock('../../client/player');
+const { usePlayer } = playerHook;
+
+let createPlayer: jest.SpiedFunction<typeof playerHook.createPlayer>;
 
 describe('usePlayer options', () => {
   const mockPlayer = {
@@ -15,15 +16,17 @@ describe('usePlayer options', () => {
   };
 
   beforeEach(() => {
-    (createPlayer as jest.Mock).mockImplementation((opts: Record<string, unknown>) => {
-      const cb = opts.onPlayStateChange as ((p: boolean) => void) | undefined;
-      cb?.(true);
-      return mockPlayer;
-    });
+    createPlayer = jest
+      .spyOn(playerHook, 'createPlayer')
+      .mockImplementation((opts: playerHook.PlayerOptions) => {
+        const cb = opts.onPlayStateChange as ((p: boolean) => void) | undefined;
+        cb?.(true);
+        return mockPlayer;
+      });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('forwards raf and now and play state callback', () => {
@@ -44,7 +47,7 @@ describe('usePlayer options', () => {
       }),
     );
 
-    const call = (createPlayer as jest.Mock).mock.calls[0] as [
+    const call = createPlayer.mock.calls[0] as [
       {
         raf?: unknown;
         now?: unknown;

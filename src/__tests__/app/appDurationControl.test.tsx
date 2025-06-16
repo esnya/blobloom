@@ -2,10 +2,11 @@
 import React from 'react';
 import { render, waitFor, fireEvent } from '@testing-library/react';
 import { App } from '../../client/App';
-import { createPlayer } from '../../client/player';
+import * as playerHook from '../../client/hooks/usePlayer';
+const { createPlayer } = playerHook;
 import { setupAppTest } from '../helpers/app';
 
-jest.mock('../../client/player');
+let createPlayerSpy: jest.SpiedFunction<typeof playerHook.createPlayer>;
 
 const commits = [
   { id: 'n', message: 'new', timestamp: 2 },
@@ -18,18 +19,20 @@ describe('App duration control', () => {
   beforeEach(() => {
     jest.resetModules();
     restore = setupAppTest({ commits });
-    (createPlayer as jest.Mock).mockReturnValue({
-      stop: jest.fn(),
-      pause: jest.fn(),
-      resume: jest.fn(),
-      togglePlay: jest.fn(),
-      isPlaying: jest.fn(() => false),
-    });
+    createPlayerSpy = jest
+      .spyOn(playerHook, 'createPlayer')
+      .mockReturnValue({
+        stop: jest.fn(),
+        pause: jest.fn(),
+        resume: jest.fn(),
+        togglePlay: jest.fn(),
+        isPlaying: jest.fn(() => false),
+      });
   });
 
   afterEach(() => {
     restore();
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('recreates player with new duration', async () => {
@@ -42,8 +45,7 @@ describe('App duration control', () => {
     fireEvent.change(input, { target: { value: '10' } });
 
     await waitFor(() => {
-      const mock = createPlayer as jest.MockedFunction<typeof createPlayer>;
-      const last = mock.mock.calls[mock.mock.calls.length - 1] as unknown as [
+      const last = createPlayerSpy.mock.calls[createPlayerSpy.mock.calls.length - 1] as unknown as [
         Record<string, unknown>,
       ];
       expect(last[0]).toEqual(expect.objectContaining({ duration: 10 }));

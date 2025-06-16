@@ -1,4 +1,4 @@
-import { createPlayer } from '../../client/player';
+import { createPlayer } from '../../client/hooks/usePlayer';
 
 describe('createPlayer', () => {
   it('toggles playback and calls raf', () => {

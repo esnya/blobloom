@@ -1,9 +1,47 @@
 /* eslint-disable no-restricted-syntax */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { readCommits } from '../commitsResource';
 import { buildWsUrl } from '../ws';
-import type { LineCount } from '../types';
+import { fetchCommits } from '../api';
+import type { Commit, LineCount } from '../types';
 import type { LineCountsResponse, ApiError } from '../../api/types';
+
+const cache = new Map<string, () => Commit[]>();
+const resourceKey = (baseUrl?: string) => baseUrl ?? '';
+
+const createResource = <T,>(fn: () => Promise<T>): (() => T) => {
+  let status: 'pending' | 'success' | 'error' = 'pending';
+  let result: T;
+  let error: unknown;
+  const suspender = fn().then(
+    (r) => {
+      status = 'success';
+      result = r;
+    },
+    (e) => {
+      status = 'error';
+      error = e;
+    },
+  );
+  return () => {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error
+    if (status === 'pending') throw suspender;
+    if (status === 'error') {
+      const err = error instanceof Error ? error : new Error(String(error));
+      throw err;
+    }
+    return result;
+  };
+};
+
+const readCommits = (baseUrl?: string): Commit[] => {
+  const k = resourceKey(baseUrl);
+  let resource = cache.get(k);
+  if (!resource) {
+    resource = createResource(() => fetchCommits(baseUrl));
+    cache.set(k, resource);
+  }
+  return resource();
+};
 
 
 interface TimelineDataOptions {

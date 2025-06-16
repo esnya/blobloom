@@ -1,9 +1,10 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { usePlayer } from '../../client/hooks/usePlayer';
-import { createPlayer } from '../../client/player';
+import * as playerHook from '../../client/hooks/usePlayer';
 
-jest.mock('../../client/player');
+const { usePlayer } = playerHook;
+
+let createPlayer: jest.SpiedFunction<typeof playerHook.createPlayer>;
 
 describe('usePlayer', () => {
   const mockPlayer = {
@@ -15,11 +16,13 @@ describe('usePlayer', () => {
   };
 
   beforeEach(() => {
-    (createPlayer as jest.Mock).mockReturnValue(mockPlayer);
+    createPlayer = jest
+      .spyOn(playerHook, 'createPlayer')
+      .mockReturnValue(mockPlayer);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('creates player and exposes controls', () => {

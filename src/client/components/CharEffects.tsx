@@ -1,7 +1,7 @@
-// eslint-disable-next-line no-restricted-syntax
-import React, { useRef } from 'react';
+import React from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import type { CharEffects } from '../hooks/useCharEffects';
+import { useCharEffectTimers } from '../hooks/useCharEffectTimers';
 
 export interface CharEffectsProps {
   effects: CharEffects;
@@ -9,53 +9,30 @@ export interface CharEffectsProps {
 
 export function CharEffects({ effects }: CharEffectsProps): React.JSX.Element {
   const { chars, removeChar } = effects;
-  // eslint-disable-next-line no-restricted-syntax
-  const refs = useRef(new Map<string, React.RefObject<HTMLSpanElement>>());
-  // eslint-disable-next-line no-restricted-syntax
-  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const { spawnTimeout, getNodeRef, clear } = useCharEffectTimers();
 
   React.useEffect(() => {
-    const map = timers.current;
     chars.forEach((c) => {
-      if (!map.has(c.id)) {
-        map.set(
-          c.id,
-          setTimeout(() => {
-            removeChar(c.id);
-          }, Math.round((2 + c.delay) * 1000)),
-        );
-      }
+      spawnTimeout(c.id, c.delay, () => {
+        removeChar(c.id);
+      });
     });
-  }, [chars, removeChar]);
-
-  React.useEffect(
-    () => () => {
-      timers.current.forEach((t) => clearTimeout(t));
-      timers.current.clear();
-    },
-    [],
-  );
+  }, [chars, removeChar, spawnTimeout]);
   return (
     <div className="chars">
       <TransitionGroup component={null}>
         {chars.map((c) => {
-          let nodeRef = refs.current.get(c.id);
-          if (!nodeRef) {
-            // eslint-disable-next-line no-restricted-syntax
-            nodeRef = React.createRef<HTMLSpanElement>() as React.RefObject<HTMLSpanElement>;
-            refs.current.set(c.id, nodeRef);
-          }
+          const nodeRef = getNodeRef(c.id);
           return (
             <CSSTransition
               key={c.id}
               nodeRef={nodeRef}
               timeout={Math.round((2 + c.delay) * 1000)}
-            onExited={() => {
-              c.onEnd();
-              refs.current.delete(c.id);
-              timers.current.delete(c.id);
-            }}
-          >
+              onExited={() => {
+                c.onEnd();
+                clear(c.id);
+              }}
+            >
               <span
                 // eslint-disable-next-line no-restricted-syntax
                 ref={nodeRef}

@@ -110,6 +110,7 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
         style={{
           position: 'absolute',
           '--radius': `${currentRadius}px`,
+          '--rotate': `${body.angle}rad`,
           width: 'calc(var(--radius) * 2)',
           height: 'calc(var(--radius) * 2)',
           borderRadius: '50%',

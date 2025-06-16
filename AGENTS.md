@@ -3,6 +3,10 @@
 * Playwright is included as a development dependency.
 * Run `npx playwright install` locally when dependencies change.
 
+- When fixing a bug:
+  1. Write a failing test that reproduces the issue and confirm it fails.
+  2. Implement the fix and ensure the test passes.
+
 - Always run `npm run lint`, `npm test`, and `npm run build` before committing changes.
 - The GitHub Actions workflow runs these commands. Update it when scripts change.
 * Jest coverage threshold set to 80%.

@@ -3,9 +3,8 @@ import { z } from 'zod';
 import { appSettings } from './app-settings';
 import * as git from 'isomorphic-git';
 import fs from 'fs';
-import path from 'path';
 import { getLineCounts, getRenameMap } from './line-counts';
-import { defaultIgnore } from './ignore-defaults';
+import { resolveRepoDir, ignorePatterns } from './repo-config';
 import type {
   ApiError,
   CommitsResponse,
@@ -52,20 +51,6 @@ const resolveBranch = async (
 };
 
 export const apiMiddleware = express.Router();
-
-const repoDir = (app: express.Application): string =>
-  path.resolve((app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd());
-
-const resolveRepoDir = (app: express.Application): string => {
-  const dir = repoDir(app);
-  if (!fs.existsSync(path.join(dir, '.git'))) {
-    throw new Error(`${dir} is not a git repository.`);
-  }
-  return dir;
-};
-
-const ignorePatterns = (app: express.Application): string[] =>
-  (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [...defaultIgnore];
 
 apiMiddleware.get(
   '/api/commits',

@@ -3,12 +3,10 @@ import type WebSocket from 'ws';
 import type { Server, IncomingMessage } from 'http';
 import type { Socket } from 'node:net';
 import express from 'express';
-import path from 'path';
 import fs from 'fs';
 import * as git from 'isomorphic-git';
-import { appSettings } from './app-settings';
-import { defaultIgnore } from './ignore-defaults';
 import { getLineCounts, getRenameMap } from './line-counts';
+import { repoDir, ignorePatterns } from './repo-config';
 
 export interface LineCountsRequest {
   id: string;
@@ -41,11 +39,8 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
       next = null;
       processing = true;
       try {
-        const dir = path.resolve(
-          (app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd(),
-        );
-        const ignore =
-          (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [...defaultIgnore];
+        const dir = repoDir(app);
+        const ignore = ignorePatterns(app);
 
         await git.resolveRef({ fs, dir, ref: id });
         const parentId = previous ?? parent;

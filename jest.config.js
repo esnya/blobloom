@@ -7,7 +7,7 @@ export default {
   },
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^../server/(.*)$': '<rootDir>/src/server/$1.ts',
+    '^(?:\\.{2}/)+server/(.*)$': '<rootDir>/src/server/$1.ts',
   },
   testMatch: ['**/__tests__/**/*.test.ts?(x)'],
   testTimeout: 10000,

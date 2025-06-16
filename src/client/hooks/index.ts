@@ -129,7 +129,6 @@ export { useGlowAnimation } from './useGlowAnimation';
 export { useGlowControl } from './useGlowControl';
 export { useCharEffects } from './useCharEffects';
 export { usePageVisibility } from './usePageVisibility';
-export { usePhysics } from './usePhysics';
 export { PhysicsProvider, useEngine } from './useEngine';
 export { useBody } from './useBody';
 export { useTimelineData } from './useTimelineData';

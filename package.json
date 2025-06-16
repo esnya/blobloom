@@ -12,8 +12,7 @@
     "dev": "vite",
     "test": "jest",
     "test:playwright": "playwright test",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "rename-demo": "tsx legacy/rename-demo.ts"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "commander": "^14.0.0",

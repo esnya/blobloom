@@ -2,18 +2,7 @@ import express from 'express';
 import { Command } from 'commander';
 import { apiMiddleware } from './apiMiddleware';
 import { appSettings } from './appSettings';
-
-const defaultIgnore = [
-  '**/*.lock',
-  '**/*lock.json',
-  'pnpm-lock.yaml',
-  'yarn.lock',
-  'package-lock.json',
-  'Cargo.lock',
-  'go.sum',
-  'Pipfile.lock',
-  'composer.lock',
-];
+import { defaultIgnore } from './ignoreDefaults';
 
 const collect = (val: string, acc: string[]): string[] => acc.concat(val.split(','));
 

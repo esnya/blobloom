@@ -65,4 +65,24 @@ describe('server e2e', () => {
 
     server.close();
   });
+
+  it('ignores lock files by default', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
+    await git.init({ fs, dir });
+    await fs.promises.writeFile(path.join(dir, 'package-lock.json'), '0');
+    await git.add({ fs, dir, filepath: 'package-lock.json' });
+    await git.commit({ fs, dir, author, message: 'init' });
+
+    const app = express();
+    app.use(await createApiMiddleware({ repo: dir, branch: 'HEAD' }));
+    const server = app.listen(0);
+    const { port } = server.address() as AddressInfo;
+
+    const json = makeJsonFetcher(port);
+    const counts = await fetchLineCounts(json);
+
+    expect(counts.find((c) => c.file === 'package-lock.json')).toBeUndefined();
+
+    server.close();
+  });
 });

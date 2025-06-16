@@ -9,6 +9,61 @@ import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { usePrevious } from '../hooks/usePrevious';
 export const MAX_EFFECT_CHARS = 100;
 
+const useInitialGlow = (startGlow: (cls: string) => void) => {
+  useEffect(() => {
+    startGlow('glow-new');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+};
+
+const useLineChangeEffects = (
+  lines: number,
+  prevLines: number,
+  charsLength: number,
+  currentRadius: number,
+  startGlow: (cls: string) => void,
+  spawnChar: (cls: string, offset: { x: number; y: number }, onEnd: () => void) => void,
+) => {
+  useEffect(() => {
+    if (prevLines === lines) return;
+    if (lines > prevLines) startGlow('glow-grow');
+    else if (lines < prevLines) startGlow('glow-shrink');
+    const diff = lines - prevLines;
+    const available = Math.max(0, MAX_EFFECT_CHARS - charsLength);
+    const spawn = Math.min(Math.abs(diff), available);
+    for (let i = 0; i < spawn; i += 1) {
+      const angle = Math.random() * 2 * Math.PI;
+      const r = Math.sqrt(Math.random()) * currentRadius * 2.5;
+      const offset = { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
+      spawnChar(diff > 0 ? 'add-char' : 'remove-char', offset, () => {});
+    }
+  }, [lines, prevLines, startGlow, spawnChar, charsLength, currentRadius]);
+};
+
+const useAnimateRadius = (
+  radius: number,
+  currentRadius: number,
+  animateRadius: (n: number) => void,
+) => {
+  useEffect(
+    () => {
+      if (radius !== currentRadius) animateRadius(radius);
+      // currentRadius intentionally omitted from deps to avoid update loops
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [radius, animateRadius],
+  );
+};
+
+const useSyncBodyRadius = (
+  currentRadius: number,
+  setBodyRadius: (r: number) => void,
+) => {
+  useEffect(() => {
+    setBodyRadius(currentRadius);
+  }, [currentRadius, setBodyRadius]);
+};
+
 interface FileCircleProps {
   file: string;
   lines: number;
@@ -33,36 +88,17 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
   const color = useMemo(() => colorForFile(file), []);
   const prevLines = usePrevious(lines);
 
-  useEffect(() => {
-    startGlow('glow-new');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (prevLines === lines) return;
-    if (lines > prevLines) startGlow('glow-grow');
-    else if (lines < prevLines) startGlow('glow-shrink');
-    const diff = lines - prevLines;
-    const active = chars.length;
-    const available = Math.max(0, MAX_EFFECT_CHARS - active);
-    const spawn = Math.min(Math.abs(diff), available);
-    for (let i = 0; i < spawn; i += 1) {
-      const angle = Math.random() * 2 * Math.PI;
-      const r = Math.sqrt(Math.random()) * currentRadius * 2.5;
-      const offset = { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
-      spawnChar(diff > 0 ? 'add-char' : 'remove-char', offset, () => {});
-    }
-  }, [lines, prevLines, startGlow, spawnChar, chars.length, currentRadius]);
-
-  useEffect(() => {
-    if (radius !== currentRadius) animateRadius(radius);
-    // currentRadius intentionally omitted from deps to avoid update loops
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [radius, animateRadius]);
-
-  useEffect(() => {
-    setBodyRadius(currentRadius);
-  }, [currentRadius, setBodyRadius]);
+  useInitialGlow(startGlow);
+  useLineChangeEffects(
+    lines,
+    prevLines,
+    chars.length,
+    currentRadius,
+    startGlow,
+    spawnChar,
+  );
+  useAnimateRadius(radius, currentRadius, animateRadius);
+  useSyncBodyRadius(currentRadius, setBodyRadius);
 
   const dir = file.split('/');
   const name = dir.pop() ?? '';

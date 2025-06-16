@@ -1,7 +1,7 @@
 import type { LineCount } from './types';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { createPortal, flushSync } from 'react-dom';
+import { flushSync } from 'react-dom';
 import { FileCircle, type FileCircleHandle } from './components/FileCircle';
 import { PhysicsProvider } from './hooks/useEngine';
 import * as Physics from './physics';
@@ -14,7 +14,6 @@ export const EFFECT_DROP_THRESHOLD = 50;
 export const MAX_EFFECT_CHARS = 100;
 
 interface BodyInfo {
-  el: HTMLElement;
   body?: Physics.Body;
   r: number;
   handle?: FileCircleHandle;
@@ -46,26 +45,23 @@ export const createFileSimulation = (
   let effectsEnabled = false;
   let activeCharCount = 0;
 
-  const renderPortals = (): void => {
-    const portals = Object.entries(bodies).map(([name, info]) =>
-      createPortal(
-        <FileCircle
-          key={name}
-          file={name}
-          lines={prevCounts[name] ?? 0}
-          initialRadius={info.r}
-          onReady={(handle) => {
-            info.body = handle.body;
-            info.handle = handle;
-          }}
-        />,
-        info.el,
-      ),
-    );
+  const renderCircles = (): void => {
+    const circles = Object.entries(bodies).map(([name, info]) => (
+      <FileCircle
+        key={name}
+        file={name}
+        lines={prevCounts[name] ?? 0}
+        initialRadius={info.r}
+        onReady={(handle) => {
+          info.body = handle.body;
+          info.handle = handle;
+        }}
+      />
+    ));
     flushSync(() =>
       root.render(
         <PhysicsProvider bounds={{ width, height }} engine={engine}>
-          <>{portals}</>
+          <>{circles}</>
         </PhysicsProvider>,
       ),
     );
@@ -152,8 +148,7 @@ export const createFileSimulation = (
     delete displayCounts[name];
     setTimeout(() => {
       delete bodies[name];
-      container.removeChild(info.el);
-      renderPortals();
+      renderCircles();
     }, CHAR_ANIMATION_MS + 100);
   };
 
@@ -172,7 +167,7 @@ export const createFileSimulation = (
         explodeAndRemove(name, info);
       }
     }
-    const newFiles: Array<{ name: string; el: HTMLElement; added: number; removed: number }> = [];
+    const newFiles: Array<{ name: string; added: number; removed: number }> = [];
     for (const file of data) {
       const lines = Number.isFinite(file.lines) ? file.lines : 0;
       const r = (Math.pow(lines, exp) * scale) / 2;
@@ -196,15 +191,13 @@ export const createFileSimulation = (
           else if (removed > added) existing.handle?.showGlow('glow-shrink');
         }
       } else {
-        const el = document.createElement('div');
-        bodies[file.file] = { el, r };
+        bodies[file.file] = { r };
         displayCounts[file.file] = lines;
-        newFiles.push({ name: file.file, el, added, removed });
+        newFiles.push({ name: file.file, added, removed });
       }
     }
     if (newFiles.length) {
-      renderPortals();
-      for (const { el } of newFiles) container.appendChild(el);
+      renderCircles();
       for (const { name, added, removed } of newFiles) {
         const info = bodies[name]!;
         spawnChars(info, name, added, removed);
@@ -220,10 +213,10 @@ export const createFileSimulation = (
     if (!running) return;
     Engine.update(engine, time - last);
     last = time;
-    for (const { body, el, r } of Object.values(bodies)) {
-      if (!body) continue;
+    for (const { body, handle, r } of Object.values(bodies)) {
+      if (!body || !handle) continue;
       const { x, y } = body.position;
-      el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
+      handle.el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
       if (x < -r || x > width + r || y > height + r || y < -height - r) {
         Body.setVelocity(body, { x: 0, y: 0 });
         Body.setPosition(body, {

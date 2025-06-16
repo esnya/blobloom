@@ -18,7 +18,7 @@ describe('client index', () => {
         });
       }
       if (typeof input === 'string' && input.startsWith('/api/lines')) {
-        return Promise.resolve({ json: () => Promise.resolve({ counts: [] }) });
+        return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
       }
       const url =
         typeof input === 'string'

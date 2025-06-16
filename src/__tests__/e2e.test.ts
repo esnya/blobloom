@@ -6,13 +6,10 @@ import type { AddressInfo } from 'net';
 import express from 'express';
 import { apiMiddleware } from '../apiMiddleware';
 import { appSettings } from '../appSettings';
-import { fetchCommits, fetchLineCounts, JsonFetcher } from '../client/api';
+import { fetchCommits, fetchLineCounts } from '../client/api';
 
 const author = { name: 'a', email: 'a@example.com' };
 
-const makeJsonFetcher = (port: number): JsonFetcher => {
-  return (input: string) => fetch(`http://localhost:${port}${input}`).then((r) => r.json());
-};
 
 describe('server e2e', () => {
   it('serves commits and line counts', async () => {
@@ -29,9 +26,9 @@ describe('server e2e', () => {
     const server = app.listen(0);
     const { port } = server.address() as AddressInfo;
 
-    const json = makeJsonFetcher(port);
-    const commits = await fetchCommits(json);
-    const counts = await fetchLineCounts(json);
+    const base = `http://localhost:${port}`;
+    const commits = await fetchCommits(base);
+    const counts = await fetchLineCounts(undefined, base);
 
     expect(commits[0]!.commit.message).toBe('init\n');
     expect(counts[0]?.file).toBe('a.txt');
@@ -57,12 +54,12 @@ describe('server e2e', () => {
     const server = app.listen(0);
     const { port } = server.address() as AddressInfo;
 
-    const json = makeJsonFetcher(port);
-    const commitsHead = await fetchCommits(json);
+    const base = `http://localhost:${port}`;
+    const commitsHead = await fetchCommits(base);
     expect(commitsHead[0]!.commit.message).toBe('feat: update\n');
 
     app.set(appSettings.branch.description!, 'feature');
-    const commitsFeature = await fetchCommits(json);
+    const commitsFeature = await fetchCommits(base);
     expect(commitsFeature[0]!.commit.message).toBe('init\n');
 
     server.close();
@@ -82,10 +79,8 @@ describe('server e2e', () => {
     const server = app.listen(0);
     const { port } = server.address() as AddressInfo;
 
-    const json = makeJsonFetcher(port);
-    const counts = await fetchLineCounts(json);
-
-    expect(counts.find((c) => c.file === 'package-lock.json')).toBeUndefined();
+    const base = `http://localhost:${port}`;
+    await expect(fetchLineCounts(undefined, base)).rejects.toThrow('No line counts');
 
     server.close();
   });

@@ -48,3 +48,7 @@ npm run build
 npm run test:playwright
 ```
 Playwright tests live in the `playwright` directory.
+
+## Attribution
+
+All code in this project was written by Codex.

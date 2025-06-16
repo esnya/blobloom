@@ -16,7 +16,8 @@ export const computeScale = (
   const totalArea = data.reduce(
     (sum, f) => {
       const lines = Number.isFinite(f.lines) ? f.lines : 0;
-      return sum + Math.PI * ((Math.pow(lines, exp) * base) / 2) ** 2;
+      const r = (Math.pow(lines, exp) * base) / 2;
+      return sum + 4 * r ** 2;
     },
     0,
   );

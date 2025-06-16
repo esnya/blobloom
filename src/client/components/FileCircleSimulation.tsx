@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { PhysicsProvider } from '../hooks/useEngine';
 import { PhysicsRunner } from '../hooks/useEngineRunner';
-import { useEngine } from '../hooks/useEngine';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
@@ -35,13 +34,6 @@ export interface FileCircleListProps {
 }
 
 export function FileCircleList({ data, bounds, linear }: FileCircleListProps): React.JSX.Element {
-  const engine = useEngine();
-
-  useEffect(() => {
-    engine.bounds.width = bounds.width;
-    engine.bounds.height = bounds.height;
-    engine.bounds.top = -bounds.height;
-  }, [engine, bounds.width, bounds.height]);
 
   const scale = useMemo(
     () =>

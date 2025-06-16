@@ -25,7 +25,7 @@ export const createFileSimulation = (
   let height = rect.height;
   const engine = Engine.create(width, height);
   engine.gravity.y = 1;
-  engine.gravity.scale = 0.001;
+  engine.gravity.scale = 0.002;
 
   const root = createRoot(container);
   let currentData: LineCount[] = [];

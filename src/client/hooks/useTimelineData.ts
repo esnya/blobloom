@@ -12,10 +12,13 @@ const useLineCountsQueue = (baseUrl?: string) => {
   const processed = useRef(0);
   const socketRef = useRef<WebSocket | null>(null);
   const queuedRef = useRef<string | null>(null);
+  const lastRequestRef = useRef<string | null>(null);
+  const reconnectRef = useRef<NodeJS.Timeout | null>(null);
+  const activeRef = useRef(true);
 
-  const sendQueued = useCallback(() => {
-    if (socketRef.current && socketRef.current.readyState === 1 && queuedRef.current) {
-      socketRef.current.send(queuedRef.current);
+  const sendCurrent = useCallback(() => {
+    if (socketRef.current && socketRef.current.readyState === 1 && lastRequestRef.current) {
+      socketRef.current.send(lastRequestRef.current);
       queuedRef.current = null;
     }
   }, []);
@@ -43,24 +46,28 @@ const useLineCountsQueue = (baseUrl?: string) => {
   }, []);
 
   const connect = useCallback(() => {
-    if (socketRef.current) return;
+    if (socketRef.current || !activeRef.current) return;
     const socket = new WebSocket(buildWsUrl('/ws/lines', baseUrl));
-    socket.addEventListener('open', sendQueued);
+    socket.addEventListener('open', sendCurrent);
     socket.addEventListener('message', handleMessage);
     socket.addEventListener('close', () => {
       socketRef.current = null;
+      if (activeRef.current) {
+        reconnectRef.current = setTimeout(connect, 1000);
+      }
     });
     socketRef.current = socket;
-  }, [baseUrl, handleMessage, sendQueued]);
+  }, [baseUrl, handleMessage, sendCurrent]);
 
   const update = useCallback(
     (id: string, parent?: string) => {
       token.current += 1;
       connect();
-      queuedRef.current = JSON.stringify({ id, parent, token: token.current });
-      sendQueued();
+      lastRequestRef.current = JSON.stringify({ id, parent, token: token.current });
+      queuedRef.current = lastRequestRef.current;
+      sendCurrent();
     },
-    [connect, sendQueued],
+    [connect, sendCurrent],
   );
 
   useEffect(() => {
@@ -68,11 +75,16 @@ const useLineCountsQueue = (baseUrl?: string) => {
     setLineCounts([]);
     token.current += 1;
     processed.current = token.current;
+    activeRef.current = false;
+    if (reconnectRef.current) clearTimeout(reconnectRef.current);
     socketRef.current?.close();
+    activeRef.current = true;
   }, [baseUrl]);
 
   useEffect(
     () => () => {
+      activeRef.current = false;
+      if (reconnectRef.current) clearTimeout(reconnectRef.current);
       socketRef.current?.close();
       token.current += 1;
       processed.current = token.current;

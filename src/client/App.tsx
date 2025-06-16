@@ -2,15 +2,28 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { CommitLog } from './components/CommitLog';
 import { SeekBar } from './components/SeekBar';
 import { FileCircleSimulation } from './components/FileCircleSimulation';
-import { useTimelineData } from './hooks';
+import { useTimelineData, usePlayer } from './hooks';
+
+const PLAY_DURATION = 30;
 
 function AppContent(): React.JSX.Element {
   const [timestamp, setTimestamp] = useState(0);
   const { commits, lineCounts, start, end } = useTimelineData({ timestamp });
 
+  const { resume } = usePlayer({
+    getSeek: () => timestamp,
+    setSeek: setTimestamp,
+    duration: PLAY_DURATION,
+    start,
+    end,
+  });
+
   useEffect(() => {
     setTimestamp(start);
-  }, [start]);
+    if (start && end) {
+      resume();
+    }
+  }, [start, end, resume]);
 
   return (
     <>

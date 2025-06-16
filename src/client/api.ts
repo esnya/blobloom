@@ -11,10 +11,12 @@ export const fetchCommits = async (baseUrl = ''): Promise<Commit[]> => {
 };
 
 export const fetchLineCounts = async (
-  timestamp: number,
+  commitId: string,
   baseUrl = '',
+  parent?: string,
 ): Promise<LineCount[]> => {
-  const response = await fetch(`${baseUrl}/api/lines?ts=${timestamp}`);
+  const query = parent ? `?parent=${parent}` : '';
+  const response = await fetch(`${baseUrl}/api/commits/${commitId}/lines${query}`);
   const result = (await response.json()) as LineCountsResponse | ApiError;
   if ('counts' in result && result.counts.length > 0) {
     return result.counts;

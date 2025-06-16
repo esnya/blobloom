@@ -16,19 +16,19 @@ describe('lines module', () => {
     global.fetch = originalFetch;
   });
 
-  it('fetches line counts with timestamp', async () => {
+  it('fetches line counts', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }),
     });
-    await expect(fetchLineCounts(100)).resolves.toEqual([{ file: 'a', lines: 1 }]);
-    expect(global.fetch).toHaveBeenCalledWith('/api/lines?ts=100');
+    await expect(fetchLineCounts('abc')).resolves.toEqual([{ file: 'a', lines: 1 }]);
+    expect(global.fetch).toHaveBeenCalledWith('/api/commits/abc/lines');
   });
 
   it('throws on empty counts', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       json: () => Promise.resolve({ counts: [] }),
     });
-    await expect(fetchLineCounts(100)).rejects.toThrow('No line counts');
+    await expect(fetchLineCounts('abc')).rejects.toThrow('No line counts');
   });
 
   it('renders circles', async () => {

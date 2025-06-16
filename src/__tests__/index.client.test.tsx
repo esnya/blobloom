@@ -7,18 +7,18 @@ describe('client index', () => {
   const originalFetch = global.fetch;
   beforeEach(() => {
     global.fetch = jest.fn((input: RequestInfo | URL) => {
+      if (typeof input === 'string' && input.startsWith('/api/commits/1/lines')) {
+        return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
+      }
       if (typeof input === 'string' && input.startsWith('/api/commits')) {
         return Promise.resolve({
           json: () =>
             Promise.resolve({
               commits: [
-                { message: 'msg', timestamp: 1 },
+                { id: '1', message: 'msg', timestamp: 1 },
               ],
             }),
         });
-      }
-      if (typeof input === 'string' && input.startsWith('/api/lines')) {
-        return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
       }
       const url =
         typeof input === 'string'

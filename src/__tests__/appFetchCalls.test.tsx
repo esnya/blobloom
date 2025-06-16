@@ -4,8 +4,8 @@ import { render, waitFor, fireEvent } from '@testing-library/react';
 import { App } from '../client/App';
 
 const commits = [
-  { message: 'new', timestamp: 2 },
-  { message: 'old', timestamp: 1 },
+  { id: 'n', message: 'new', timestamp: 2 },
+  { id: 'o', message: 'old', timestamp: 1 },
 ];
 
 describe('App API calls', () => {
@@ -16,10 +16,10 @@ describe('App API calls', () => {
     document.body.innerHTML = '<div id="root"></div>';
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       if (typeof input === 'string' && input.startsWith('/api/commits')) {
+        if (input.endsWith('/lines')) {
+          return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
+        }
         return Promise.resolve({ json: () => Promise.resolve({ commits }) });
-      }
-      if (typeof input === 'string' && input.startsWith('/api/lines')) {
-        return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
       }
       const url =
         typeof input === 'string'
@@ -42,10 +42,12 @@ describe('App API calls', () => {
     await waitFor(() => expect(container.querySelector('#commit-log')).toBeTruthy());
     const fetchMock = global.fetch as jest.Mock;
     expect(
-      fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/commits')),
+      fetchMock.mock.calls.filter(
+        ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
+      ),
     ).toHaveLength(1);
     expect(
-      fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/lines')),
+      fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.includes('/lines')),
     ).toHaveLength(1);
 
     const input = container.querySelector('input[type="range"]') as HTMLInputElement;
@@ -53,11 +55,13 @@ describe('App API calls', () => {
 
     await waitFor(() =>
       expect(
-        fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/lines')).length,
+        fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.includes('/lines')).length,
       ).toBe(2),
     );
     expect(
-      fetchMock.mock.calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/commits')),
+      fetchMock.mock.calls.filter(
+        ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
+      ),
     ).toHaveLength(1);
   });
 });

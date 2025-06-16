@@ -13,6 +13,7 @@ import type {
 } from '../api/types';
 
 const commitSchema = z.object({
+  id: z.string(),
   message: z.string(),
   timestamp: z.number(),
 });
@@ -30,7 +31,7 @@ const lineCountsResponseSchema = z.object({
   counts: z.array(lineCountSchema),
 });
 
-const linesQuerySchema = z.object({ ts: z.string() });
+const linesQuerySchema = z.object({ parent: z.string().optional() });
 
 const resolveBranch = async (
   dir: string,
@@ -74,6 +75,7 @@ apiMiddleware.get(
       );
       const gitCommits = await git.log({ fs, dir, ref: branch });
       const commits = gitCommits.map((c) => ({
+        id: c.oid,
         message: c.commit.message,
         timestamp: c.commit.committer.timestamp,
       }));
@@ -90,9 +92,9 @@ apiMiddleware.get(
 );
 
 apiMiddleware.get(
-  '/api/lines',
+  '/api/commits/:commitId/lines',
   async (
-    req: express.Request<Record<string, never>, LineCountsResponse | ApiError, undefined, { ts?: string }>,
+    req: express.Request<{ commitId: string }, LineCountsResponse | ApiError, undefined, { parent?: string }>,
     res: express.Response<LineCountsResponse | ApiError>,
   ) => {
     const app = req.app;
@@ -102,25 +104,15 @@ apiMiddleware.get(
       return;
     }
     try {
-      const branch = await resolveBranch(
-        dir,
-        app.get(appSettings.branch.description!) as string | undefined,
-      );
-      const query = linesQuerySchema.safeParse(req.query);
-      if (!query.success) {
+      const params = linesQuerySchema.safeParse(req.query);
+      if (!params.success) {
         res.status(400).json({ error: 'Invalid query' });
         return;
       }
-      const ts = Number(query.data.ts) / 1000;
       const ignore = ignorePatterns(app);
 
-      const commits = await git.log({ fs, dir, ref: branch });
-      const commit = commits.find((c) => c.commit.committer.timestamp <= ts);
-      if (!commit) {
-        res.status(404).json({ error: 'Commit not found' });
-        return;
-      }
-      const counts = await getLineCounts({ dir, ref: commit.oid, ignore });
+      await git.resolveRef({ fs, dir, ref: req.params.commitId });
+      const counts = await getLineCounts({ dir, ref: req.params.commitId, ignore });
       const parsed = lineCountsResponseSchema.safeParse({ counts });
       if (!parsed.success) {
         res.status(500).json({ error: 'Invalid data' });

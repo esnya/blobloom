@@ -1,8 +1,8 @@
 import express from 'express';
 import { Command } from 'commander';
-import { apiMiddleware } from './apiMiddleware';
-import { appSettings } from './appSettings';
-import { defaultIgnore } from './ignoreDefaults';
+import { apiMiddleware } from './api-middleware';
+import { appSettings } from './app-settings';
+import { defaultIgnore } from './ignore-defaults';
 
 const collect = (val: string, acc: string[]): string[] => acc.concat(val.split(','));
 

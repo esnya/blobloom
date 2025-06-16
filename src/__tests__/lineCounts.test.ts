@@ -2,8 +2,8 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import * as git from 'isomorphic-git';
-import { getLineCounts } from '../lineCounts';
-import { defaultIgnore } from '../ignoreDefaults';
+import { getLineCounts } from '../server/line-counts';
+import { defaultIgnore } from '../server/ignore-defaults';
 
 const author = { name: 'a', email: 'a@example.com' };
 

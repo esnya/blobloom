@@ -76,8 +76,9 @@ export class Body {
 
 export class Engine {
   world: { bodies: Body[] };
-  gravity = { y: 1, scale: 0.001 };
+  gravity = { y: 1, scale: 0.002 };
   bounds: { width: number; height: number };
+  maxDelta = 50;
   private runner?: EngineRunner;
 
   constructor(width = 0, height = 0) {
@@ -146,12 +147,13 @@ export class Engine {
   }
 
   update(delta: number) {
+    const dt = Math.min(delta, this.maxDelta);
     const g = this.gravity.y * this.gravity.scale;
     const { width, height } = this.bounds;
     const bodies = this.world.bodies;
     for (const body of bodies) {
       if (body.isStatic) continue;
-      body.velocity.y += g * delta;
+      body.velocity.y += g * dt;
       body.velocity.x *= 1 - body.frictionAir;
       body.velocity.y *= 1 - body.frictionAir;
       body.angularVelocity *= 1 - body.frictionAir;

@@ -21,6 +21,7 @@ export class Body {
   isStatic: boolean | undefined;
   restitution: number;
   frictionAir: number;
+  friction: number;
   onUpdate?: (body: Body) => void;
 
   constructor(opts: {
@@ -33,6 +34,7 @@ export class Body {
     isStatic?: boolean;
     restitution?: number;
     frictionAir?: number;
+    friction?: number;
     onUpdate?: (body: Body) => void;
   }) {
     this.position = { ...opts.position };
@@ -46,6 +48,7 @@ export class Body {
     this.isStatic = opts.isStatic;
     this.restitution = opts.restitution ?? 0;
     this.frictionAir = opts.frictionAir ?? 0;
+    this.friction = opts.friction ?? 0;
     if (opts.onUpdate) this.onUpdate = opts.onUpdate;
   }
 
@@ -95,7 +98,7 @@ export class Engine {
     y: number,
     r: number,
     opts: Partial<
-      Pick<Body, 'restitution' | 'frictionAir' | 'mass' | 'onUpdate'>
+      Pick<Body, 'restitution' | 'frictionAir' | 'friction' | 'mass' | 'onUpdate'>
     > = {},
   ): Body {
     const params: ConstructorParameters<typeof Body>[0] = {
@@ -104,6 +107,7 @@ export class Engine {
       radius: r,
       restitution: opts.restitution ?? 0,
       frictionAir: opts.frictionAir ?? 0,
+      friction: opts.friction ?? 0,
     };
     if (opts.onUpdate) params.onUpdate = opts.onUpdate;
     return new Body(params);
@@ -114,7 +118,7 @@ export class Engine {
     y: number,
     width: number,
     height: number,
-    opts: Partial<Pick<Body, 'isStatic' | 'mass' | 'onUpdate'>> = {},
+    opts: Partial<Pick<Body, 'isStatic' | 'mass' | 'friction' | 'onUpdate'>> = {},
   ): Body {
     const params: ConstructorParameters<typeof Body>[0] = {
       position: { x, y },
@@ -124,6 +128,7 @@ export class Engine {
       isStatic: opts.isStatic ?? false,
       restitution: 0,
       frictionAir: 0,
+      friction: opts.friction ?? 0,
     };
     if (opts.onUpdate) params.onUpdate = opts.onUpdate;
     return new Body(params);
@@ -165,19 +170,23 @@ export class Engine {
         if (body.position.x - body.radius < 0) {
           body.position.x = body.radius;
           body.velocity.x = -body.velocity.x * body.restitution;
+          body.velocity.y *= 1 - body.friction;
           body.angularVelocity += (body.velocity.y * 0.01) / body.radius;
         } else if (body.position.x + body.radius > width) {
           body.position.x = width - body.radius;
           body.velocity.x = -body.velocity.x * body.restitution;
+          body.velocity.y *= 1 - body.friction;
           body.angularVelocity += (body.velocity.y * 0.01) / body.radius;
         }
         if (body.position.y - body.radius < top) {
           body.position.y = top + body.radius;
           body.velocity.y = -body.velocity.y * body.restitution;
+          body.velocity.x *= 1 - body.friction;
           body.angularVelocity += (body.velocity.x * 0.01) / body.radius;
         } else if (body.position.y + body.radius > height) {
           body.position.y = height - body.radius;
           body.velocity.y = -body.velocity.y * body.restitution;
+          body.velocity.x *= 1 - body.friction;
           body.angularVelocity += (body.velocity.x * 0.01) / body.radius;
         }
       }

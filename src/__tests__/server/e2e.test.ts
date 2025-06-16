@@ -17,111 +17,123 @@ const author = { name: 'a', email: 'a@example.com' };
 describe('server e2e', () => {
   it('serves commits and line counts', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
-    await git.init({ fs, dir });
-    await fs.promises.writeFile(path.join(dir, 'a.txt'), '1\n2\n');
-    await git.add({ fs, dir, filepath: 'a.txt' });
-    await git.commit({ fs, dir, author, message: 'init' });
-
     const app = express();
-    app.set(appSettings.repo.description!, dir);
-    app.set(appSettings.branch.description!, 'HEAD');
-    app.use(apiMiddleware);
     const server = createServer(app);
-    setupLineCountWs(app, server);
-    await new Promise<void>((resolve) => server.listen(0, resolve));
-    const { port } = server.address() as AddressInfo;
+    try {
+      await git.init({ fs, dir });
+      await fs.promises.writeFile(path.join(dir, 'a.txt'), '1\n2\n');
+      await git.add({ fs, dir, filepath: 'a.txt' });
+      await git.commit({ fs, dir, author, message: 'init' });
 
-    const base = `http://localhost:${port}`;
-    const commits = await fetchCommits(base);
-    const { counts } = await fetchLineCounts(commits[0]!.id, base);
+      app.set(appSettings.repo.description!, dir);
+      app.set(appSettings.branch.description!, 'HEAD');
+      app.use(apiMiddleware);
+      setupLineCountWs(app, server);
+      await new Promise<void>((resolve) => server.listen(0, resolve));
+      const { port } = server.address() as AddressInfo;
 
-    expect(commits[0]!.message).toBe('init\n');
-    expect(counts[0]?.file).toBe('a.txt');
+      const base = `http://localhost:${port}`;
+      const commits = await fetchCommits(base);
+      const { counts } = await fetchLineCounts(commits[0]!.id, base);
 
-    server.close();
+      expect(commits[0]!.message).toBe('init\n');
+      expect(counts[0]?.file).toBe('a.txt');
+    } finally {
+      server.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('responds to branch changes via app settings', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
-    await git.init({ fs, dir });
-    await fs.promises.writeFile(path.join(dir, 'a.txt'), '1');
-    await git.add({ fs, dir, filepath: 'a.txt' });
-    await git.commit({ fs, dir, author, message: 'init' });
-    await git.branch({ fs, dir, ref: 'feature' });
-    await fs.promises.writeFile(path.join(dir, 'a.txt'), '1\n2');
-    await git.add({ fs, dir, filepath: 'a.txt' });
-    await git.commit({ fs, dir, author, message: 'feat: update' });
-
     const app = express();
-    app.set(appSettings.repo.description!, dir);
-    app.set(appSettings.branch.description!, 'HEAD');
-    app.use(apiMiddleware);
     const server = createServer(app);
-    setupLineCountWs(app, server);
-    await new Promise<void>((resolve) => server.listen(0, resolve));
-    const { port } = server.address() as AddressInfo;
+    try {
+      await git.init({ fs, dir });
+      await fs.promises.writeFile(path.join(dir, 'a.txt'), '1');
+      await git.add({ fs, dir, filepath: 'a.txt' });
+      await git.commit({ fs, dir, author, message: 'init' });
+      await git.branch({ fs, dir, ref: 'feature' });
+      await fs.promises.writeFile(path.join(dir, 'a.txt'), '1\n2');
+      await git.add({ fs, dir, filepath: 'a.txt' });
+      await git.commit({ fs, dir, author, message: 'feat: update' });
 
-    const base = `http://localhost:${port}`;
-    const commitsHead = await fetchCommits(base);
-    expect(commitsHead[0]!.message).toBe('feat: update\n');
+      app.set(appSettings.repo.description!, dir);
+      app.set(appSettings.branch.description!, 'HEAD');
+      app.use(apiMiddleware);
+      setupLineCountWs(app, server);
+      await new Promise<void>((resolve) => server.listen(0, resolve));
+      const { port } = server.address() as AddressInfo;
 
-    app.set(appSettings.branch.description!, 'feature');
-    const commitsFeature = await fetchCommits(base);
-    expect(commitsFeature[0]!.message).toBe('init\n');
+      const base = `http://localhost:${port}`;
+      const commitsHead = await fetchCommits(base);
+      expect(commitsHead[0]!.message).toBe('feat: update\n');
 
-    server.close();
+      app.set(appSettings.branch.description!, 'feature');
+      const commitsFeature = await fetchCommits(base);
+      expect(commitsFeature[0]!.message).toBe('init\n');
+    } finally {
+      server.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('ignores lock files by default', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
-    await git.init({ fs, dir });
-    await fs.promises.writeFile(path.join(dir, 'package-lock.json'), '0');
-    await git.add({ fs, dir, filepath: 'package-lock.json' });
-    await git.commit({ fs, dir, author, message: 'init' });
-
     const app = express();
-    app.set(appSettings.repo.description!, dir);
-    app.set(appSettings.branch.description!, 'HEAD');
-    app.use(apiMiddleware);
     const server = createServer(app);
-    setupLineCountWs(app, server);
-    await new Promise<void>((resolve) => server.listen(0, resolve));
-    const { port } = server.address() as AddressInfo;
+    try {
+      await git.init({ fs, dir });
+      await fs.promises.writeFile(path.join(dir, 'package-lock.json'), '0');
+      await git.add({ fs, dir, filepath: 'package-lock.json' });
+      await git.commit({ fs, dir, author, message: 'init' });
 
-    const base = `http://localhost:${port}`;
-    const commitId = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
-    await expect(fetchLineCounts(commitId, base)).rejects.toThrow('No line counts');
+      app.set(appSettings.repo.description!, dir);
+      app.set(appSettings.branch.description!, 'HEAD');
+      app.use(apiMiddleware);
+      setupLineCountWs(app, server);
+      await new Promise<void>((resolve) => server.listen(0, resolve));
+      const { port } = server.address() as AddressInfo;
 
-    server.close();
+      const base = `http://localhost:${port}`;
+      const commitId = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
+      await expect(fetchLineCounts(commitId, base)).rejects.toThrow('No line counts');
+    } finally {
+      server.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('returns rename mapping', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
-    await git.init({ fs, dir });
-    await fs.promises.writeFile(path.join(dir, 'a.txt'), '1');
-    await git.add({ fs, dir, filepath: 'a.txt' });
-    await git.commit({ fs, dir, author, message: 'init' });
-    const parent = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
-    await fs.promises.rename(path.join(dir, 'a.txt'), path.join(dir, 'b.txt'));
-    await git.remove({ fs, dir, filepath: 'a.txt' });
-    await git.add({ fs, dir, filepath: 'b.txt' });
-    await git.commit({ fs, dir, author, message: 'rename' });
-    const head = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
-
     const app = express();
-    app.set(appSettings.repo.description!, dir);
-    app.set(appSettings.branch.description!, 'HEAD');
-    app.use(apiMiddleware);
     const server = createServer(app);
-    setupLineCountWs(app, server);
-    await new Promise<void>((resolve) => server.listen(0, resolve));
-    const { port } = server.address() as AddressInfo;
+    try {
+      await git.init({ fs, dir });
+      await fs.promises.writeFile(path.join(dir, 'a.txt'), '1');
+      await git.add({ fs, dir, filepath: 'a.txt' });
+      await git.commit({ fs, dir, author, message: 'init' });
+      const parent = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
+      await fs.promises.rename(path.join(dir, 'a.txt'), path.join(dir, 'b.txt'));
+      await git.remove({ fs, dir, filepath: 'a.txt' });
+      await git.add({ fs, dir, filepath: 'b.txt' });
+      await git.commit({ fs, dir, author, message: 'rename' });
+      const head = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
 
-    const base = `http://localhost:${port}`;
-    const result = await fetchLineCounts(head, base, parent);
+      app.set(appSettings.repo.description!, dir);
+      app.set(appSettings.branch.description!, 'HEAD');
+      app.use(apiMiddleware);
+      setupLineCountWs(app, server);
+      await new Promise<void>((resolve) => server.listen(0, resolve));
+      const { port } = server.address() as AddressInfo;
 
-    expect(result.renames?.['b.txt']).toBe('a.txt');
+      const base = `http://localhost:${port}`;
+      const result = await fetchLineCounts(head, base, parent);
 
-    server.close();
+      expect(result.renames?.['b.txt']).toBe('a.txt');
+    } finally {
+      server.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

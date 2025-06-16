@@ -50,7 +50,12 @@ export class Body {
     if (opts.radius !== undefined) this.radius = opts.radius;
     if (opts.onUpdate) this.onUpdate = opts.onUpdate;
     const r = this.radius ?? 0;
-    this.aabb = { minX: this.position.x - r, minY: this.position.y - r, maxX: this.position.x + r, maxY: this.position.y + r };
+    this.aabb = {
+      minX: this.position.x - r,
+      minY: this.position.y - r,
+      maxX: this.position.x + r,
+      maxY: this.position.y + r,
+    };
   }
 
   updateAABB() {
@@ -134,7 +139,7 @@ class Quadtree {
         }
       }
     }
-    return Array.from(pairs, (s) => s.split(',').map(Number) as [number, number]);
+    return Array.from(pairs, s => s.split(',').map(Number) as [number, number]);
   }
 
   private insert(node: QuadNode, aabb: QuadBounds, index: number, depth: number): void {
@@ -167,7 +172,7 @@ class Quadtree {
   }
 
   private collect(node: QuadNode): void {
-    if (node.children) node.children.forEach((c) => this.collect(c));
+    if (node.children) node.children.forEach(c => this.collect(c));
     else this.leaves.push(node);
   }
 
@@ -217,8 +222,6 @@ export class Engine {
     return new Body(params);
   }
 
-
-
   add(body: Body | Body[]) {
     if (Array.isArray(body)) this.world.bodies.push(...body);
     else this.world.bodies.push(body);
@@ -248,9 +251,10 @@ export class Engine {
       body.position.y += body.velocity.y;
       body.angle += body.angularVelocity;
 
-      body.velocity.x *= 1 - body.frictionAir;
-      body.velocity.y *= 1 - body.frictionAir;
-      body.angularVelocity *= 1 - body.frictionAir;
+      const air = Math.exp(-body.frictionAir * dt);
+      body.velocity.x *= air;
+      body.velocity.y *= air;
+      body.angularVelocity *= air;
 
       if (body.radius !== undefined) {
         if (body.position.x - body.radius < 0) {
@@ -286,10 +290,7 @@ export class Engine {
       body.onUpdate?.(body);
     }
 
-    const qt = new Quadtree(
-      bodies,
-      { minX: 0, minY: top, maxX: width, maxY: height },
-    );
+    const qt = new Quadtree(bodies, { minX: 0, minY: top, maxX: width, maxY: height });
     for (const [i, j] of qt.getPairs()) {
       const a = bodies[i]!;
       const b = bodies[j]!;
@@ -347,8 +348,8 @@ export class Engine {
       b.velocity.x -= (jt / m2) * tx;
       b.velocity.y -= (jt / m2) * ty;
 
-      if (a.radius) a.angularVelocity -= (jt / m1) / a.radius;
-      if (b.radius) b.angularVelocity += (jt / m2) / b.radius;
+      if (a.radius) a.angularVelocity -= jt / m1 / a.radius;
+      if (b.radius) b.angularVelocity += jt / m2 / b.radius;
     }
 
     const overlap = r - dist;

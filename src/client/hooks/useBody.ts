@@ -1,39 +1,40 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useEngine } from './useEngine';
+import type * as Physics from '../physics';
 
 interface BodyOptions {
   radius: number;
   restitution?: number;
   frictionAir?: number;
+  onUpdate?: (body: Physics.Body) => void;
 }
 
 export const useBody = (options: BodyOptions) => {
   const engine = useEngine();
   const { radius, restitution = 0, frictionAir = 0 } = options;
 
-  const [body] = useState(() =>
-    engine.circle(
+  const [, setTransform] = useState(() => ({
+    position: { x: 0, y: 0 },
+    angle: 0,
+  }));
+
+  const [body] = useState(() => {
+    const b = engine.circle(
       Math.random() * (engine.bounds.width - radius * 2) + radius,
       -radius,
       radius,
       { restitution, frictionAir },
-    ),
-  );
-
-  const [, setTransform] = useState(() => ({
-    position: { ...body.position },
-    angle: body.angle,
-  }));
+    );
+    setTransform({ position: { ...b.position }, angle: b.angle });
+    return b;
+  });
 
   useEffect(() => {
-    let frame = 0;
-    const update = () => {
+    body.onUpdate = () => {
       setTransform({ position: { ...body.position }, angle: body.angle });
-      frame = requestAnimationFrame(update);
+      options.onUpdate?.(body);
     };
-    update();
-    return () => cancelAnimationFrame(frame);
-  }, [body]);
+  }, [body, options]);
 
   useEffect(() => {
     engine.add(body);

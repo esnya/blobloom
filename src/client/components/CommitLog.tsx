@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+// eslint-disable-next-line no-restricted-syntax
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import type { Commit } from '../types';
 
 export interface CommitLogProps {
@@ -10,6 +11,10 @@ export interface CommitLogProps {
 
 export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 }: CommitLogProps): React.JSX.Element => {
   const [offset, setOffset] = useState(0);
+  /* eslint-disable no-restricted-syntax */
+  const containerRef = useRef<HTMLDivElement>(null);
+  /* eslint-enable no-restricted-syntax */
+  const [containerHeight, setContainerHeight] = useState(1);
 
   useEffect(() => {
     onTimestampChange?.(timestamp);
@@ -29,7 +34,14 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
     [commits, start, end]
   );
 
-  const containerHeight = document.getElementById('commit-log')?.clientHeight ?? 1;
+  useEffect(() => {
+    const updateHeight = () =>
+      setContainerHeight(containerRef.current?.clientHeight ?? 1);
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
+
   const spanMs =
     slice.length > 1
       ? (slice[0]!.timestamp - slice[slice.length - 1]!.timestamp) * 1000
@@ -37,7 +49,7 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
   const msPerPx = spanMs / Math.max(containerHeight, 1);
 
   useEffect(() => {
-    const container = document.getElementById('commit-log');
+    const container = containerRef.current;
     const list = container?.querySelector<HTMLUListElement>('ul.commit-list');
     if (!list || !container) return;
     const current = list.querySelector<HTMLLIElement>('li.current');
@@ -58,7 +70,8 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
   }, [timestamp, index, commits]);
 
   return (
-    <div id="commit-log">
+    // eslint-disable-next-line no-restricted-syntax
+    <div id="commit-log" ref={containerRef}>
       <ul className="commit-list" style={{ transform: `translateY(${offset}px)` }}>
         {slice.map((c, i) => {
           const diff = i > 0 ? (slice[i - 1]!.timestamp - c.timestamp) * 1000 : 0;

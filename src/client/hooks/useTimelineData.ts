@@ -25,8 +25,10 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   useEffect(() => {
     const ts = timestamp === 0 ? start : timestamp;
     if (ts === 0) return;
-    void fetchLineCounts(ts, baseUrl).then(setLineCounts);
-  }, [timestamp, start, baseUrl]);
+    const commit = commits.find((c) => c.timestamp * 1000 <= ts);
+    if (!commit) return;
+    void fetchLineCounts(commit.id, baseUrl).then(setLineCounts);
+  }, [timestamp, start, baseUrl, commits]);
 
   return { commits, lineCounts, start, end };
 };

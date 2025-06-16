@@ -12,8 +12,8 @@ describe('useTimelineData', () => {
 
   it('fetches commits and line counts', async () => {
     const commits = [
-      { message: 'a', timestamp: 2 },
-      { message: 'b', timestamp: 1 },
+      { id: 'c1', message: 'a', timestamp: 2 },
+      { id: 'c2', message: 'b', timestamp: 1 },
     ];
     const linesFirst = [{ file: 'a', lines: 1 }];
     const linesSecond = [{ file: 'a', lines: 2 }];
@@ -26,14 +26,14 @@ describe('useTimelineData', () => {
             : input instanceof Request
               ? input.url
               : '';
-      if (url.startsWith('/api/commits')) {
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
-      }
-      if (url === '/api/lines?ts=1000') {
+      if (url === '/api/commits/c2/lines') {
         return Promise.resolve({ json: () => Promise.resolve({ counts: linesFirst }) } as unknown as Response);
       }
-      if (url === '/api/lines?ts=1') {
+      if (url === '/api/commits/c1/lines') {
         return Promise.resolve({ json: () => Promise.resolve({ counts: linesSecond }) } as unknown as Response);
+      }
+      if (url.startsWith('/api/commits')) {
+        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
       }
       return Promise.reject(new Error(`unexpected ${url}`));
     }) as unknown as typeof fetch;
@@ -52,13 +52,17 @@ describe('useTimelineData', () => {
       expect(result.current.lineCounts).toEqual(linesFirst),
     );
 
-    rerender({ ts: 1 });
+    rerender({ ts: 2000 });
     await waitFor(() =>
       expect(result.current.lineCounts).toEqual(linesSecond),
     );
 
     const calls = (global.fetch as jest.Mock).mock.calls;
-    expect(calls.filter(([u]) => typeof u === 'string' && u.startsWith('/api/commits')).length).toBe(1);
+    expect(
+      calls.filter(
+        ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
+      ).length,
+    ).toBe(1);
     expect(calls).toHaveLength(3);
   });
 });

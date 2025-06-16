@@ -7,7 +7,7 @@ import { CharEffects } from './CharEffects';
 import { useCharEffects } from '../hooks/useCharEffects';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { usePrevious } from '../hooks/usePrevious';
-export const MAX_EFFECT_CHARS = 50;
+import { availableSpans } from '../charEffectsPool';
 
 const useInitialGlow = (startGlow: (cls: string) => void) => {
   useEffect(() => {
@@ -19,7 +19,6 @@ const useInitialGlow = (startGlow: (cls: string) => void) => {
 const useLineChangeEffects = (
   lines: number,
   prevLines: number,
-  charsLength: number,
   currentRadius: number,
   startGlow: (cls: string) => void,
   spawnChar: (cls: string, offset: { x: number; y: number }, onEnd: () => void) => void,
@@ -29,15 +28,14 @@ const useLineChangeEffects = (
     if (lines > prevLines) startGlow('glow-grow');
     else if (lines < prevLines) startGlow('glow-shrink');
     const diff = lines - prevLines;
-    const available = Math.max(0, MAX_EFFECT_CHARS - charsLength);
-    const spawn = Math.min(Math.abs(diff), available);
+    const spawn = Math.min(Math.abs(diff), availableSpans());
     for (let i = 0; i < spawn; i += 1) {
       const angle = Math.random() * 2 * Math.PI;
       const r = Math.sqrt(Math.random()) * currentRadius * 2.5;
       const offset = { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
       spawnChar(diff > 0 ? 'add-char' : 'remove-char', offset, () => {});
     }
-  }, [lines, prevLines, startGlow, spawnChar, charsLength, currentRadius]);
+  }, [lines, prevLines, startGlow, spawnChar, currentRadius]);
 };
 
 const useAnimateRadius = (
@@ -92,7 +90,6 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
   useLineChangeEffects(
     lines,
     prevLines,
-    chars.length,
     currentRadius,
     startGlow,
     spawnChar,

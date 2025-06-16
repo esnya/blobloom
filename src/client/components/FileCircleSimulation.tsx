@@ -49,35 +49,10 @@ interface FileCircleListProps {
 
 function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Element {
   const engine = useEngine();
-  const { register, forEach, get } = useFileCircleHandles();
+  const { register, get } = useFileCircleHandles();
 
   useEngineRunner();
 
-  useEffect(() => {
-    const handleOutOfBounds = (): void => {
-      forEach((h) => {
-        const { x, y } = h.body.position;
-        const r = h.radius;
-        if (
-          x < -r ||
-          x > bounds.width + r ||
-          y > bounds.height + r ||
-          y < -bounds.height - r
-        ) {
-          h.body.setVelocity({ x: 0, y: 0 });
-          h.body.setPosition({
-            x: Math.random() * (engine.bounds.width - 2 * r) + r,
-            y: -r,
-          });
-        }
-      });
-    };
-    const id = requestAnimationFrame(function loop() {
-      handleOutOfBounds();
-      requestAnimationFrame(loop);
-    });
-    return () => cancelAnimationFrame(id);
-  }, [engine, bounds.width, bounds.height, forEach]);
 
   useEffect(() => {
     engine.bounds.width = bounds.width;

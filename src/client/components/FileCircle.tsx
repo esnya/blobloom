@@ -28,10 +28,13 @@ export function FileCircle({
   initialRadius,
   onReady,
 }: FileCircleProps): React.JSX.Element {
+  const [, setTick] = useState(0);
+  const forceUpdate = useCallback(() => setTick((t) => t + 1), []);
   const { body, setRadius: setBodyRadius } = useBody({
     radius: initialRadius,
     restitution: 0.9,
     frictionAir: 0.001,
+    onUpdate: forceUpdate,
   });
   const containerId = useId();
   /* eslint-disable no-restricted-syntax */

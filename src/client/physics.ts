@@ -21,6 +21,7 @@ export class Body {
   isStatic: boolean | undefined;
   restitution: number;
   frictionAir: number;
+  onUpdate?: (body: Body) => void;
 
   constructor(opts: {
     position: Vector;
@@ -32,6 +33,7 @@ export class Body {
     isStatic?: boolean;
     restitution?: number;
     frictionAir?: number;
+    onUpdate?: (body: Body) => void;
   }) {
     this.position = { ...opts.position };
     this.velocity = opts.velocity ?? { x: 0, y: 0 };
@@ -44,6 +46,7 @@ export class Body {
     this.isStatic = opts.isStatic;
     this.restitution = opts.restitution ?? 0;
     this.frictionAir = opts.frictionAir ?? 0;
+    if (opts.onUpdate) this.onUpdate = opts.onUpdate;
   }
 
   setVelocity(vel: Vector) {
@@ -90,15 +93,19 @@ export class Engine {
     x: number,
     y: number,
     r: number,
-    opts: Partial<Pick<Body, 'restitution' | 'frictionAir' | 'mass'>> = {},
+    opts: Partial<
+      Pick<Body, 'restitution' | 'frictionAir' | 'mass' | 'onUpdate'>
+    > = {},
   ): Body {
-    return new Body({
+    const params: ConstructorParameters<typeof Body>[0] = {
       position: { x, y },
       mass: opts.mass ?? r * r,
       radius: r,
       restitution: opts.restitution ?? 0,
       frictionAir: opts.frictionAir ?? 0,
-    });
+    };
+    if (opts.onUpdate) params.onUpdate = opts.onUpdate;
+    return new Body(params);
   }
 
   rectangle(
@@ -106,9 +113,9 @@ export class Engine {
     y: number,
     width: number,
     height: number,
-    opts: Partial<Pick<Body, 'isStatic' | 'mass'>> = {},
+    opts: Partial<Pick<Body, 'isStatic' | 'mass' | 'onUpdate'>> = {},
   ): Body {
-    return new Body({
+    const params: ConstructorParameters<typeof Body>[0] = {
       position: { x, y },
       mass: opts.mass ?? width * height,
       width,
@@ -116,7 +123,9 @@ export class Engine {
       isStatic: opts.isStatic ?? false,
       restitution: 0,
       frictionAir: 0,
-    });
+    };
+    if (opts.onUpdate) params.onUpdate = opts.onUpdate;
+    return new Body(params);
   }
 
   add(body: Body | Body[]) {
@@ -219,6 +228,9 @@ export class Engine {
         if (!b.isStatic && b.radius !== undefined)
           b.angularVelocity += (vt * friction) / b.radius;
       }
+    }
+    for (const body of bodies) {
+      body.onUpdate?.(body);
     }
   }
 

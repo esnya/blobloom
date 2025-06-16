@@ -19,6 +19,10 @@
 - Make these checks part of the regular workflow and account for them when updating CI.
 * Use React refs only when absolutely necessary and preferably within custom hooks.
   Override the ESLint ref restriction locally in such files or lines.
+* React components must not modify physics engine state directly except for:
+  - Adjusting engine bounds via `PhysicsProvider`
+  - Creating or removing bodies through hooks
+  - Changing body radius via `useBody`
 
 ## TODO
 - Add more hook tests and restore coverage threshold to 80.

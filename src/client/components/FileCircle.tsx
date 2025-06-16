@@ -24,13 +24,6 @@ export function FileCircle({
   });
   const [currentRadius, setCurrentRadius] = useState(radius);
   useEffect(() => {
-    body.setPosition({
-      x: body.position.x,
-      y: -Math.random() * (window.innerHeight || 0) - radius,
-    });
-  }, [body, radius]);
-
-  useEffect(() => {
     if (radius === currentRadius) return;
     body.scale(radius / currentRadius, radius / currentRadius);
     setBodyRadius(radius);

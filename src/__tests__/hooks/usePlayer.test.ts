@@ -1,9 +1,6 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
 import { usePlayer } from '../../client/hooks/usePlayer';
-import { createPlayer } from '../../client/player';
-
-jest.mock('../../client/player');
 
 describe('usePlayer', () => {
   const mockPlayer = {
@@ -15,7 +12,7 @@ describe('usePlayer', () => {
   };
 
   beforeEach(() => {
-    (createPlayer as jest.Mock).mockReturnValue(mockPlayer);
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -25,13 +22,21 @@ describe('usePlayer', () => {
   it('creates player and exposes controls', () => {
     const getSeek = jest.fn(() => 0);
     const setSeek = jest.fn();
+    const factory = jest.fn(() => mockPlayer);
 
     const { result } = renderHook(() =>
-      usePlayer({ getSeek, setSeek, duration: 1, start: 0, end: 10 }),
+      usePlayer({
+        getSeek,
+        setSeek,
+        duration: 1,
+        start: 0,
+        end: 10,
+        playerFactory: factory,
+      }),
     );
 
-    expect(createPlayer).toHaveBeenCalledWith(
-      expect.objectContaining({ duration: 1, start: 0, end: 10 })
+    expect(factory).toHaveBeenCalledWith(
+      expect.objectContaining({ duration: 1, start: 0, end: 10 }),
     );
 
     act(() => {
@@ -48,6 +53,7 @@ describe('usePlayer', () => {
   });
 
   it('pauses on unmount', () => {
+    const factory = jest.fn(() => mockPlayer);
     const { unmount } = renderHook(() =>
       usePlayer({
         getSeek: () => 0,
@@ -55,6 +61,7 @@ describe('usePlayer', () => {
         duration: 1,
         start: 0,
         end: 10,
+        playerFactory: factory,
       }),
     );
     unmount();

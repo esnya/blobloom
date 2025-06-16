@@ -1,9 +1,6 @@
 /** @jest-environment jsdom */
 import { renderHook } from '@testing-library/react';
 import { usePlayer } from '../../client/hooks/usePlayer';
-import { createPlayer } from '../../client/player';
-
-jest.mock('../../client/player');
 
 describe('usePlayer options', () => {
   const mockPlayer = {
@@ -15,11 +12,7 @@ describe('usePlayer options', () => {
   };
 
   beforeEach(() => {
-    (createPlayer as jest.Mock).mockImplementation((opts: Record<string, unknown>) => {
-      const cb = opts.onPlayStateChange as ((p: boolean) => void) | undefined;
-      cb?.(true);
-      return mockPlayer;
-    });
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -30,6 +23,11 @@ describe('usePlayer options', () => {
     const raf = jest.fn();
     const now = jest.fn();
     const onPlayStateChange = jest.fn();
+    const factory = jest.fn((opts: import('../../client/hooks/usePlayer').PlayerOptions) => {
+      const cb = opts.onPlayStateChange as ((p: boolean) => void) | undefined;
+      cb?.(true);
+      return mockPlayer;
+    });
 
     renderHook(() =>
       usePlayer({
@@ -41,17 +39,15 @@ describe('usePlayer options', () => {
         raf,
         now,
         onPlayStateChange,
+        playerFactory: factory,
       }),
     );
 
-    const call = (createPlayer as jest.Mock).mock.calls[0] as [
-      {
-        raf?: unknown;
-        now?: unknown;
-        onPlayStateChange?: unknown;
-      },
-    ];
-    const args = call[0];
+    const args = factory.mock.calls[0]![0] as {
+      raf?: unknown;
+      now?: unknown;
+      onPlayStateChange?: unknown;
+    };
     expect(args.raf).toBe(raf);
     expect(args.now).toBe(now);
     expect(typeof args.onPlayStateChange).toBe('function');

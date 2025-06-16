@@ -2,10 +2,7 @@
 import React from 'react';
 import { render, waitFor, fireEvent } from '@testing-library/react';
 import { App } from '../../client/App';
-import { createPlayer } from '../../client/player';
 import { setupAppTest } from '../helpers/app';
-
-jest.mock('../../client/player');
 
 const commits = [
   { id: 'n', message: 'new', timestamp: 2 },
@@ -18,13 +15,6 @@ describe('App duration control', () => {
   beforeEach(() => {
     jest.resetModules();
     restore = setupAppTest({ commits });
-    (createPlayer as jest.Mock).mockReturnValue({
-      stop: jest.fn(),
-      pause: jest.fn(),
-      resume: jest.fn(),
-      togglePlay: jest.fn(),
-      isPlaying: jest.fn(() => false),
-    });
   });
 
   afterEach(() => {
@@ -33,7 +23,15 @@ describe('App duration control', () => {
   });
 
   it('recreates player with new duration', async () => {
-    const { container } = render(<App />);
+    const factory = jest.fn(() => ({
+      stop: jest.fn(),
+      pause: jest.fn(),
+      resume: jest.fn(),
+      togglePlay: jest.fn(),
+      isPlaying: jest.fn(() => false),
+    }));
+
+    const { container } = render(<App playerFactory={factory} />);
     await waitFor(() => expect(container.querySelector('#commit-log')).toBeTruthy());
 
     const input = container.querySelector('#duration') as HTMLInputElement;
@@ -42,10 +40,7 @@ describe('App duration control', () => {
     fireEvent.change(input, { target: { value: '10' } });
 
     await waitFor(() => {
-      const mock = createPlayer as jest.MockedFunction<typeof createPlayer>;
-      const last = mock.mock.calls[mock.mock.calls.length - 1] as unknown as [
-        Record<string, unknown>,
-      ];
+      const last = factory.mock.calls[factory.mock.calls.length - 1]! as unknown[];
       expect(last[0]).toEqual(expect.objectContaining({ duration: 10 }));
     });
   });

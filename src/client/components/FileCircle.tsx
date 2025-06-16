@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax */
+// eslint-disable-next-line no-restricted-syntax
 import React, { useEffect, useId, useState, useCallback, useRef } from 'react';
 import { useBody } from '../hooks';
 import * as Physics from '../physics';
@@ -34,7 +34,9 @@ export function FileCircle({
     frictionAir: 0.002,
   });
   const containerId = useId();
+  /* eslint-disable no-restricted-syntax */
   const containerRef = useRef<HTMLDivElement>(null);
+  /* eslint-enable no-restricted-syntax */
   const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
   const [radius, setRadius] = useState(initialRadius);
   const { startGlow, glowProps } = useGlowControl();
@@ -86,15 +88,17 @@ export function FileCircle({
   const name = dir.pop() ?? '';
 
   return (
-    <div
-      className={`file-circle ${glowProps.className}`}
-      id={containerId}
-      ref={containerRef}
-      onAnimationEnd={glowProps.onAnimationEnd}
-      style={{
-        position: 'absolute',
-        width: `${radius * 2}px`,
-        height: `${radius * 2}px`,
+    <>
+      {/* eslint-disable no-restricted-syntax */}
+      <div
+        className={`file-circle ${glowProps.className}`}
+        id={containerId}
+        ref={containerRef}
+        onAnimationEnd={glowProps.onAnimationEnd}
+        style={{
+          position: 'absolute',
+          width: `${radius * 2}px`,
+          height: `${radius * 2}px`,
         borderRadius: '50%',
         background: hidden ? 'transparent' : colorForFile(file),
         willChange: 'transform',
@@ -108,7 +112,9 @@ export function FileCircle({
         hidden={hidden}
         onReady={setContentHandle}
       />
-    </div>
+      </div>
+      {/* eslint-enable no-restricted-syntax */}
+    </>
   );
 }
 

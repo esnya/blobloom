@@ -79,7 +79,7 @@ export class Body {
 
 export class Engine {
   world: { bodies: Body[] };
-  gravity = { y: 1, scale: 0.002 };
+  gravity = { y: 1, scale: 0.004 };
   bounds: { width: number; height: number; top: number };
   maxDelta = 50;
   private runner?: EngineRunner;

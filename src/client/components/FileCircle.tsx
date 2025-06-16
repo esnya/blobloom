@@ -1,122 +1,66 @@
-// eslint-disable-next-line no-restricted-syntax
-import React, { useEffect, useId, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useBody } from '../hooks/useBody';
-import * as Physics from '../physics';
-import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
+import { FileCircleContent } from './FileCircleContent';
 import { colorForFile } from '../colors';
-import { useGlowControl } from '../hooks/useGlowControl';
-
-export interface FileCircleHandle extends FileCircleContentHandle {
-  body: Physics.Body;
-  radius: number;
-  updateRadius: (r: number) => void;
-  showGlow: (cls: string) => void;
-  hide: () => void;
-  el: HTMLElement;
-}
 
 interface FileCircleProps {
   file: string;
   lines: number;
-  initialRadius: number;
-  onReady?: (handle: FileCircleHandle) => void;
+  radius: number;
 }
 
 export function FileCircle({
   file,
   lines,
-  initialRadius,
-  onReady,
+  radius,
 }: FileCircleProps): React.JSX.Element {
   const [, setTick] = useState(0);
   const forceUpdate = useCallback(() => setTick((t) => t + 1), []);
   const { body, setRadius: setBodyRadius } = useBody({
-    radius: initialRadius,
+    radius,
     restitution: 0.9,
     frictionAir: 0.001,
     onUpdate: forceUpdate,
   });
-  const containerId = useId();
-  /* eslint-disable no-restricted-syntax */
-  const containerRef = useRef<HTMLDivElement>(null);
-  /* eslint-enable no-restricted-syntax */
-  const [contentHandle, setContentHandle] = useState<FileCircleContentHandle | null>(null);
-  const [radius, setRadius] = useState(initialRadius);
-  const { startGlow, glowProps } = useGlowControl();
-  const [hidden, setHidden] = useState(false);
+  const [currentRadius, setCurrentRadius] = useState(radius);
   useEffect(() => {
     body.setPosition({
       x: body.position.x,
-      y: -Math.random() * (window.innerHeight || 0) - initialRadius,
+      y: -Math.random() * (window.innerHeight || 0) - radius,
     });
-  }, [body, initialRadius]);
-
-  const updateRadius = useCallback((r: number): void => {
-    if (r === radius) return;
-    body.scale(r / radius, r / radius);
-    setBodyRadius(r);
-    setRadius(r);
-    const el = document.getElementById(containerId);
-    if (el) {
-      el.style.width = `${r * 2}px`;
-      el.style.height = `${r * 2}px`;
-    }
-  }, [radius, body, containerId, setBodyRadius]);
-
-  const showGlow = useCallback(
-    (cls: string): void => {
-      startGlow(cls);
-    },
-    [startGlow],
-  );
-
-  const hide = useCallback((): void => {
-    setHidden(true);
-  }, []);
+  }, [body, radius]);
 
   useEffect(() => {
-    if (!contentHandle) return;
-    onReady?.({
-      body,
-      radius,
-      updateRadius,
-      ...contentHandle,
-      showGlow,
-      hide,
-      el: containerRef.current!,
-    });
-  }, [contentHandle, onReady, body, radius, updateRadius, showGlow, hide]);
+    if (radius === currentRadius) return;
+    body.scale(radius / currentRadius, radius / currentRadius);
+    setBodyRadius(radius);
+    setCurrentRadius(radius);
+  }, [radius, currentRadius, body, setBodyRadius]);
+
 
   const dir = file.split('/');
   const name = dir.pop() ?? '';
 
   return (
     <>
-      {/* eslint-disable no-restricted-syntax */}
       <div
-        className={`file-circle ${glowProps.className}`}
-        id={containerId}
-        ref={containerRef}
-        onAnimationEnd={glowProps.onAnimationEnd}
+        className="file-circle"
         style={{
           position: 'absolute',
-          width: `${radius * 2}px`,
-          height: `${radius * 2}px`,
-        borderRadius: '50%',
-        background: hidden ? 'transparent' : colorForFile(file),
-        willChange: 'transform',
-        transform: `translate3d(${body.position.x - radius}px, ${body.position.y - radius}px, 0) rotate(${body.angle}rad)`,
-      }}
-    >
-      <FileCircleContent
-        path={dir.join('/') + (dir.length ? '/' : '')}
-        name={name}
-        count={lines}
-        hidden={hidden}
-        onReady={setContentHandle}
-      />
+          width: `${currentRadius * 2}px`,
+          height: `${currentRadius * 2}px`,
+          borderRadius: '50%',
+          background: colorForFile(file),
+          willChange: 'transform',
+          transform: `translate3d(${body.position.x - currentRadius}px, ${body.position.y - currentRadius}px, 0) rotate(${body.angle}rad)`,
+        }}
+      >
+        <FileCircleContent
+          path={dir.join('/') + (dir.length ? '/' : '')}
+          name={name}
+          count={lines}
+        />
       </div>
-      {/* eslint-enable no-restricted-syntax */}
     </>
   );
 }

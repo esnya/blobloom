@@ -3,7 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createPortal, flushSync } from 'react-dom';
 import { FileCircle, type FileCircleHandle } from './components/FileCircle';
-import { PhysicsProvider } from './hooks';
+import { PhysicsProvider } from './hooks/useEngine';
 import * as Physics from './physics';
 import { computeScale } from './scale';
 const { Body, Composite, Engine } = Physics;

@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { useAnimatedSimulation } from '../client/hooks';
+import { useAnimatedSimulation } from '../client/hooks/useAnimatedSimulation';
 import { createFileSimulation } from '../client/fileSimulation';
 import type { LineCount } from '../client/types';
 

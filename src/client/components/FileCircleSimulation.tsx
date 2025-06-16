@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax
 import React, { useEffect, useRef, useState } from 'react';
-import { PhysicsProvider, useEngine, useFileCircleHandles } from '../hooks';
+import { PhysicsProvider, useEngine } from '../hooks/useEngine';
+import { useFileCircleHandles } from '../hooks/useFileCircleHandles';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';

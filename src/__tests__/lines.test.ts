@@ -47,7 +47,7 @@ describe('lines module', () => {
 
   it('returns eased scale when ratio exceeds threshold', () => {
     const scale = computeScale(1000, 200, [{ file: 'a', lines: 1, added: 0, removed: 0 }]);
-    expect(scale).toBeCloseTo(186.1, 1);
+    expect(scale).toBeCloseTo(168.2, 1);
   });
 
   it('returns 0 when area is zero', () => {

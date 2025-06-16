@@ -133,3 +133,4 @@ export { PhysicsProvider, useEngine } from './useEngine';
 export { useBody } from './useBody';
 export { useTimelineData } from './useTimelineData';
 export { useFileCircleHandles } from './useFileCircleHandles';
+export { useCountAnimation } from './useCountAnimation';

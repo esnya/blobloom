@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { useCssAnimation, makeUseCssAnimation } from '../client/hooks/useCssAnimation';
+import { useCssAnimation } from '../client/hooks/useCssAnimation';
 
 describe('useCssAnimation', () => {
   it('starts and clears animation class', () => {
@@ -19,7 +19,7 @@ describe('useCssAnimation', () => {
   });
 
   it('supports hook factory', () => {
-    const useFade = makeUseCssAnimation('fade');
+    const useFade = (deps?: React.DependencyList) => useCssAnimation('fade', deps);
     const { result } = renderHook(() => useFade());
 
     act(() => result.current[0]());

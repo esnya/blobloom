@@ -26,6 +26,3 @@ export const useCssAnimation = (
   return [start, { className: active ? cls : '', onAnimationEnd }];
 };
 
-export const makeUseCssAnimation = (cls: string) => (
-  deps: DependencyList = [],
-) => useCssAnimation(cls, deps);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { CommitLog } from './components/CommitLog';
 import { SeekBar } from './components/SeekBar';
 import { FileCircleSimulation } from './components/FileCircleSimulation';
@@ -7,15 +7,14 @@ import { useTimelineData } from './hooks';
 export function App(): React.JSX.Element {
   const [timestamp, setTimestamp] = useState(0);
 
-  const {
-    commits,
-    lineCounts,
-    start,
-    end,
-    ready,
-  } = useTimelineData({
+  const json = useCallback(
+    (input: string) => fetch(input).then((r) => r.json()),
+    [],
+  );
+
+  const { commits, lineCounts, start, end, ready } = useTimelineData({
     timestamp,
-    json: (input: string) => fetch(input).then((r) => r.json()),
+    json,
   });
 
   useEffect(() => {

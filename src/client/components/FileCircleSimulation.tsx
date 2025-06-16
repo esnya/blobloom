@@ -1,9 +1,8 @@
 // eslint-disable-next-line no-restricted-syntax
 import React, { useEffect, useRef, useState } from 'react';
 import { PhysicsProvider } from '../hooks/useEngine';
-import { PhysicsRunner, useEngineRunner } from '../hooks/useEngineRunner';
+import { PhysicsRunner } from '../hooks/useEngineRunner';
 import { useEngine } from '../hooks/useEngine';
-import { useFileCircleHandles } from '../hooks/useFileCircleHandles';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
@@ -42,51 +41,28 @@ export function FileCircleSimulation({ data }: FileCircleSimulationProps): React
   );
 }
 
-interface FileCircleListProps {
+export interface FileCircleListProps {
   data: LineCount[];
   bounds: { width: number; height: number };
+  linear?: boolean;
 }
 
-function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Element {
+export function FileCircleList({ data, bounds, linear }: FileCircleListProps): React.JSX.Element {
   const engine = useEngine();
-  const { register, get } = useFileCircleHandles();
-
-  useEngineRunner();
-
 
   useEffect(() => {
     engine.bounds.width = bounds.width;
     engine.bounds.height = bounds.height;
   }, [engine, bounds.width, bounds.height]);
 
-  const scale = computeScale(bounds.width, bounds.height, data);
-
-  useEffect(() => {
-    data.forEach((d) => {
-      const handle = get(d.file);
-      if (handle) {
-        const r = (Math.pow(d.lines, 0.5) * scale) / 2;
-        handle.updateRadius(r);
-        handle.setCount(d.lines);
-      }
-    });
-  }, [data, scale, get]);
+  const scale = computeScale(bounds.width, bounds.height, data, linear !== undefined ? { linear } : {});
 
   return (
     <>
       {data.map((d) => {
         const r = (Math.pow(d.lines, 0.5) * scale) / 2;
-        return (
-          <FileCircle
-            key={d.file}
-            file={d.file}
-            lines={d.lines}
-            initialRadius={r}
-            onReady={(h) => {
-              register(d.file, h);
-            }}
-          />
-        );
+        if (r * 2 < 1) return null;
+        return <FileCircle key={d.file} file={d.file} lines={d.lines} radius={r} />;
       })}
     </>
   );

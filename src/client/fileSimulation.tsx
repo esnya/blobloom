@@ -2,22 +2,13 @@ import type { LineCount } from './types';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { FileCircle, type FileCircleHandle } from './components/FileCircle';
+import { FileCircleList } from './components/FileCircleSimulation';
 import { PhysicsProvider } from './hooks/useEngine';
 import * as Physics from './physics';
-import { computeScale } from './scale';
+
 const { Engine } = Physics;
 
-const MIN_CIRCLE_SIZE = 1;
-const CHAR_ANIMATION_MS = 1500;
-export const EFFECT_DROP_THRESHOLD = 50;
 export const MAX_EFFECT_CHARS = 100;
-
-interface BodyInfo {
-  body?: Physics.Body;
-  r: number;
-  handle?: FileCircleHandle;
-}
 
 export const createFileSimulation = (
   container: HTMLElement,
@@ -37,173 +28,25 @@ export const createFileSimulation = (
   engine.gravity.scale = 0.001;
 
   const root = createRoot(container);
-
-  const bodies: Record<string, BodyInfo> = {};
-  const prevCounts: Record<string, number> = {};
-  const displayCounts: Record<string, number> = {};
   let currentData: LineCount[] = [];
-  let effectsEnabled = false;
-  let activeCharCount = 0;
 
-  const renderCircles = (): void => {
-    const circles = Object.entries(bodies).map(([name, info]) => (
-      <FileCircle
-        key={name}
-        file={name}
-        lines={prevCounts[name] ?? 0}
-        initialRadius={info.r}
-        onReady={(handle) => {
-          info.body = handle.body;
-          info.handle = handle;
-        }}
-      />
-    ));
+  const render = (): void => {
     flushSync(() =>
       root.render(
         <PhysicsProvider bounds={{ width, height }} engine={engine}>
-          <>{circles}</>
+          <FileCircleList
+            data={currentData}
+            bounds={{ width, height }}
+            {...(opts.linear !== undefined ? { linear: opts.linear } : {})}
+          />
         </PhysicsProvider>,
       ),
     );
   };
 
-  const spawnChar = (
-    handle: FileCircleHandle,
-    cls: string,
-    offset: { x: number; y: number },
-    onEnd: () => void,
-    color?: string,
-  ): void => {
-    if (activeCharCount >= MAX_EFFECT_CHARS) {
-      onEnd();
-      return;
-    }
-    if (
-      activeCharCount > EFFECT_DROP_THRESHOLD &&
-      Math.random() <
-        (activeCharCount - EFFECT_DROP_THRESHOLD) /
-          (MAX_EFFECT_CHARS - EFFECT_DROP_THRESHOLD)
-    ) {
-      onEnd();
-      return;
-    }
-    activeCharCount++;
-    handle.spawnChar(cls, offset, () => {
-      activeCharCount--;
-      onEnd();
-    }, color);
-  };
-
-  const spawnChars = (
-    info: BodyInfo,
-    file: string,
-    add: number,
-    remove: number,
-  ): void => {
-    if (!info.body) return;
-    if (!effectsEnabled) {
-      displayCounts[file] = (displayCounts[file] ?? 0) + add - remove;
-      info.handle?.setCount(displayCounts[file]);
-      return;
-    }
-    const { x, y } = info.body.position;
-    for (let i = 0; i < add; i++) {
-      const offset = {
-        x: Math.random() * width - x,
-        y: Math.random() * height - y,
-      };
-      if (!info.handle) continue;
-      spawnChar(info.handle, 'add-char', offset, () => {
-        displayCounts[file] = (displayCounts[file] ?? 0) + 1;
-        info.handle?.setCount(displayCounts[file]);
-      });
-    }
-    for (let i = 0; i < remove; i++) {
-      const offset = {
-        x: Math.random() * window.innerWidth - (rect.left + x),
-        y: Math.random() * window.innerHeight - (rect.top + y),
-      };
-      if (!info.handle) continue;
-      spawnChar(info.handle, 'remove-char', offset, () => {
-        displayCounts[file] = (displayCounts[file] ?? 0) - 1;
-        info.handle?.setCount(displayCounts[file]);
-      });
-    }
-  };
-
-  const explodeAndRemove = (name: string, info: BodyInfo): void => {
-    if (info.handle) {
-      const count = Math.max(3, Math.floor(info.r / 5));
-      info.handle.hide();
-      for (let i = 0; i < count; i++) {
-        const offset = {
-          x: Math.random() * window.innerWidth - (rect.left + (info.body?.position.x ?? 0)),
-          y: Math.random() * window.innerHeight - (rect.top + (info.body?.position.y ?? 0)),
-        };
-        spawnChar(info.handle, 'remove-char', offset, () => {});
-      }
-      info.handle.showGlow('glow-disappear');
-    }
-    if (info.body) engine.remove(info.body);
-    delete displayCounts[name];
-    setTimeout(() => {
-      delete bodies[name];
-      renderCircles();
-    }, CHAR_ANIMATION_MS + 100);
-  };
-
   const update = (data: LineCount[]): void => {
     currentData = data;
-    const scale = computeScale(
-      width,
-      height,
-      data,
-      opts.linear !== undefined ? { linear: opts.linear } : {},
-    );
-    const exp = opts.linear ? 1 : 0.5;
-    const names = new Set(data.map((d) => d.file));
-    for (const [name, info] of Object.entries(bodies)) {
-      if (!names.has(name)) {
-        explodeAndRemove(name, info);
-      }
-    }
-    const newFiles: Array<{ name: string; added: number; removed: number }> = [];
-    for (const file of data) {
-      const lines = Number.isFinite(file.lines) ? file.lines : 0;
-      const r = (Math.pow(lines, exp) * scale) / 2;
-      const existing = bodies[file.file];
-      const prev = prevCounts[file.file] ?? 0;
-      const added = Math.max(0, lines - prev);
-      const removed = Math.max(0, prev - lines);
-      prevCounts[file.file] = lines;
-      if (r * 2 < MIN_CIRCLE_SIZE) {
-        if (existing) {
-          explodeAndRemove(file.file, existing);
-        }
-        continue;
-      }
-      if (existing) {
-        existing.handle?.updateRadius(r);
-        existing.r = r;
-        spawnChars(existing, file.file, added, removed);
-        if (effectsEnabled) {
-          if (added > removed) existing.handle?.showGlow('glow-grow');
-          else if (removed > added) existing.handle?.showGlow('glow-shrink');
-        }
-      } else {
-        bodies[file.file] = { r };
-        displayCounts[file.file] = lines;
-        newFiles.push({ name: file.file, added, removed });
-      }
-    }
-    if (newFiles.length) {
-      renderCircles();
-      for (const { name, added, removed } of newFiles) {
-        const info = bodies[name]!;
-        spawnChars(info, name, added, removed);
-        if (effectsEnabled) info.handle?.showGlow('glow-new');
-      }
-    }
+    render();
   };
 
   let frameId = 0;
@@ -213,47 +56,43 @@ export const createFileSimulation = (
     if (!running) return;
     engine.update(time - last);
     last = time;
-    for (const { body, handle, r } of Object.values(bodies)) {
-      if (!body || !handle) continue;
-      const { x, y } = body.position;
-      handle.el.style.transform = `translate3d(${x - r}px, ${y - r}px, 0) rotate(${body.angle}rad)`;
-      if (x < -r || x > width + r || y > height + r || y < -height - r) {
-        body.setVelocity({ x: 0, y: 0 });
-        body.setPosition({
-          x: Math.random() * (engine.bounds.width - 2 * r) + r,
-          y: -r,
-        });
-      }
-    }
     frameId = raf(step);
   };
 
   frameId = raf(step);
+
   const pause = (): void => {
     running = false;
     cancelAnimationFrame(frameId);
   };
+
   const resume = (): void => {
     if (running) return;
     running = true;
     last = now();
     frameId = raf(step);
   };
+
   const resize = (): void => {
     rect = container.getBoundingClientRect();
     width = rect.width;
     height = rect.height;
     engine.bounds.width = width;
     engine.bounds.height = height;
-    if (currentData.length) update(currentData);
+    if (currentData.length) render();
   };
+
   const destroy = (): void => {
     running = false;
     cancelAnimationFrame(frameId);
+    root.unmount();
   };
-  const setEffectsEnabled = (state: boolean): void => {
-    effectsEnabled = state;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setEffectsEnabled = (_state?: boolean): void => {
+    // TODO: restore animations
   };
+
   return { update, pause, resume, resize, destroy, setEffectsEnabled };
 };
 

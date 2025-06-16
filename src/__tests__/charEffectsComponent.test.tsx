@@ -32,4 +32,21 @@ describe('CharEffects component', () => {
     expect(container.querySelectorAll('.add-char').length).toBe(1);
     expect(container.querySelector('.add-char')).toBeTruthy();
   });
+
+  it('removes characters after animation', () => {
+    // eslint-disable-next-line no-restricted-syntax
+    const ref = React.createRef<Ref>();
+    // eslint-disable-next-line no-restricted-syntax
+    const { container } = render(<Wrapper ref={ref} />);
+    act(() => {
+      ref.current!.spawn();
+    });
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+    act(() => {
+      jest.runAllTimers();
+    });
+    expect(container.querySelector('.add-char')).toBeNull();
+  });
 });

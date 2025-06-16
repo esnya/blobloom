@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { App } from '../client/App';
+import { setupAppTest } from './helpers/app';
 
 const commits = [
   { id: 'n', message: 'new', timestamp: 2 },
@@ -9,35 +10,15 @@ const commits = [
 ];
 
 describe('App commit log', () => {
-  const originalFetch = global.fetch;
+  let restore: () => void;
 
   beforeEach(() => {
     jest.resetModules();
-    document.body.innerHTML = '<div id="root"></div>';
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      if (typeof input === 'string' && input.startsWith('/api/commits')) {
-        if (input.endsWith('/lines')) {
-          return Promise.resolve({
-            json: () =>
-              Promise.resolve({ counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }] }),
-          });
-        }
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) });
-      }
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      return Promise.reject(new Error(`Unexpected url: ${url}`));
-    }) as jest.Mock;
+    restore = setupAppTest({ commits });
   });
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    restore();
   });
 
   it('renders commit log after loading', async () => {

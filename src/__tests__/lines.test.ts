@@ -321,6 +321,39 @@ describe('lines module', () => {
     sim.destroy();
   });
 
+  it('shows glow when effects are enabled after mount', async () => {
+    const div = document.createElement('div');
+    div.getBoundingClientRect = () => ({
+      width: 200,
+      height: 200,
+      top: 0,
+      left: 0,
+      bottom: 200,
+      right: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+    let sim!: ReturnType<typeof createFileSimulation>;
+    await act(() => {
+      sim = createFileSimulation(div, { raf: () => 1, now: () => 0 });
+      return Promise.resolve();
+    });
+    sim.setEffectsEnabled(false);
+    await act(() => {
+      sim.update([{ file: 'a', lines: 1, added: 0, removed: 0 }]);
+      return Promise.resolve();
+    });
+    sim.setEffectsEnabled(true);
+    await act(() => {
+      sim.update([{ file: 'a', lines: 1, added: 0, removed: 0 }]);
+      return Promise.resolve();
+    });
+    expect(div.querySelector('.glow-new')).toBeTruthy();
+    sim.destroy();
+    div.remove();
+  });
+
   it('limits active character effects', async () => {
     const div = document.createElement('div');
     div.getBoundingClientRect = () => ({

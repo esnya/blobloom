@@ -18,12 +18,12 @@ export function FilePathDisplay({
 
   const pathStyle = {
     ...baseStyle,
-    fontSize: 'calc(var(--radius) * 0.3)',
+    fontSize: 'calc(var(--radius) * 0.15)',
   } as React.CSSProperties;
 
   const nameStyle = {
     ...baseStyle,
-    fontSize: 'calc(var(--radius) * 0.35)',
+    fontSize: 'calc(var(--radius) * 0.175)',
   } as React.CSSProperties;
 
   return (

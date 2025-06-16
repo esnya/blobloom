@@ -12,7 +12,7 @@ export const useCharEffectTimers = () => {
       const timer = setTimeout(() => {
         onEnd();
         timers.current.delete(id);
-      }, Math.round((2 + delay) * 1000));
+      }, Math.round((1 + delay) * 1000));
       timers.current.set(id, timer);
     },
     [],

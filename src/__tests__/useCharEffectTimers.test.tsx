@@ -13,7 +13,7 @@ describe('useCharEffectTimers', () => {
       result.current.spawnTimeout('a', 0.1, cb);
     });
     act(() => {
-      jest.advanceTimersByTime(2100);
+      jest.advanceTimersByTime(1100);
     });
 
     expect(cb).toHaveBeenCalled();
@@ -31,7 +31,7 @@ describe('useCharEffectTimers', () => {
     act(() => {
       result.current.spawnTimeout('b', 0, cb);
       result.current.clear('b');
-      jest.advanceTimersByTime(2500);
+      jest.advanceTimersByTime(1500);
     });
 
     expect(cb).not.toHaveBeenCalled();

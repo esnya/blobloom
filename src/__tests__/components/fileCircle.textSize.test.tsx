@@ -16,8 +16,8 @@ describe('FileCircle text size', () => {
     const path = container.querySelector('.path') as HTMLElement;
     const name = container.querySelector('.name') as HTMLElement;
     const count = container.querySelector('.count') as HTMLElement;
-    expect(path.style.fontSize).toBe('calc(var(--radius) * 0.3)');
-    expect(name.style.fontSize).toBe('calc(var(--radius) * 0.35)');
+    expect(path.style.fontSize).toBe('calc(var(--radius) * 0.15)');
+    expect(name.style.fontSize).toBe('calc(var(--radius) * 0.175)');
     expect(count.style.fontSize).toBe('calc(var(--radius) * 0.3)');
   });
 });

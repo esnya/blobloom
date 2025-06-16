@@ -69,7 +69,9 @@ describe('useTimelineData', () => {
       expect(result.current.lineCounts).toEqual(linesFirst),
     );
 
-    rerender({ ts: 2000 });
+    act(() => {
+      rerender({ ts: 2000 });
+    });
     await waitFor(() =>
       expect(result.current.lineCounts).toEqual(linesSecond),
     );
@@ -148,11 +150,15 @@ describe('useTimelineData', () => {
 
     await waitFor(() => expect(result.current.start).toBe(1000));
 
-    rerender({ ts: 2000 });
+    act(() => {
+      rerender({ ts: 2000 });
+    });
 
     expect((global.fetch as jest.Mock).mock.calls).toHaveLength(1);
 
-    resolveFirst?.();
+    act(() => {
+      resolveFirst?.();
+    });
 
     await waitFor(() => expect(result.current.lineCounts).toEqual(linesSecond));
 
@@ -217,7 +223,9 @@ describe('useTimelineData', () => {
 
     await waitFor(() => expect(result.current.lineCounts).toEqual(linesInit));
 
-    rerender({ ts: 2000 });
+    act(() => {
+      rerender({ ts: 2000 });
+    });
     await waitFor(() =>
       expect(result.current.lineCounts).toEqual([
         { file: 'a.txt', lines: 1, added: 0, removed: 0 },
@@ -288,16 +296,26 @@ describe('useTimelineData', () => {
 
     await waitFor(() => expect(result.current.start).toBe(1000));
 
-    rerender({ ts: 2000 });
-    rerender({ ts: 3000 });
+    act(() => {
+      rerender({ ts: 2000 });
+    });
+    act(() => {
+      rerender({ ts: 3000 });
+    });
 
-    callbacks[0]?.();
+    act(() => {
+      callbacks[0]?.();
+    });
     await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c1));
 
-    callbacks[1]?.();
+    act(() => {
+      callbacks[1]?.();
+    });
     await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c2));
 
-    callbacks[2]?.();
+    act(() => {
+      callbacks[2]?.();
+    });
     await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c3));
   });
 

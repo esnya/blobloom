@@ -6,7 +6,7 @@ import type { LineCount } from '../types';
 
 const useLineCountsQueue = (baseUrl?: string) => {
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
-  const renameMapRef = useRef<Record<string, string>>({});
+  const [renameMap, setRenameMap] = useState<Record<string, string>>({});
   const pending = useRef<{ id: string; parent?: string } | null>(null);
   const inflight = useRef(false);
   const token = useRef(0);
@@ -20,14 +20,19 @@ const useLineCountsQueue = (baseUrl?: string) => {
     void fetchLineCounts(id, baseUrl, parent)
       .then(({ counts, renames }) => {
         if (token.current !== current || pending.current) return;
-        if (renames) {
-          for (const [to, from] of Object.entries(renames)) {
-            renameMapRef.current[to] = renameMapRef.current[from] ?? from;
+        let nextMap: Record<string, string> = {};
+        setRenameMap((prev) => {
+          nextMap = { ...prev };
+          if (renames) {
+            for (const [to, from] of Object.entries(renames)) {
+              nextMap[to] = nextMap[from] ?? from;
+            }
           }
-        }
+          return nextMap;
+        });
         const mapped = counts.map((c) => ({
           ...c,
-          file: renameMapRef.current[c.file] ?? c.file,
+          file: nextMap[c.file] ?? c.file,
         }));
         setLineCounts(mapped);
       })
@@ -46,7 +51,7 @@ const useLineCountsQueue = (baseUrl?: string) => {
   );
 
   useEffect(() => {
-    renameMapRef.current = {};
+    setRenameMap({});
     setLineCounts([]);
     token.current += 1;
   }, [baseUrl]);

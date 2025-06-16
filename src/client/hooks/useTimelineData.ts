@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { readCommits } from '../commitsResource';
+import { buildWsUrl } from '../ws';
 import type { LineCount } from '../types';
 import type { LineCountsResponse, ApiError } from '../../api/types';
 
@@ -43,16 +44,7 @@ const useLineCountsQueue = (baseUrl?: string) => {
 
   const connect = useCallback(() => {
     if (socketRef.current) return;
-    const secure = baseUrl
-      ? baseUrl.startsWith('https')
-      : typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const protocol = secure ? 'wss' : 'ws';
-    const origin = baseUrl
-      ? baseUrl.replace(/^https?:\/\//, '')
-      : typeof window !== 'undefined'
-        ? window.location.host
-        : '';
-    const socket = new WebSocket(`${protocol}://${origin}/ws/lines`);
+    const socket = new WebSocket(buildWsUrl('/ws/lines', baseUrl));
     socket.addEventListener('open', sendQueued);
     socket.addEventListener('message', handleMessage);
     socket.addEventListener('close', () => {

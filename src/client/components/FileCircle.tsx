@@ -4,6 +4,9 @@ import { useBody } from '../hooks/useBody';
 import { FileCircleContent } from './FileCircleContent';
 import { colorForFile } from '../colors';
 import { useGlowControl } from '../hooks/useGlowControl';
+import { CharEffects } from './CharEffects';
+import { useCharEffects } from '../hooks/useCharEffects';
+import { MAX_EFFECT_CHARS } from '../fileSimulation';
 
 interface FileCircleProps {
   file: string;
@@ -28,6 +31,7 @@ export function FileCircle({
   });
   const [currentRadius, setCurrentRadius] = useState(radius);
   const { startGlow, glowProps } = useGlowControl();
+  const { chars, spawnChar, removeChar } = useCharEffects();
   /* eslint-disable no-restricted-syntax */
   const prevLines = useRef(lines);
   /* eslint-enable no-restricted-syntax */
@@ -46,8 +50,18 @@ export function FileCircle({
     if (prevLines.current === lines) return;
     if (lines > prevLines.current) startGlow('glow-grow');
     else if (lines < prevLines.current) startGlow('glow-shrink');
+    const diff = lines - prevLines.current;
+    const active = chars.length;
+    const available = Math.max(0, MAX_EFFECT_CHARS - active);
+    const spawn = Math.min(Math.abs(diff), available);
+    for (let i = 0; i < spawn; i += 1) {
+      const angle = Math.random() * 2 * Math.PI;
+      const r = Math.sqrt(Math.random()) * currentRadius;
+      const offset = { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
+      spawnChar(diff > 0 ? 'add-char' : 'remove-char', offset, () => {});
+    }
     prevLines.current = lines;
-  }, [lines, effectsEnabled, startGlow]);
+  }, [lines, effectsEnabled, startGlow, spawnChar, chars.length, currentRadius]);
   useEffect(() => {
     if (radius === currentRadius) return;
     body.scale(radius / currentRadius, radius / currentRadius);
@@ -79,6 +93,7 @@ export function FileCircle({
           name={name}
           count={lines}
         />
+        <CharEffects effects={{ chars, spawnChar, removeChar }} />
       </div>
     </>
   );

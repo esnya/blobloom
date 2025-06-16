@@ -22,6 +22,9 @@ export class Body {
   angle: number;
   angularVelocity: number;
   restitution: number;
+  friction: number;
+  frictionAir: number;
+  mass: number;
   radius?: number;
   aabb: AABB;
   onUpdate?: (body: Body) => void;
@@ -31,6 +34,9 @@ export class Body {
     velocity?: Vector;
     restitution?: number;
     radius?: number;
+    friction?: number;
+    frictionAir?: number;
+    mass?: number;
     onUpdate?: (body: Body) => void;
   }) {
     this.position = { ...opts.position };
@@ -38,6 +44,9 @@ export class Body {
     this.angle = 0;
     this.angularVelocity = 0;
     this.restitution = opts.restitution ?? 1;
+    this.friction = opts.friction ?? 0;
+    this.frictionAir = opts.frictionAir ?? 0;
+    this.mass = opts.mass ?? 1;
     if (opts.radius !== undefined) this.radius = opts.radius;
     if (opts.onUpdate) this.onUpdate = opts.onUpdate;
     const r = this.radius ?? 0;
@@ -108,6 +117,9 @@ export class Engine {
       radius: r,
     };
     if (opts.restitution !== undefined) params.restitution = opts.restitution;
+    if (opts.friction !== undefined) params.friction = opts.friction;
+    if (opts.frictionAir !== undefined) params.frictionAir = opts.frictionAir;
+    if (opts.mass !== undefined) params.mass = opts.mass;
     if (opts.onUpdate) params.onUpdate = opts.onUpdate;
     return new Body(params);
   }
@@ -144,20 +156,28 @@ export class Engine {
       body.position.y += body.velocity.y;
       body.angle += body.angularVelocity;
 
+      body.velocity.x *= 1 - body.frictionAir;
+      body.velocity.y *= 1 - body.frictionAir;
+      body.angularVelocity *= 1 - body.frictionAir;
+
       if (body.radius !== undefined) {
         if (body.position.x - body.radius < 0) {
           body.position.x = body.radius;
           body.velocity.x *= -body.restitution;
+          body.velocity.y *= 1 - body.friction;
         } else if (body.position.x + body.radius > width) {
           body.position.x = width - body.radius;
           body.velocity.x *= -body.restitution;
+          body.velocity.y *= 1 - body.friction;
         }
         if (body.position.y - body.radius < top) {
           body.position.y = top + body.radius;
           body.velocity.y *= -body.restitution;
+          body.velocity.x *= 1 - body.friction;
         } else if (body.position.y + body.radius > height) {
           body.position.y = height - body.radius;
           body.velocity.y *= -body.restitution;
+          body.velocity.x *= 1 - body.friction;
         }
       }
 
@@ -189,19 +209,47 @@ export class Engine {
     const dist = Math.sqrt(distSq);
     const nx = dx / dist;
     const ny = dy / dist;
-    const relVel = (a.velocity.x - b.velocity.x) * nx + (a.velocity.y - b.velocity.y) * ny;
-    if (relVel > 0) return;
-    a.velocity.x -= relVel * nx;
-    a.velocity.y -= relVel * ny;
-    b.velocity.x += relVel * nx;
-    b.velocity.y += relVel * ny;
+    const tx = -ny;
+    const ty = nx;
+
+    const relVelX = a.velocity.x - b.velocity.x;
+    const relVelY = a.velocity.y - b.velocity.y;
+
+    const relNormal = relVelX * nx + relVelY * ny;
+    if (relNormal > 0) return;
+
+    const e = Math.min(a.restitution, b.restitution);
+    const m1 = a.mass;
+    const m2 = b.mass;
+
+    const j = (-(1 + e) * relNormal) / (1 / m1 + 1 / m2);
+
+    a.velocity.x += (j / m1) * nx;
+    a.velocity.y += (j / m1) * ny;
+    b.velocity.x -= (j / m2) * nx;
+    b.velocity.y -= (j / m2) * ny;
+
+    const relTang = relVelX * tx + relVelY * ty;
+    const mu = (a.friction + b.friction) / 2;
+    let jt = -relTang / (1 / m1 + 1 / m2);
+    const maxJt = Math.abs(j) * mu;
+    if (jt > maxJt) jt = maxJt;
+    if (jt < -maxJt) jt = -maxJt;
+
+    a.velocity.x += (jt / m1) * tx;
+    a.velocity.y += (jt / m1) * ty;
+    b.velocity.x -= (jt / m2) * tx;
+    b.velocity.y -= (jt / m2) * ty;
+
+    if (a.radius) a.angularVelocity -= (jt / m1) / a.radius;
+    if (b.radius) b.angularVelocity += (jt / m2) / b.radius;
 
     const overlap = r - dist;
-    const half = overlap / 2;
-    a.position.x -= nx * half;
-    a.position.y -= ny * half;
-    b.position.x += nx * half;
-    b.position.y += ny * half;
+    const correction = overlap / (m1 + m2);
+    a.position.x -= nx * correction * m2;
+    a.position.y -= ny * correction * m2;
+    b.position.x += nx * correction * m1;
+    b.position.y += ny * correction * m1;
     a.updateAABB();
     b.updateAABB();
   }

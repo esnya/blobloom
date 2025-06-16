@@ -19,6 +19,7 @@
 - Make these checks part of the regular workflow and account for them when updating CI.
 * Use React refs only when absolutely necessary and preferably within custom hooks.
   Override the ESLint ref restriction locally in such files or lines.
+* Prefer encapsulating `useMemo` and `useEffect` logic in custom hooks. When the logic is short and component-specific, defining the hook in the component file is acceptable. Evaluate frequently used component-related functions for potential hook conversion.
 * React components must not modify physics engine state directly except for:
   - Adjusting engine bounds via `PhysicsProvider`
   - Creating or removing bodies through hooks

@@ -5,6 +5,7 @@ import { FileCircleContent } from './FileCircleContent';
 import { colorForFile } from '../colors';
 import { useGlowControl } from '../hooks/useGlowControl';
 import { useGlobalCharEffects } from '../hooks/useGlobalCharEffects';
+import { useRadiusAnimation } from '../hooks/useRadiusAnimation';
 import { MAX_EFFECT_CHARS } from '../fileSimulation';
 
 interface FileCircleProps {
@@ -26,7 +27,7 @@ export function FileCircle({
     frictionAir: 0.001,
     onUpdate: forceUpdate,
   });
-  const [currentRadius, setCurrentRadius] = useState(radius);
+  const [currentRadius, animateRadius] = useRadiusAnimation(radius);
   const { startGlow, glowProps } = useGlowControl();
   const { chars, spawnChar } = useGlobalCharEffects();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,11 +77,12 @@ export function FileCircle({
     [lines, spawnChar, chars.length, currentRadius],
   );
   useEffect(() => {
-    if (radius === currentRadius) return;
-    body.scale(radius / currentRadius, radius / currentRadius);
-    setBodyRadius(radius);
-    setCurrentRadius(radius);
-  }, [radius, currentRadius, body, setBodyRadius]);
+    if (radius !== currentRadius) animateRadius(radius);
+  }, [radius, currentRadius, animateRadius]);
+
+  useEffect(() => {
+    setBodyRadius(currentRadius);
+  }, [currentRadius, setBodyRadius]);
 
 
   const dir = file.split('/');

@@ -31,7 +31,7 @@ export function FileCircle({
   const { body, setRadius: setBodyRadius } = useBody({
     radius: initialRadius,
     restitution: 0.9,
-    frictionAir: 0.005,
+    frictionAir: 0.002,
   });
   const containerId = useId();
   const containerRef = useRef<HTMLDivElement>(null);

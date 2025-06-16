@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
-import { useCharEffects } from '../hooks';
+import { useCharEffects } from '../hooks/useCharEffects';
 
 export interface FileCircleContentHandle {
   setCount: (n: number) => void;

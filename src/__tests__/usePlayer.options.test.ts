@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import { renderHook } from '@testing-library/react';
-import { usePlayer } from '../client/hooks';
+import { usePlayer } from '../client/hooks/usePlayer';
 import { createPlayer } from '../client/player';
 
 jest.mock('../client/player');

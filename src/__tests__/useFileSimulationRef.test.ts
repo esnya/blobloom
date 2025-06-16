@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { useFileSimulationRef } from '../client/hooks';
+import { useFileSimulationRef } from '../client/hooks/useFileSimulationRef';
 import { createFileSimulation } from '../client/fileSimulation';
 
 jest.mock('../client/fileSimulation');

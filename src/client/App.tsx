@@ -2,7 +2,8 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { CommitLog } from './components/CommitLog';
 import { SeekBar } from './components/SeekBar';
 import { FileCircleSimulation } from './components/FileCircleSimulation';
-import { useTimelineData, usePlayer } from './hooks';
+import { useTimelineData } from './hooks/useTimelineData';
+import { usePlayer } from './hooks/usePlayer';
 
 const PLAY_DURATION = 30;
 

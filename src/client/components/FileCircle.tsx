@@ -1,10 +1,10 @@
 // eslint-disable-next-line no-restricted-syntax
 import React, { useEffect, useId, useState, useCallback, useRef } from 'react';
-import { useBody } from '../hooks';
+import { useBody } from '../hooks/useBody';
 import * as Physics from '../physics';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
 import { colorForFile } from '../colors';
-import { useGlowControl } from '../hooks';
+import { useGlowControl } from '../hooks/useGlowControl';
 
 export interface FileCircleHandle extends FileCircleContentHandle {
   body: Physics.Body;

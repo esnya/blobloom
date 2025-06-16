@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import viteExpress from './src/viteExpress';
+import viteExpress from './src/server/vite-express';
 
 export default defineConfig({
   plugins: [react(), viteExpress()],

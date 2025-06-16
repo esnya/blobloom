@@ -1,16 +1,16 @@
 import express from 'express';
 import { z } from 'zod';
-import { appSettings } from './appSettings';
+import { appSettings } from './app-settings';
 import * as git from 'isomorphic-git';
 import fs from 'fs';
 import path from 'path';
-import { getLineCounts } from './lineCounts';
-import { defaultIgnore } from './ignoreDefaults';
+import { getLineCounts } from './line-counts';
+import { defaultIgnore } from './ignore-defaults';
 import type {
   ApiError,
   CommitsResponse,
   LineCountsResponse,
-} from './api/types';
+} from '../api/types';
 
 const commitSchema = z.object({
   message: z.string(),

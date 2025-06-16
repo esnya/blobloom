@@ -5,8 +5,8 @@ import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import { test, expect } from '@playwright/test';
 import express from 'express';
-import { apiMiddleware } from '../src/apiMiddleware';
-import { appSettings } from '../src/appSettings';
+import { apiMiddleware } from '../src/server/api-middleware';
+import { appSettings } from '../src/server/app-settings';
 
 const author = { name: 'a', email: 'a@example.com' };
 

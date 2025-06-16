@@ -5,7 +5,7 @@
   "description": "Git size-history visualizer",
   "type": "module",
   "scripts": {
-    "start": "npm run build && tsx src/server.ts",
+    "start": "npm run build && tsx src/server/index.ts",
     "lint": "eslint \"**/*.ts?(x)\" --max-warnings=0",
     "build": "vite build",
     "dev": "vite",

@@ -1,6 +1,6 @@
 import type { Plugin } from 'vite';
 import type { NextHandleFunction } from 'connect';
-import { apiMiddleware } from './apiMiddleware';
+import { apiMiddleware } from './api-middleware';
 import express from 'express';
 
 export default function viteExpress(): Plugin {

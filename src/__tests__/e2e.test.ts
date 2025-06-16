@@ -4,8 +4,8 @@ import path from 'path';
 import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import express from 'express';
-import { apiMiddleware } from '../apiMiddleware';
-import { appSettings } from '../appSettings';
+import { apiMiddleware } from '../server/api-middleware';
+import { appSettings } from '../server/app-settings';
 import { fetchCommits, fetchLineCounts } from '../client/api';
 
 const author = { name: 'a', email: 'a@example.com' };

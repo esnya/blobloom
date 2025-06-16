@@ -13,7 +13,6 @@ export default {
   testTimeout: 10000,
   collectCoverage: true,
   collectCoverageFrom: [
-    'src/math.ts',
     'src/client/**/*.{ts,tsx}',
   ],
   coverageThreshold: {

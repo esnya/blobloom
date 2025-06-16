@@ -5,14 +5,14 @@ import { PhysicsRunner } from '../hooks/useEngineRunner';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
-import { useContainerBounds } from '../hooks/useContainerBounds';
+import { useSize } from '../hooks/useSize';
 
 interface FileCircleSimulationProps {
   data: LineCount[];
 }
 
 export function FileCircleSimulation({ data }: FileCircleSimulationProps): React.JSX.Element {
-  const { ref: containerRef, bounds } = useContainerBounds();
+  const { ref: containerRef, size: bounds } = useSize<HTMLDivElement>();
 
   return (
     // eslint-disable-next-line no-restricted-syntax

@@ -100,20 +100,30 @@
         inset: 0;
         overflow: visible;
       }
-      .glow-new {
-        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+      .file-circle.glow-new::after,
+      .file-circle.glow-grow::after,
+      .file-circle.glow-shrink::after,
+      .file-circle.glow-disappear::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        pointer-events: none;
+      }
+      .file-circle.glow-new::after {
+        box-shadow: 0 0 4px 2px rgba(255, 255, 255, 0.5);
         animation: fadeGlow 0.5s forwards;
       }
-      .glow-grow {
-        box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.5);
+      .file-circle.glow-grow::after {
+        box-shadow: 0 0 4px 2px rgba(0, 255, 0, 0.5);
         animation: fadeGlow 0.5s forwards;
       }
-      .glow-shrink {
-        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.5);
+      .file-circle.glow-shrink::after {
+        box-shadow: 0 0 4px 2px rgba(255, 0, 0, 0.5);
         animation: fadeGlow 0.5s forwards;
       }
-      .glow-disappear {
-        box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.5);
+      .file-circle.glow-disappear::after {
+        box-shadow: 0 0 4px 2px rgba(255, 0, 0, 0.5);
         animation: fadeOut 0.5s forwards;
       }
       @keyframes fadeGlow {

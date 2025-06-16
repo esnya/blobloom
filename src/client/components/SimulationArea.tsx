@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useState } from 'react';
+// eslint-disable-next-line no-restricted-syntax
+import React, { useEffect, useRef, useState } from 'react';
 import { useFileSimulation } from '../hooks/useFileSimulation';
 import type { LineCount } from '../types';
 
@@ -7,17 +8,20 @@ interface SimulationAreaProps {
 }
 
 export function SimulationArea({ data }: SimulationAreaProps): React.JSX.Element {
-  const containerId = useId();
-  const [el, setEl] = useState<HTMLElement | null>(null);
+  /* eslint-disable no-restricted-syntax */
+  const containerRef = useRef<HTMLDivElement>(null);
+  /* eslint-enable no-restricted-syntax */
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setEl(document.getElementById(containerId));
-  }, [containerId]);
-  const { update } = useFileSimulation(el);
+    setMounted(true);
+  }, []);
+  const { update } = useFileSimulation(mounted ? containerRef.current : null);
 
   useEffect(() => {
     if (data.length) update(data);
   }, [data, update]);
 
-  return <div id={containerId} />;
+  // eslint-disable-next-line no-restricted-syntax
+  return <div ref={containerRef} />;
 }
 

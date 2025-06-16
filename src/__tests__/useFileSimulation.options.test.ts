@@ -11,7 +11,6 @@ const mockSim = {
   resume: jest.fn(),
   resize: jest.fn(),
   destroy: jest.fn(),
-  setEffectsEnabled: jest.fn(),
 };
 
 beforeEach(() => {

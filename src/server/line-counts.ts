@@ -1,7 +1,12 @@
 import * as git from 'isomorphic-git';
 import fs from 'fs';
 import { minimatch } from 'minimatch';
-import diff from 'diff-sequences';
+import diffModule from 'diff-sequences';
+
+const diff =
+  typeof diffModule === 'function'
+    ? diffModule
+    : (diffModule as { default: typeof diffModule }).default;
 
 const isBinary = (buf: Buffer): boolean => {
   const len = Math.min(buf.length, 1000);

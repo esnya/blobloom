@@ -131,6 +131,7 @@ export const createFileSimulation = (
     const portals = Object.entries(bodies).map(([name, info]) =>
       createPortal(
         <FileCircle
+          key={name}
           file={name}
           lines={prevCounts[name] ?? 0}
           initialRadius={info.r}

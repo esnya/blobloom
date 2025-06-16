@@ -1,5 +1,7 @@
 # blobloom
 
+![Project logo](logo.svg)
+
 Git size-history visualizer
 
 Requires Node.js 20 or later.

@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-syntax
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { PhysicsProvider } from '../hooks/useEngine';
 import { PhysicsRunner } from '../hooks/useEngineRunner';
 import { useEngine } from '../hooks/useEngine';
@@ -56,7 +56,16 @@ export function FileCircleList({ data, bounds, linear, effectsEnabled = true }: 
     engine.bounds.height = bounds.height;
   }, [engine, bounds.width, bounds.height]);
 
-  const scale = computeScale(bounds.width, bounds.height, data, linear !== undefined ? { linear } : {});
+  const scale = useMemo(
+    () =>
+      computeScale(
+        bounds.width,
+        bounds.height,
+        data,
+        linear !== undefined ? { linear } : {},
+      ),
+    [bounds.width, bounds.height, data, linear],
+  );
 
   return (
     <>

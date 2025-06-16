@@ -40,6 +40,22 @@ const hexToHsl = (
 const hsl = ({ h, s, l }: { h: number; s: number; l: number }): string =>
   `hsl(${h},${s}%,${l}%)`;
 
+const parseHsl = (
+  color: string,
+): { h: number; s: number; l: number } | null => {
+  const match = color.match(/^hsl\(([-\d.]+),\s*([-\d.]+)%?,\s*([-\d.]+)%?\)$/);
+  if (!match) return null;
+  const [, h, s, l] = match;
+  return { h: parseFloat(h!), s: parseFloat(s!), l: parseFloat(l!) };
+};
+
+export const lightenColor = (color: string, amount: number): string => {
+  const hslVal = parseHsl(color);
+  if (!hslVal) return color;
+  const l = Math.min(100, hslVal.l + amount);
+  return hsl({ ...hslVal, l });
+};
+
 export const colorForFile = (name: string): string => {
   const i = name.lastIndexOf('.');
   const ext = i >= 0 ? name.slice(i).toLowerCase() : '';

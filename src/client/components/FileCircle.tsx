@@ -3,7 +3,7 @@ import React, { useEffect, useId, useState, useCallback, useRef } from 'react';
 import { useBody } from '../hooks';
 import * as Physics from '../physics';
 import { FileCircleContent, type FileCircleContentHandle } from './FileCircleContent';
-import { colorForFile } from '../colors';
+import { colorForFile, lightenColor } from '../colors';
 import { useGlowControl } from '../hooks';
 
 export interface FileCircleHandle extends FileCircleContentHandle {
@@ -84,6 +84,8 @@ export function FileCircle({
 
   const dir = file.split('/');
   const name = dir.pop() ?? '';
+  const baseColor = colorForFile(file);
+  const gradColor = lightenColor(baseColor, 15);
 
   return (
     <div
@@ -96,7 +98,9 @@ export function FileCircle({
         width: `${radius * 2}px`,
         height: `${radius * 2}px`,
         borderRadius: '50%',
-        background: hidden ? 'transparent' : colorForFile(file),
+        background: hidden
+          ? 'transparent'
+          : `radial-gradient(circle at 30% 30%, ${gradColor}, ${baseColor})`,
         willChange: 'transform',
         transform: `translate3d(${body.position.x - radius}px, ${body.position.y - radius}px, 0) rotate(${body.angle}rad)`,
       }}

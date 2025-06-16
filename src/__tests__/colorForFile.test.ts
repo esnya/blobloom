@@ -1,4 +1,4 @@
-import { colorForFile } from '../client/colors';
+import { colorForFile, lightenColor } from '../client/colors';
 
 describe('colorForFile', () => {
   it('handles extension case-insensitively', () => {
@@ -8,5 +8,9 @@ describe('colorForFile', () => {
 
   it('handles files without extension', () => {
     expect(colorForFile('Makefile')).toBe('hsl(8,60%,60%)');
+  });
+
+  it('lightens HSL colors', () => {
+    expect(lightenColor('hsl(0,0%,50%)', 10)).toBe('hsl(0,0%,60%)');
   });
 });

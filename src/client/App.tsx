@@ -14,7 +14,7 @@ function AppContent(): React.JSX.Element {
   const { commits, lineCounts, start, end } = useTimelineData({ timestamp });
   const [playing, setPlaying] = useState(false);
 
-  const { resume, togglePlay } = usePlayer({
+  const { togglePlay } = usePlayer({
     getSeek: () => timestamp,
     setSeek: setTimestamp,
     duration,
@@ -25,10 +25,7 @@ function AppContent(): React.JSX.Element {
 
   useEffect(() => {
     setTimestamp(start);
-    if (start && end) {
-      resume();
-    }
-  }, [start, end, resume]);
+  }, [start, end]);
 
   return (
     <>

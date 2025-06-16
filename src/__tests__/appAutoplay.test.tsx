@@ -8,7 +8,7 @@ const commits = [
   { id: 'o', message: 'old', timestamp: 1 },
 ];
 
-describe('App autoplay', () => {
+describe('App initial pause', () => {
   const originalFetch = global.fetch;
   const originalRaf = global.requestAnimationFrame;
   let now = 0;
@@ -50,7 +50,7 @@ describe('App autoplay', () => {
     global.requestAnimationFrame = originalRaf;
   });
 
-  it('advances timestamp automatically', async () => {
+  it('does not advance timestamp automatically', async () => {
     const { container } = render(<App />);
     await waitFor(() => expect(container.querySelector('#commit-log')).toBeTruthy());
 
@@ -61,7 +61,7 @@ describe('App autoplay', () => {
       jest.advanceTimersByTime(100);
     });
 
-    await waitFor(() => expect(Number(input.value)).toBeGreaterThan(initial));
+    expect(Number(input.value)).toBe(initial);
   });
 });
 

@@ -26,4 +26,20 @@ describe('useBody', () => {
     unmount();
     expect(result.current.engine.world.bodies).not.toContain(result.current.body);
   });
+
+  it('spawns body just above the view with random x', () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PhysicsProvider bounds={{ width: 200, height: 100 }}>{children}</PhysicsProvider>
+    );
+
+    const { result } = renderHook(() => {
+      const engine = useEngine();
+      const info = useBody({ radius: 10 });
+      return { engine, ...info };
+    }, { wrapper });
+
+    expect(result.current.body.position.y).toBe(-10);
+    expect(result.current.body.position.x).toBeGreaterThanOrEqual(10);
+    expect(result.current.body.position.x).toBeLessThanOrEqual(190);
+  });
 });

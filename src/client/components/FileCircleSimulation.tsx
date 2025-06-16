@@ -45,9 +45,10 @@ export interface FileCircleListProps {
   data: LineCount[];
   bounds: { width: number; height: number };
   linear?: boolean;
+  effectsEnabled?: boolean;
 }
 
-export function FileCircleList({ data, bounds, linear }: FileCircleListProps): React.JSX.Element {
+export function FileCircleList({ data, bounds, linear, effectsEnabled = true }: FileCircleListProps): React.JSX.Element {
   const engine = useEngine();
 
   useEffect(() => {
@@ -62,7 +63,15 @@ export function FileCircleList({ data, bounds, linear }: FileCircleListProps): R
       {data.map((d) => {
         const r = (Math.pow(d.lines, 0.5) * scale) / 2;
         if (r * 2 < 1) return null;
-        return <FileCircle key={d.file} file={d.file} lines={d.lines} radius={r} />;
+        return (
+          <FileCircle
+            key={d.file}
+            file={d.file}
+            lines={d.lines}
+            radius={r}
+            effectsEnabled={effectsEnabled}
+          />
+        );
       })}
     </>
   );

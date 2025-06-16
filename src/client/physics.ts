@@ -21,6 +21,7 @@ export class Body {
   velocity: Vector;
   angle: number;
   angularVelocity: number;
+  restitution: number;
   radius?: number;
   aabb: AABB;
   onUpdate?: (body: Body) => void;
@@ -28,6 +29,7 @@ export class Body {
   constructor(opts: {
     position: Vector;
     velocity?: Vector;
+    restitution?: number;
     radius?: number;
     onUpdate?: (body: Body) => void;
   }) {
@@ -35,6 +37,7 @@ export class Body {
     this.velocity = opts.velocity ?? { x: 0, y: 0 };
     this.angle = 0;
     this.angularVelocity = 0;
+    this.restitution = opts.restitution ?? 1;
     if (opts.radius !== undefined) this.radius = opts.radius;
     if (opts.onUpdate) this.onUpdate = opts.onUpdate;
     const r = this.radius ?? 0;
@@ -73,7 +76,7 @@ export class Body {
 
 export class Engine {
   world: { bodies: Body[] };
-  gravity = { y: 1, scale: 0.004 };
+  gravity = { y: 1, scale: 0.008 };
   bounds: { width: number; height: number; top: number };
   maxDelta = 50;
   private runner?: EngineRunner;
@@ -104,6 +107,7 @@ export class Engine {
       position: { x, y },
       radius: r,
     };
+    if (opts.restitution !== undefined) params.restitution = opts.restitution;
     if (opts.onUpdate) params.onUpdate = opts.onUpdate;
     return new Body(params);
   }
@@ -143,17 +147,17 @@ export class Engine {
       if (body.radius !== undefined) {
         if (body.position.x - body.radius < 0) {
           body.position.x = body.radius;
-          body.velocity.x *= -1;
+          body.velocity.x *= -body.restitution;
         } else if (body.position.x + body.radius > width) {
           body.position.x = width - body.radius;
-          body.velocity.x *= -1;
+          body.velocity.x *= -body.restitution;
         }
         if (body.position.y - body.radius < top) {
           body.position.y = top + body.radius;
-          body.velocity.y *= -1;
+          body.velocity.y *= -body.restitution;
         } else if (body.position.y + body.radius > height) {
           body.position.y = height - body.radius;
-          body.velocity.y *= -1;
+          body.velocity.y *= -body.restitution;
         }
       }
 

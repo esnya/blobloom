@@ -1,12 +1,9 @@
 import type { Commit, LineCount } from './types';
 import type { ApiError, CommitsResponse, LineCountsResponse } from '../api/types';
 
-export type JsonFetcher = (input: string) => Promise<unknown>;
-
-export const fetchCommits = async (
-  json: JsonFetcher,
-): Promise<Commit[]> => {
-  const data = (await json('/api/commits')) as CommitsResponse | ApiError;
+export const fetchCommits = async (baseUrl = ''): Promise<Commit[]> => {
+  const response = await fetch(`${baseUrl}/api/commits`);
+  const data = (await response.json()) as CommitsResponse | ApiError;
   if ('commits' in data) {
     return data.commits;
   }
@@ -14,14 +11,16 @@ export const fetchCommits = async (
 };
 
 export const fetchLineCounts = async (
-  json: JsonFetcher,
   timestamp?: number,
+  baseUrl = '',
 ): Promise<LineCount[]> => {
-  const url =
+  const path =
     timestamp === undefined ? '/api/lines' : `/api/lines?ts=${timestamp}`;
-  const result = (await json(url)) as LineCountsResponse | ApiError;
-  if ('counts' in result) {
+  const response = await fetch(`${baseUrl}${path}`);
+  const result = (await response.json()) as LineCountsResponse | ApiError;
+  if ('counts' in result && result.counts.length > 0) {
     return result.counts;
   }
-  throw new Error(result.error);
+  const message = 'error' in result ? result.error : 'No line counts';
+  throw new Error(message);
 };

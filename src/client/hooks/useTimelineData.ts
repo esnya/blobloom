@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchCommits, fetchLineCounts, type JsonFetcher } from '../api';
+import { fetchCommits, fetchLineCounts } from '../api';
 import type { Commit, LineCount } from '../types';
 
 interface TimelineDataOptions {
-  json?: JsonFetcher | undefined;
+  baseUrl?: string | undefined;
   timestamp: number;
 }
 
-export const useTimelineData = ({ json, timestamp }: TimelineDataOptions) => {
+export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => {
   const [commits, setCommits] = useState<Commit[]>([]);
   const [lineCounts, setLineCounts] = useState<LineCount[]>([]);
   const [start, setStart] = useState(0);
@@ -15,9 +15,8 @@ export const useTimelineData = ({ json, timestamp }: TimelineDataOptions) => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!json) return;
     void (async () => {
-      const data = await fetchCommits(json);
+      const data = await fetchCommits(baseUrl);
       setCommits(data);
       if (data.length) {
         const s = data[data.length - 1]!.commit.committer.timestamp * 1000;
@@ -27,12 +26,12 @@ export const useTimelineData = ({ json, timestamp }: TimelineDataOptions) => {
       }
       setReady(true);
     })();
-  }, [json]);
+  }, [baseUrl]);
 
   useEffect(() => {
-    if (!json || !ready) return;
-    void fetchLineCounts(json, timestamp).then(setLineCounts);
-  }, [json, timestamp, ready]);
+    if (!ready) return;
+    void fetchLineCounts(timestamp, baseUrl).then(setLineCounts);
+  }, [timestamp, ready, baseUrl]);
 
   return { commits, lineCounts, start, end, ready };
 };

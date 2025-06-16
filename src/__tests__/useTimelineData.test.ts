@@ -115,7 +115,7 @@ describe('useTimelineData', () => {
 
     rerender({ ts: 2000 });
 
-    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(3);
+    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(2);
 
     resolveFirst?.();
 

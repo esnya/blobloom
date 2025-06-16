@@ -4,7 +4,7 @@ import path from 'path';
 import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import express from 'express';
-import { createApiMiddleware, apiMiddleware } from '../apiMiddleware';
+import { apiMiddleware } from '../apiMiddleware';
 import { appSettings } from '../appSettings';
 import { fetchCommits, fetchLineCounts, JsonFetcher } from '../client/api';
 
@@ -23,7 +23,9 @@ describe('server e2e', () => {
     await git.commit({ fs, dir, author, message: 'init' });
 
     const app = express();
-    app.use(await createApiMiddleware({ repo: dir, branch: 'HEAD' }));
+    app.set(appSettings.repo.description!, dir);
+    app.set(appSettings.branch.description!, 'HEAD');
+    app.use(apiMiddleware);
     const server = app.listen(0);
     const { port } = server.address() as AddressInfo;
 
@@ -74,7 +76,9 @@ describe('server e2e', () => {
     await git.commit({ fs, dir, author, message: 'init' });
 
     const app = express();
-    app.use(await createApiMiddleware({ repo: dir, branch: 'HEAD' }));
+    app.set(appSettings.repo.description!, dir);
+    app.set(appSettings.branch.description!, 'HEAD');
+    app.use(apiMiddleware);
     const server = app.listen(0);
     const { port } = server.address() as AddressInfo;
 

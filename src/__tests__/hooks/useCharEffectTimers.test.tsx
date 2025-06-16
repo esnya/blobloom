@@ -5,6 +5,9 @@ import { useCharEffectTimers } from '../../client/hooks/useCharEffectTimers';
 jest.useFakeTimers();
 
 describe('useCharEffectTimers', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
   it('calls the callback after the timeout', () => {
     const { result } = renderHook(() => useCharEffectTimers());
     const cb = jest.fn();

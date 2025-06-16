@@ -10,6 +10,7 @@ describe('useTimelineData', () => {
   afterEach(() => {
     global.fetch = originalFetch;
     global.WebSocket = originalWebSocket;
+    jest.useRealTimers();
   });
 
   it('reconnects and resends the current commit', async () => {

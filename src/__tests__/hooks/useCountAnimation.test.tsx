@@ -23,6 +23,7 @@ describe('useCountAnimation', () => {
     jest.clearAllTimers();
     (performance.now as jest.Mock).mockRestore();
     global.requestAnimationFrame = originalRaf;
+    jest.useRealTimers();
   });
 
   it('eases to the target within duration and rounds', () => {

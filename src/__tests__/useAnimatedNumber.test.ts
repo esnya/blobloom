@@ -23,6 +23,7 @@ describe('useAnimatedNumber', () => {
     jest.clearAllTimers();
     (performance.now as jest.Mock).mockRestore();
     global.requestAnimationFrame = originalRaf;
+    jest.useRealTimers();
   });
 
   it('animates toward the target', () => {

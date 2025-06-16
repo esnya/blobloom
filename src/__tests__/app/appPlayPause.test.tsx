@@ -31,6 +31,7 @@ describe('App play/pause', () => {
     jest.clearAllTimers();
     (performance.now as jest.Mock).mockRestore();
     global.requestAnimationFrame = originalRaf;
+    jest.useRealTimers();
     restore();
   });
 

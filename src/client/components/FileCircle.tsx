@@ -124,6 +124,7 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
           path={dir.join('/') + (dir.length ? '/' : '')}
           name={name}
           count={lines}
+          radius={currentRadius}
         />
         <CharEffects effects={{ chars, spawnChar, removeChar }} />
       </div>

@@ -21,7 +21,7 @@ describe('viteExpress plugin', () => {
   it('adds WebSocket support', () => {
     const server = createServer();
     const plugin = viteExpress();
-    (plugin.configureServer as (s: MockServer) => void)(server);
+    (plugin.configureServer as unknown as (s: MockServer) => void)(server);
     expect(setupLineCountWs).toHaveBeenCalledWith(expect.anything(), server.httpServer);
   });
 });

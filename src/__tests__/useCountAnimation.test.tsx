@@ -1,10 +1,10 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { useAnimatedNumber } from '../client/hooks/useAnimatedNumber';
+import { useCountAnimation } from '../client/hooks/useCountAnimation';
 
 jest.useFakeTimers();
 
-describe('useAnimatedNumber (round)', () => {
+describe('useCountAnimation', () => {
   const originalRaf = global.requestAnimationFrame;
   let now = 0;
 
@@ -25,8 +25,8 @@ describe('useAnimatedNumber (round)', () => {
     global.requestAnimationFrame = originalRaf;
   });
 
-  it('eases to the target within duration', () => {
-    const { result } = renderHook(() => useAnimatedNumber(0, { duration: 100, round: true }));
+  it('eases to the target within duration and rounds', () => {
+    const { result } = renderHook(() => useCountAnimation(0, 100));
 
     act(() => {
       result.current[1](100);
@@ -36,10 +36,24 @@ describe('useAnimatedNumber (round)', () => {
       jest.advanceTimersByTime(50);
     });
     expect(result.current[0]).toBeGreaterThan(50);
+    expect(Number.isInteger(result.current[0])).toBe(true);
 
     act(() => {
       jest.advanceTimersByTime(60);
     });
     expect(result.current[0]).toBe(100);
+    expect(Number.isInteger(result.current[0])).toBe(true);
+  });
+
+  it('returns a stable animate function', () => {
+    const { result } = renderHook(() => useCountAnimation(0, 100));
+    const animate = result.current[1];
+
+    act(() => {
+      result.current[1](10);
+      jest.advanceTimersByTime(120);
+    });
+
+    expect(result.current[1]).toBe(animate);
   });
 });

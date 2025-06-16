@@ -12,11 +12,11 @@ export const computeScale = (
     (m, d) => Math.max(m, Number.isFinite(d.lines) ? d.lines : 0),
     1,
   );
-  const base = Math.min(width, height) / Math.pow(maxLines, exp);
+  const base = Math.min(width, height) / maxLines ** exp;
   const totalArea = data.reduce(
     (sum, f) => {
       const lines = Number.isFinite(f.lines) ? f.lines : 0;
-      const r = (Math.pow(lines, exp) * base) / 2;
+      const r = ((lines ** exp) * base) / 2;
       return sum + 4 * r ** 2;
     },
     0,
@@ -24,6 +24,6 @@ export const computeScale = (
   const ratio = totalArea / (width * height);
   const threshold = 0.1;
   if (!Number.isFinite(ratio) || ratio <= threshold) return base;
-  const easing = Math.pow(threshold / ratio, 0.25);
+  const easing = (threshold / ratio) ** 0.25;
   return base * easing;
 };

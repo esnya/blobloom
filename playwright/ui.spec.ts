@@ -5,7 +5,8 @@ import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import { test, expect } from '@playwright/test';
 import express from 'express';
-import { createApiMiddleware } from '../src/apiMiddleware';
+import { apiMiddleware } from '../src/apiMiddleware';
+import { appSettings } from '../src/appSettings';
 
 const author = { name: 'a', email: 'a@example.com' };
 
@@ -17,8 +18,10 @@ test('serves index page', async ({ page }) => {
   await git.commit({ fs, dir, author, message: 'init' });
 
   const app = express();
+  app.set(appSettings.repo.description!, dir);
+  app.set(appSettings.branch.description!, 'HEAD');
   app.use(express.static('dist'));
-  app.use(await createApiMiddleware({ repo: dir, branch: 'HEAD' }));
+  app.use(apiMiddleware);
   const server = app.listen(0);
   const { port } = server.address() as AddressInfo;
 

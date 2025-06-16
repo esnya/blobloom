@@ -3,14 +3,8 @@ import { appSettings } from './appSettings';
 import * as git from 'isomorphic-git';
 import fs from 'fs';
 import path from 'path';
-import { getLineCounts, LineCount } from './lineCounts';
+import { getLineCounts } from './lineCounts';
 import { defaultIgnore } from './ignoreDefaults';
-
-export interface CreateApiMiddlewareOptions {
-  repo?: string;
-  branch?: string;
-  ignore?: string[];
-}
 
 const resolveBranch = async (
   dir: string,
@@ -27,57 +21,13 @@ const resolveBranch = async (
   return branch;
 };
 
-export const createApiMiddleware = async ({
-  repo = process.cwd(),
-  branch: inputBranch,
-  ignore = [...defaultIgnore],
-}: CreateApiMiddlewareOptions = {}) => {
-  const repoDir = path.resolve(repo);
-  if (!fs.existsSync(path.join(repoDir, '.git'))) {
-    throw new Error(`${repoDir} is not a git repository.`);
-  }
-
-  const branch = await resolveBranch(repoDir, inputBranch);
-
-  const commits = await git.log({ fs, dir: repoDir, ref: branch });
-  const lineCounts: LineCount[] = await getLineCounts({ dir: repoDir, ref: branch, ignore });
-
-  const router = express.Router();
-
-  router.get('/api/commits', (_, res) => {
-    res.json(commits);
-  });
-
-  router.get('/api/lines', async (req, res) => {
-    const tsParam = req.query.ts as string | undefined;
-    if (tsParam) {
-      const ts = Number(tsParam) / 1000;
-      const commit = commits.find((c) => c.commit.committer.timestamp <= ts);
-      if (!commit) {
-        res.status(404).json({ error: 'Commit not found' });
-        return;
-      }
-      try {
-        const counts = await getLineCounts({ dir: repoDir, ref: commit.oid, ignore });
-        res.json(counts);
-      } catch (error) {
-        res.status(500).json({ error: (error as Error).message });
-      }
-    } else {
-      res.json(lineCounts);
-    }
-  });
-
-  return router;
-};
-
 export const apiMiddleware = express.Router();
 
 const repoDir = (app: express.Application): string =>
   path.resolve((app.get(appSettings.repo.description!) as string | undefined) ?? process.cwd());
 
 const ignorePatterns = (app: express.Application): string[] =>
-  (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [];
+  (app.get(appSettings.ignore.description!) as string[] | undefined) ?? [...defaultIgnore];
 
 apiMiddleware.get('/api/commits', async (req, res) => {
   const app = req.app;

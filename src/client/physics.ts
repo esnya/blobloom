@@ -9,12 +9,20 @@ interface EngineRunner {
   running: boolean;
 }
 
+export interface AABB {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
 export class Body {
   position: Vector;
   velocity: Vector;
   angle: number;
   angularVelocity: number;
   radius?: number;
+  aabb: AABB;
   onUpdate?: (body: Body) => void;
 
   constructor(opts: {
@@ -29,6 +37,16 @@ export class Body {
     this.angularVelocity = 0;
     if (opts.radius !== undefined) this.radius = opts.radius;
     if (opts.onUpdate) this.onUpdate = opts.onUpdate;
+    const r = this.radius ?? 0;
+    this.aabb = { minX: this.position.x - r, minY: this.position.y - r, maxX: this.position.x + r, maxY: this.position.y + r };
+  }
+
+  updateAABB() {
+    const r = this.radius ?? 0;
+    this.aabb.minX = this.position.x - r;
+    this.aabb.minY = this.position.y - r;
+    this.aabb.maxX = this.position.x + r;
+    this.aabb.maxY = this.position.y + r;
   }
 
   setVelocity(vel: Vector) {
@@ -37,6 +55,7 @@ export class Body {
 
   setPosition(pos: Vector) {
     this.position = { ...pos };
+    this.updateAABB();
   }
 
   setAngularVelocity(val: number) {
@@ -47,6 +66,7 @@ export class Body {
     if (this.radius !== undefined) {
       const f = (sx + sy) / 2;
       this.radius *= f;
+      this.updateAABB();
     }
   }
 }
@@ -112,6 +132,7 @@ export class Engine {
     const g = this.gravity.y * this.gravity.scale;
     const { width, height, top } = this.bounds;
     const bodies = this.world.bodies;
+    const len = bodies.length;
 
     for (const body of bodies) {
       body.velocity.y += g * dt;
@@ -136,8 +157,49 @@ export class Engine {
         }
       }
 
+      body.updateAABB();
+
       body.onUpdate?.(body);
     }
+
+    for (let i = 0; i < len; i += 1) {
+      const a = bodies[i]!;
+      if (a.radius === undefined) continue;
+      for (let j = i + 1; j < len; j += 1) {
+        const b = bodies[j]!;
+        if (b.radius === undefined) continue;
+        if (a.aabb.maxX < b.aabb.minX || a.aabb.minX > b.aabb.maxX) continue;
+        if (a.aabb.maxY < b.aabb.minY || a.aabb.minY > b.aabb.maxY) continue;
+        this.resolveCircleCollision(a, b);
+      }
+    }
+  }
+
+  private resolveCircleCollision(a: Body, b: Body) {
+    const dx = b.position.x - a.position.x;
+    const dy = b.position.y - a.position.y;
+    const r = (a.radius ?? 0) + (b.radius ?? 0);
+    const distSq = dx * dx + dy * dy;
+    if (distSq >= r * r || distSq === 0) return;
+
+    const dist = Math.sqrt(distSq);
+    const nx = dx / dist;
+    const ny = dy / dist;
+    const relVel = (a.velocity.x - b.velocity.x) * nx + (a.velocity.y - b.velocity.y) * ny;
+    if (relVel > 0) return;
+    a.velocity.x -= relVel * nx;
+    a.velocity.y -= relVel * ny;
+    b.velocity.x += relVel * nx;
+    b.velocity.y += relVel * ny;
+
+    const overlap = r - dist;
+    const half = overlap / 2;
+    a.position.x -= nx * half;
+    a.position.y -= ny * half;
+    b.position.x += nx * half;
+    b.position.y += ny * half;
+    a.updateAABB();
+    b.updateAABB();
   }
 
   start() {

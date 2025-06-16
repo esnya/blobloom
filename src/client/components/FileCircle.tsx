@@ -31,7 +31,7 @@ export function FileCircle({
   const { body, setRadius: setBodyRadius } = useBody({
     radius: initialRadius,
     restitution: 0.9,
-    frictionAir: 0.002,
+    frictionAir: 0.001,
   });
   const containerId = useId();
   /* eslint-disable no-restricted-syntax */

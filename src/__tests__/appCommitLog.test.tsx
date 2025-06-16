@@ -16,10 +16,10 @@ describe('App commit log', () => {
     document.body.innerHTML = '<div id="root"></div>';
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       if (typeof input === 'string' && input.startsWith('/api/commits')) {
-        return Promise.resolve({ json: () => Promise.resolve(commits) });
+        return Promise.resolve({ json: () => Promise.resolve({ commits }) });
       }
       if (typeof input === 'string' && input.startsWith('/api/lines')) {
-        return Promise.resolve({ json: () => Promise.resolve([]) });
+        return Promise.resolve({ json: () => Promise.resolve({ counts: [] }) });
       }
       const url =
         typeof input === 'string'

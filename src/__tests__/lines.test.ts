@@ -11,7 +11,7 @@ import type { LineCount } from '../client/types';
 
 describe('lines module', () => {
   it('fetches line counts with timestamp', async () => {
-    const json = jest.fn().mockResolvedValue([{ file: 'a', lines: 1 }] as LineCount[]);
+    const json = jest.fn().mockResolvedValue({ counts: [{ file: 'a', lines: 1 }] });
     await expect(fetchLineCounts(json, 100)).resolves.toEqual([{ file: 'a', lines: 1 }]);
     expect(json).toHaveBeenCalledWith('/api/lines?ts=100');
   });

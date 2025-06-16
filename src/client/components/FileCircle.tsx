@@ -42,7 +42,7 @@ export function FileCircle({
     if (effectsEnabled) startGlow('glow-new');
     prevLines.current = lines;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [effectsEnabled]);
 
   useEffect(() => {
     if (!effectsEnabled) {

@@ -18,7 +18,8 @@
     "src",
     "vite.config.ts",
     "playwright.config.ts",
-    "playwright"
+    "playwright",
+    "scripts"
   ],
   "exclude": ["node_modules"]
 }

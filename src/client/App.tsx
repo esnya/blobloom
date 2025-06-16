@@ -8,7 +8,11 @@ import { usePlayer } from './hooks/usePlayer';
 
 const DEFAULT_DURATION = 30;
 
-function AppContent(): React.JSX.Element {
+interface AppContentProps {
+  playerFactory?: typeof import('./hooks/usePlayer').createPlayer;
+}
+
+function AppContent({ playerFactory }: AppContentProps): React.JSX.Element {
   const [timestamp, setTimestamp] = useState(0);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
   const { commits, lineCounts, start, end } = useTimelineData({ timestamp });
@@ -21,6 +25,7 @@ function AppContent(): React.JSX.Element {
     start,
     end,
     onPlayStateChange: setPlaying,
+    ...(playerFactory ? { playerFactory } : {}),
   });
 
   useEffect(() => {
@@ -50,10 +55,14 @@ function AppContent(): React.JSX.Element {
   );
 }
 
-export function App(): React.JSX.Element {
+export interface AppProps {
+  playerFactory?: typeof import('./hooks/usePlayer').createPlayer;
+}
+
+export function App({ playerFactory }: AppProps = {}): React.JSX.Element {
   return (
     <Suspense fallback={<div>Loading commits...</div>}>
-      <AppContent />
+      <AppContent {...(playerFactory ? { playerFactory } : {})} />
     </Suspense>
   );
 }

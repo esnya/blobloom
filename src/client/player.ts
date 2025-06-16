@@ -55,7 +55,9 @@ export const createPlayer = ({
       lastTime = now();
       raf(tick);
     } else if (getSeek() >= end) {
-      console.log('[debug] seekbar final update processed at', getSeek());
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[debug] seekbar final update processed at', getSeek());
+      }
     }
     onPlayStateChange?.(playing);
   };

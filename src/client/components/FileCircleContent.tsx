@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useCountAnimation } from '../hooks/useCountAnimation';
+import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { FilePathDisplay } from './FilePathDisplay';
 
 export interface FileCircleContentProps {
@@ -15,7 +15,7 @@ export function FileCircleContent({
   count,
   hidden,
 }: FileCircleContentProps): React.JSX.Element {
-  const [currentCount, animateCount] = useCountAnimation(count);
+  const [currentCount, animateCount] = useAnimatedNumber(count, { round: true });
 
   useEffect(() => {
     animateCount(count);

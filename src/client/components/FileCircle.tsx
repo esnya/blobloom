@@ -5,7 +5,7 @@ import { colorForFile } from '../colors';
 import { useGlowControl } from '../hooks/useGlowControl';
 import { CharEffects } from './CharEffects';
 import { useCharEffects } from '../hooks/useCharEffects';
-import { useRadiusAnimation } from '../hooks/useRadiusAnimation';
+import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { usePrevious } from '../hooks/usePrevious';
 export const MAX_EFFECT_CHARS = 100;
 
@@ -26,7 +26,7 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
     frictionAir: 0.001,
     onUpdate: forceUpdate,
   });
-  const [currentRadius, animateRadius] = useRadiusAnimation(radius);
+  const [currentRadius, animateRadius] = useAnimatedNumber(radius);
   const { startGlow, glowProps } = useGlowControl();
   const { chars, spawnChar, removeChar } = useCharEffects();
   // eslint-disable-next-line react-hooks/exhaustive-deps

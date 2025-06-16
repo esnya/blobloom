@@ -1,10 +1,10 @@
 /** @jest-environment jsdom */
 import { renderHook, act } from '@testing-library/react';
-import { useCountAnimation } from '../client/hooks/useCountAnimation';
+import { useAnimatedNumber } from '../client/hooks/useAnimatedNumber';
 
 jest.useFakeTimers();
 
-describe('useCountAnimation', () => {
+describe('useAnimatedNumber (round)', () => {
   const originalRaf = global.requestAnimationFrame;
   let now = 0;
 
@@ -26,7 +26,7 @@ describe('useCountAnimation', () => {
   });
 
   it('eases to the target within duration', () => {
-    const { result } = renderHook(() => useCountAnimation(0, 100));
+    const { result } = renderHook(() => useAnimatedNumber(0, { duration: 100, round: true }));
 
     act(() => {
       result.current[1](100);

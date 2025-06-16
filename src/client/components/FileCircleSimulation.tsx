@@ -1,7 +1,7 @@
-/* eslint-disable no-restricted-syntax */
+// eslint-disable-next-line no-restricted-syntax
 import React, { useEffect, useRef, useState } from 'react';
-import { PhysicsProvider, useEngine } from '../hooks';
-import { FileCircle, type FileCircleHandle } from './FileCircle';
+import { PhysicsProvider, useEngine, useFileCircleHandles } from '../hooks';
+import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
 import { Body, Engine } from '../physics';
@@ -11,7 +11,9 @@ interface FileCircleSimulationProps {
 }
 
 export function FileCircleSimulation({ data }: FileCircleSimulationProps): React.JSX.Element {
+  /* eslint-disable no-restricted-syntax */
   const containerRef = useRef<HTMLDivElement>(null);
+  /* eslint-enable no-restricted-syntax */
   const [bounds, setBounds] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
@@ -25,6 +27,7 @@ export function FileCircleSimulation({ data }: FileCircleSimulationProps): React
   }, []);
 
   return (
+    // eslint-disable-next-line no-restricted-syntax
     <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
       {bounds.width > 0 && (
         <PhysicsProvider bounds={bounds}>
@@ -42,7 +45,7 @@ interface FileCircleListProps {
 
 function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Element {
   const engine = useEngine();
-  const handles = useRef<Record<string, FileCircleHandle>>({});
+  const { register, forEach, get } = useFileCircleHandles();
 
   useEffect(() => {
     let frameId = 0;
@@ -50,7 +53,7 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
     const step = (time: number): void => {
       Engine.update(engine, time - last);
       last = time;
-      Object.values(handles.current).forEach((h) => {
+      forEach((h) => {
         const { x, y } = h.body.position;
         const r = h.radius;
         if (
@@ -70,7 +73,7 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
     };
     frameId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frameId);
-  }, [engine, bounds.width, bounds.height]);
+  }, [engine, bounds.width, bounds.height, forEach]);
 
   useEffect(() => {
     engine.bounds.width = bounds.width;
@@ -81,14 +84,14 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
 
   useEffect(() => {
     data.forEach((d) => {
-      const handle = handles.current[d.file];
+      const handle = get(d.file);
       if (handle) {
         const r = (Math.pow(d.lines, 0.5) * scale) / 2;
         handle.updateRadius(r);
         handle.setCount(d.lines);
       }
     });
-  }, [data, scale]);
+  }, [data, scale, get]);
 
   return (
     <>
@@ -101,7 +104,7 @@ function FileCircleList({ data, bounds }: FileCircleListProps): React.JSX.Elemen
             lines={d.lines}
             initialRadius={r}
             onReady={(h) => {
-              handles.current[d.file] = h;
+              register(d.file, h);
             }}
           />
         );

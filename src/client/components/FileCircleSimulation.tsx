@@ -54,6 +54,7 @@ export function FileCircleList({ data, bounds, linear, effectsEnabled = true }: 
   useEffect(() => {
     engine.bounds.width = bounds.width;
     engine.bounds.height = bounds.height;
+    engine.bounds.top = -bounds.height;
   }, [engine, bounds.width, bounds.height]);
 
   const scale = useMemo(

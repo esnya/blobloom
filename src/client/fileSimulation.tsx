@@ -24,6 +24,7 @@ export const createFileSimulation = (
   let width = rect.width;
   let height = rect.height;
   const engine = Engine.create(width, height);
+  engine.bounds.top = -height;
   engine.gravity.y = 1;
   engine.gravity.scale = 0.002;
 
@@ -81,6 +82,7 @@ export const createFileSimulation = (
     height = rect.height;
     engine.bounds.width = width;
     engine.bounds.height = height;
+    engine.bounds.top = -height;
     if (currentData.length) render();
   };
 

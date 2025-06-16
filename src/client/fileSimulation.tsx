@@ -3,7 +3,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { FileCircleList } from './components/FileCircleSimulation';
-import { CharEffectsProvider } from './hooks/useGlobalCharEffects';
 import { PhysicsProvider } from './hooks/useEngine';
 import * as Physics from './physics';
 
@@ -36,13 +35,11 @@ export const createFileSimulation = (
     flushSync(() =>
       root.render(
         <PhysicsProvider bounds={{ width, height }} engine={engine}>
-          <CharEffectsProvider>
-            <FileCircleList
-              data={currentData}
-              bounds={{ width, height }}
-              {...(opts.linear !== undefined ? { linear: opts.linear } : {})}
-            />
-          </CharEffectsProvider>
+          <FileCircleList
+            data={currentData}
+            bounds={{ width, height }}
+            {...(opts.linear !== undefined ? { linear: opts.linear } : {})}
+          />
         </PhysicsProvider>,
       ),
     );

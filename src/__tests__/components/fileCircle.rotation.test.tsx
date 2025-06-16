@@ -36,4 +36,14 @@ describe('FileCircle rotation CSS variable', () => {
 
     expect(circle.style.getPropertyValue('--rotate')).toBe(`${Math.PI / 2}rad`);
   });
+
+  it('uses CSS variable for rotation transform', () => {
+    const { container } = render(
+      <FileCircle file="a" lines={1} radius={10} />,
+      { wrapper: Wrapper },
+    );
+    const circle = container.querySelector('.file-circle') as HTMLElement;
+
+    expect(circle.style.transform).toMatch(/rotate\(var\(--rotate\)\)/);
+  });
 });

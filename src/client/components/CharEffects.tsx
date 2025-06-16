@@ -26,11 +26,15 @@ export function CharEffects({ effects }: CharEffectsProps): React.JSX.Element {
         );
       }
     });
-    return () => {
-      map.forEach((t) => clearTimeout(t));
-      map.clear();
-    };
   }, [chars, removeChar]);
+
+  React.useEffect(
+    () => () => {
+      timers.current.forEach((t) => clearTimeout(t));
+      timers.current.clear();
+    },
+    [],
+  );
   return (
     <div className="chars">
       <TransitionGroup component={null}>

@@ -58,7 +58,7 @@ export function FileCircle({
     const spawn = Math.min(Math.abs(diff), available);
     for (let i = 0; i < spawn; i += 1) {
       const angle = Math.random() * 2 * Math.PI;
-      const r = Math.sqrt(Math.random()) * currentRadius;
+      const r = Math.sqrt(Math.random()) * currentRadius * 1.5;
       const offset = { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
       spawnChar(diff > 0 ? 'add-char' : 'remove-char', offset, () => {});
     }

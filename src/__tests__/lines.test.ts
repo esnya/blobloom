@@ -18,10 +18,11 @@ describe('lines module', () => {
 
   it('fetches line counts', async () => {
     global.fetch = jest.fn().mockResolvedValue({
-      json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }),
+      json: () =>
+        Promise.resolve({ counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }] }),
     });
     await expect(fetchLineCounts('abc')).resolves.toEqual({
-      counts: [{ file: 'a', lines: 1 }],
+      counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }],
     });
     expect(global.fetch).toHaveBeenCalledWith('/api/commits/abc/lines');
   });
@@ -48,8 +49,8 @@ describe('lines module', () => {
       toJSON: () => {},
     });
     const data: LineCount[] = [
-      { file: 'a', lines: 1 },
-      { file: 'b', lines: 2 },
+      { file: 'a', lines: 1, added: 0, removed: 0 },
+      { file: 'b', lines: 2, added: 0, removed: 0 },
     ];
     const callbacks: FrameRequestCallback[] = [];
     const raf = (cb: FrameRequestCallback): number => {
@@ -86,7 +87,7 @@ describe('lines module', () => {
     };
     let stop!: () => void;
     await act(() => {
-      stop = renderFileSimulation(div, [{ file: 'a', lines: 1 }], {
+      stop = renderFileSimulation(div, [{ file: 'a', lines: 1, added: 0, removed: 0 }], {
         raf,
         now: () => 0,
       });
@@ -95,7 +96,10 @@ describe('lines module', () => {
     callbacks[0]?.(0);
     const first = div.querySelector('.file-circle');
     await act(() => {
-      renderFileSimulation(div, [{ file: 'a', lines: 2 }], { raf, now: () => 0 });
+      renderFileSimulation(div, [{ file: 'a', lines: 2, added: 0, removed: 0 }], {
+        raf,
+        now: () => 0,
+      });
       return Promise.resolve();
     });
     callbacks[1]?.(0);
@@ -128,14 +132,14 @@ describe('lines module', () => {
       return Promise.resolve();
     });
     await act(() => {
-      sim.update([{ file: 'a', lines: 1 }]);
+      sim.update([{ file: 'a', lines: 1, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     await act(() => Promise.resolve());
     callbacks[0]?.(0);
     const first = div.querySelector('.file-circle');
     await act(() => {
-      sim.update([{ file: 'a', lines: 2 }]);
+      sim.update([{ file: 'a', lines: 2, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     await act(() => Promise.resolve());
@@ -170,7 +174,7 @@ describe('lines module', () => {
       return Promise.resolve();
     });
     await act(() => {
-      sim.update([{ file: 'a', lines: 1 }]);
+      sim.update([{ file: 'a', lines: 1, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     callbacks[0]?.(0);
@@ -180,16 +184,16 @@ describe('lines module', () => {
 
   it('computes scale with easing', () => {
     const scale = computeScale(200, 200, [
-      { file: 'a', lines: 1 },
-      { file: 'b', lines: 2 },
+      { file: 'a', lines: 1, added: 0, removed: 0 },
+      { file: 'b', lines: 2, added: 0, removed: 0 },
     ]);
     expect(scale).toBeLessThan(100);
   });
 
   it('supports linear scaling option', () => {
     const data: LineCount[] = [
-      { file: 'a', lines: 1 },
-      { file: 'b', lines: 2 },
+      { file: 'a', lines: 1, added: 0, removed: 0 },
+      { file: 'b', lines: 2, added: 0, removed: 0 },
     ];
     const nonlinear = computeScale(200, 200, data);
     const linear = computeScale(200, 200, data, { linear: true });
@@ -197,12 +201,12 @@ describe('lines module', () => {
   });
 
   it('returns eased scale when ratio exceeds threshold', () => {
-    const scale = computeScale(1000, 200, [{ file: 'a', lines: 1 }]);
+    const scale = computeScale(1000, 200, [{ file: 'a', lines: 1, added: 0, removed: 0 }]);
     expect(scale).toBeCloseTo(186.1, 1);
   });
 
   it('returns 0 when area is zero', () => {
-    const scale = computeScale(0, 200, [{ file: 'a', lines: 1 }]);
+    const scale = computeScale(0, 200, [{ file: 'a', lines: 1, added: 0, removed: 0 }]);
     expect(scale).toBe(0);
   });
 
@@ -261,7 +265,7 @@ describe('lines module', () => {
       sim = createFileSimulation(div, { raf, now: () => 0 });
       return Promise.resolve();
     });
-    const data: LineCount[] = [{ file: 'a', lines: 5 }];
+    const data: LineCount[] = [{ file: 'a', lines: 5, added: 0, removed: 0 }];
     await act(() => {
       sim.update(data);
       return Promise.resolve();
@@ -303,14 +307,14 @@ describe('lines module', () => {
     });
     sim.setEffectsEnabled(false);
     await act(() => {
-      sim.update([{ file: 'a', lines: 1 }]);
+      sim.update([{ file: 'a', lines: 1, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     expect(div.querySelector('.add-char')).toBeNull();
     expect(div.querySelector('.glow-new')).toBeNull();
     sim.setEffectsEnabled(true);
     await act(() => {
-      sim.update([{ file: 'a', lines: 2 }]);
+      sim.update([{ file: 'a', lines: 2, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     // TODO: verify character effect rendering once React flushing is reliable
@@ -333,7 +337,7 @@ describe('lines module', () => {
     const sim = createFileSimulation(div, { raf: () => 1, now: () => 0 });
     sim.setEffectsEnabled(true);
     await act(() => {
-      sim.update([{ file: 'a', lines: MAX_EFFECT_CHARS * 2 }]);
+      sim.update([{ file: 'a', lines: MAX_EFFECT_CHARS * 2, added: 0, removed: 0 }]);
       return Promise.resolve();
     });
     const chars = div.querySelectorAll('.add-char').length;

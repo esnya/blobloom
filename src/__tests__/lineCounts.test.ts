@@ -16,7 +16,10 @@ describe('getLineCounts', () => {
     await git.commit({ fs, dir, author, message: 'init' });
 
     const counts = await getLineCounts({ dir, ref: 'HEAD' });
-    expect(counts.find((c) => c.file === 'a.txt')?.lines).toBe(2);
+    const entry = counts.find((c) => c.file === 'a.txt');
+    expect(entry?.lines).toBe(2);
+    expect(entry?.added).toBe(0);
+    expect(entry?.removed).toBe(0);
   });
 
   it('ignores binary files', async () => {
@@ -58,5 +61,26 @@ describe('getLineCounts', () => {
     const logs = await git.log({ fs, dir, ref: 'HEAD', depth: 2 });
     const renames = await getRenameMap({ dir, ref: logs[0]!.oid, parent: logs[1]!.oid });
     expect(renames['b.txt']).toBe('a.txt');
+  });
+
+  it('reports added and removed lines', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
+    await git.init({ fs, dir });
+    await fs.promises.writeFile(path.join(dir, 'a.txt'), '1');
+    await git.add({ fs, dir, filepath: 'a.txt' });
+    await git.commit({ fs, dir, author, message: 'init' });
+    await fs.promises.writeFile(path.join(dir, 'a.txt'), '1\n2');
+    await git.add({ fs, dir, filepath: 'a.txt' });
+    await git.commit({ fs, dir, author, message: 'update' });
+
+    const logs = await git.log({ fs, dir, ref: 'HEAD', depth: 2 });
+    const counts = await getLineCounts({
+      dir,
+      ref: logs[0]!.oid,
+      parent: logs[1]!.oid,
+    });
+    const entry = counts.find((c) => c.file === 'a.txt');
+    expect(entry?.added).toBe(1);
+    expect(entry?.removed).toBe(0);
   });
 });

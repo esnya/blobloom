@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
-import { useCharEffects } from '../hooks';
+import { useCharEffects, useTypewriter } from '../hooks';
 
 export interface FileCircleContentHandle {
   setCount: (n: number) => void;
@@ -27,6 +27,8 @@ export function FileCircleContent({
   onReady,
 }: FileCircleContentProps): React.JSX.Element {
   const [currentCount, setCurrentCount] = useState(count);
+  const typedPath = useTypewriter(path);
+  const typedName = useTypewriter(name);
   const charsId = useId();
   const { chars, spawnChar, removeChar } = useCharEffects();
 
@@ -41,8 +43,8 @@ export function FileCircleContent({
 
   return (
     <>
-      <div className="path" style={{ display: hidden ? 'none' : undefined }}>{path}</div>
-      <div className="name" style={{ display: hidden ? 'none' : undefined }}>{name}</div>
+      <div className="path typewriter" style={{ display: hidden ? 'none' : undefined }}>{typedPath}</div>
+      <div className="name typewriter" style={{ display: hidden ? 'none' : undefined }}>{typedName}</div>
       <div className="count" style={{ display: hidden ? 'none' : undefined }}>{currentCount}</div>
       <div className="chars" id={charsId}>
         {chars.map((c) => (

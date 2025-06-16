@@ -132,3 +132,4 @@ export { usePageVisibility } from './usePageVisibility';
 export { PhysicsProvider, useEngine } from './useEngine';
 export { useBody } from './useBody';
 export { useTimelineData } from './useTimelineData';
+export { useTypewriter } from './useTypewriter';

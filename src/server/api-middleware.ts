@@ -30,7 +30,7 @@ const lineCountsResponseSchema = z.object({
   counts: z.array(lineCountSchema),
 });
 
-const linesQuerySchema = z.object({ ts: z.string().optional() });
+const linesQuerySchema = z.object({ ts: z.string() });
 
 const resolveBranch = async (
   dir: string,
@@ -111,33 +111,22 @@ apiMiddleware.get(
         res.status(400).json({ error: 'Invalid query' });
         return;
       }
-      const tsParam = query.data.ts;
+      const ts = Number(query.data.ts) / 1000;
       const ignore = ignorePatterns(app);
 
-      const baseCounts = await getLineCounts({ dir, ref: branch, ignore });
-      if (tsParam) {
-        const ts = Number(tsParam) / 1000;
-        const commits = await git.log({ fs, dir, ref: branch });
-        const commit = commits.find((c) => c.commit.committer.timestamp <= ts);
-        if (!commit) {
-          res.status(404).json({ error: 'Commit not found' });
-          return;
-        }
-        const counts = await getLineCounts({ dir, ref: commit.oid, ignore });
-        const parsed = lineCountsResponseSchema.safeParse({ counts });
-        if (!parsed.success) {
-          res.status(500).json({ error: 'Invalid data' });
-          return;
-        }
-        res.json(parsed.data);
-      } else {
-        const parsed = lineCountsResponseSchema.safeParse({ counts: baseCounts });
-        if (!parsed.success) {
-          res.status(500).json({ error: 'Invalid data' });
-          return;
-        }
-        res.json(parsed.data);
+      const commits = await git.log({ fs, dir, ref: branch });
+      const commit = commits.find((c) => c.commit.committer.timestamp <= ts);
+      if (!commit) {
+        res.status(404).json({ error: 'Commit not found' });
+        return;
       }
+      const counts = await getLineCounts({ dir, ref: commit.oid, ignore });
+      const parsed = lineCountsResponseSchema.safeParse({ counts });
+      if (!parsed.success) {
+        res.status(500).json({ error: 'Invalid data' });
+        return;
+      }
+      res.json(parsed.data);
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }

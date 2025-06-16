@@ -112,8 +112,9 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
         onAnimationEnd={glowProps.onAnimationEnd}
         style={{
           position: 'absolute',
-          width: `${currentRadius * 2}px`,
-          height: `${currentRadius * 2}px`,
+          '--radius': `${currentRadius}px`,
+          width: 'calc(var(--radius) * 2)',
+          height: 'calc(var(--radius) * 2)',
           borderRadius: '50%',
           background: color,
           willChange: 'transform',
@@ -124,7 +125,6 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
           path={dir.join('/') + (dir.length ? '/' : '')}
           name={name}
           count={lines}
-          radius={currentRadius}
         />
         <CharEffects effects={{ chars, spawnChar, removeChar }} />
       </div>

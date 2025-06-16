@@ -1,10 +1,10 @@
-// eslint-disable-next-line no-restricted-syntax
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useBody } from '../hooks/useBody';
 import { FileCircleContent } from './FileCircleContent';
 import { colorForFile } from '../colors';
 import { useGlowControl } from '../hooks/useGlowControl';
 import { useGlobalCharEffects } from '../hooks/useGlobalCharEffects';
+import { usePrevious } from '../hooks/usePrevious';
 import { MAX_EFFECT_CHARS } from '../fileSimulation';
 
 interface FileCircleProps {
@@ -31,21 +31,18 @@ export function FileCircle({
   const { chars, spawnChar } = useGlobalCharEffects();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const color = useMemo(() => colorForFile(file), []);
-  /* eslint-disable no-restricted-syntax */
-  const prevLines = useRef(lines);
-  /* eslint-enable no-restricted-syntax */
+  const prevLines = usePrevious(lines);
 
   useEffect(() => {
     startGlow('glow-new');
-    prevLines.current = lines;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (prevLines.current === lines) return;
-    if (lines > prevLines.current) startGlow('glow-grow');
-    else if (lines < prevLines.current) startGlow('glow-shrink');
-    const diff = lines - prevLines.current;
+    if (prevLines === lines) return;
+    if (lines > prevLines) startGlow('glow-grow');
+    else if (lines < prevLines) startGlow('glow-shrink');
+    const diff = lines - prevLines;
     const active = chars.length;
     const available = Math.max(0, MAX_EFFECT_CHARS - active);
     const spawn = Math.min(Math.abs(diff), available);
@@ -55,8 +52,7 @@ export function FileCircle({
       const offset = { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
       spawnChar(diff > 0 ? 'add-char' : 'remove-char', offset, () => {});
     }
-    prevLines.current = lines;
-  }, [lines, startGlow, spawnChar, chars.length, currentRadius]);
+  }, [lines, prevLines, startGlow, spawnChar, chars.length, currentRadius]);
 
   useEffect(
     () => () => {

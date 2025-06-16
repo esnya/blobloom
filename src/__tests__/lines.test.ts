@@ -10,10 +10,25 @@ import { act } from '@testing-library/react';
 import type { LineCount } from '../client/types';
 
 describe('lines module', () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
   it('fetches line counts with timestamp', async () => {
-    const json = jest.fn().mockResolvedValue({ counts: [{ file: 'a', lines: 1 }] });
-    await expect(fetchLineCounts(json, 100)).resolves.toEqual([{ file: 'a', lines: 1 }]);
-    expect(json).toHaveBeenCalledWith('/api/lines?ts=100');
+    global.fetch = jest.fn().mockResolvedValue({
+      json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }),
+    });
+    await expect(fetchLineCounts(100)).resolves.toEqual([{ file: 'a', lines: 1 }]);
+    expect(global.fetch).toHaveBeenCalledWith('/api/lines?ts=100');
+  });
+
+  it('throws on empty counts', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      json: () => Promise.resolve({ counts: [] }),
+    });
+    await expect(fetchLineCounts()).rejects.toThrow('No line counts');
   });
 
   it('renders circles', async () => {

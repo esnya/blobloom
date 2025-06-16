@@ -4,8 +4,8 @@ import React, { forwardRef, useImperativeHandle } from 'react';
 import { render, act } from '@testing-library/react';
 import { CharEffects } from '../client/components/CharEffects';
 import { useCharEffects } from '../client/hooks/useCharEffects';
+import { MAX_EFFECT_CHARS } from '../client/constants';
 
-jest.useFakeTimers();
 
 type Ref = { spawn: () => void };
 
@@ -41,12 +41,32 @@ describe('CharEffects component', () => {
     act(() => {
       ref.current!.spawn();
     });
+    const el = container.querySelector('.add-char') as HTMLElement;
     act(() => {
-      jest.advanceTimersByTime(1600);
-    });
-    act(() => {
-      jest.runAllTimers();
+      el.dispatchEvent(new Event('animationend'));
     });
     expect(container.querySelector('.add-char')).toBeNull();
+  });
+
+  it('shares pool across components', () => {
+    // eslint-disable-next-line no-restricted-syntax
+    const ref1 = React.createRef<Ref>();
+    // eslint-disable-next-line no-restricted-syntax
+    const ref2 = React.createRef<Ref>();
+    const { container } = render(
+      <>
+        {/* eslint-disable-next-line no-restricted-syntax */}
+        <Wrapper ref={ref1} />
+        {/* eslint-disable-next-line no-restricted-syntax */}
+        <Wrapper ref={ref2} />
+      </>,
+    );
+    act(() => {
+      for (let i = 0; i < 60; i += 1) {
+        ref1.current!.spawn();
+        ref2.current!.spawn();
+      }
+    });
+    expect(container.querySelectorAll('.add-char').length).toBe(MAX_EFFECT_CHARS);
   });
 });

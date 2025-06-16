@@ -118,7 +118,6 @@ export const FileCircle = React.forwardRef<HTMLDivElement, FileCircleProps>(
           background: color,
           willChange: 'transform',
           transform: `translate3d(${body.position.x - currentRadius}px, ${body.position.y - currentRadius}px, 0) rotate(${body.angle}rad)`,
-          '--r': `${currentRadius}px`,
         } as React.CSSProperties}
       >
         <FileCircleContent

@@ -42,7 +42,7 @@ describe('CharEffects component', () => {
       ref.current!.spawn();
     });
     act(() => {
-      jest.advanceTimersByTime(2600);
+      jest.advanceTimersByTime(1600);
     });
     act(() => {
       jest.runAllTimers();

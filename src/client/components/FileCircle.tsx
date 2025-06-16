@@ -7,7 +7,7 @@ import { CharEffects } from './CharEffects';
 import { useCharEffects } from '../hooks/useCharEffects';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { usePrevious } from '../hooks/usePrevious';
-export const MAX_EFFECT_CHARS = 100;
+export const MAX_EFFECT_CHARS = 50;
 
 const useInitialGlow = (startGlow: (cls: string) => void) => {
   useEffect(() => {

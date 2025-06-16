@@ -27,7 +27,7 @@ export function CharEffects({ effects }: CharEffectsProps): React.JSX.Element {
             <CSSTransition
               key={c.id}
               nodeRef={nodeRef}
-              timeout={Math.round((2 + c.delay) * 1000)}
+              timeout={Math.round((1 + c.delay) * 1000)}
               onExited={() => {
                 c.onEnd();
                 clear(c.id);

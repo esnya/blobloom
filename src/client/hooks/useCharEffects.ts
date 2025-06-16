@@ -42,7 +42,7 @@ export const useCharEffects = (): CharEffects => {
         char: Math.random().toString(36).charAt(2),
         offset,
         rotate: `${Math.random() * 360}deg`,
-        delay: Math.random() * 0.5,
+        delay: Math.random() * 0.25,
         onEnd,
         ...(color ? { color } : {}),
       };

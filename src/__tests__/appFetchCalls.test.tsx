@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, waitFor, fireEvent } from '@testing-library/react';
 import { App } from '../client/App';
+import { setupAppTest } from './helpers/app';
 
 const commits = [
   { id: 'n', message: 'new', timestamp: 2 },
@@ -9,41 +10,15 @@ const commits = [
 ];
 
 describe('App API calls', () => {
-  const originalFetch = global.fetch;
+  let restore: () => void;
 
   beforeEach(() => {
     jest.resetModules();
-    document.body.innerHTML = '<div id="root"></div>';
-    global.WebSocket = jest.fn(() => ({
-      send: jest.fn(),
-      close: jest.fn(),
-      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
-        if (ev === 'open') cb(new MessageEvent('open'));
-        if (ev === 'message') cb(new MessageEvent('message', { data: JSON.stringify({ counts: [{ file: 'a', lines: 1 }] }) }));
-      },
-    })) as unknown as typeof WebSocket;
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      if (typeof input === 'string' && input.startsWith('/api/commits')) {
-        if (input.endsWith('/lines')) {
-          return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
-        }
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) });
-      }
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      return Promise.reject(new Error(`Unexpected url: ${url}`));
-    }) as jest.Mock;
+    restore = setupAppTest({ commits });
   });
 
   afterEach(() => {
-    global.fetch = originalFetch;
-    delete (global as unknown as { WebSocket?: unknown }).WebSocket;
+    restore();
   });
 
   it('fetches commits once and lines on timestamp change', async () => {

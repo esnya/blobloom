@@ -2,6 +2,7 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react';
 import { App } from '../client/App';
+import { setupAppTest } from './helpers/app';
 
 const commits = [
   { id: 'n', message: 'new', timestamp: 2 },
@@ -9,31 +10,14 @@ const commits = [
 ];
 
 describe('App initial pause', () => {
-  const originalFetch = global.fetch;
   const originalRaf = global.requestAnimationFrame;
   let now = 0;
+  let restore: () => void;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.resetModules();
-    document.body.innerHTML = '<div id="root"></div>';
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      if (typeof input === 'string' && input.startsWith('/api/commits')) {
-        if (input.endsWith('/lines')) {
-          return Promise.resolve({ json: () => Promise.resolve({ counts: [{ file: 'a', lines: 1 }] }) });
-        }
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) });
-      }
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      return Promise.reject(new Error(`Unexpected url: ${url}`));
-    }) as jest.Mock;
+    restore = setupAppTest({ commits });
     jest.spyOn(performance, 'now').mockImplementation(() => now);
     global.requestAnimationFrame = (cb: FrameRequestCallback) => {
       return setTimeout(() => {
@@ -46,8 +30,8 @@ describe('App initial pause', () => {
   afterEach(() => {
     jest.clearAllTimers();
     (performance.now as jest.Mock).mockRestore();
-    global.fetch = originalFetch;
     global.requestAnimationFrame = originalRaf;
+    restore();
   });
 
   it('does not advance timestamp automatically', async () => {

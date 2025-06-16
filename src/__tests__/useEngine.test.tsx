@@ -13,12 +13,12 @@ describe('PhysicsProvider', () => {
 
     const { result, rerender } = renderHook(() => useEngine(), { wrapper });
 
-    expect(result.current.bounds).toEqual({ width: 50, height: 60 });
+    expect(result.current.bounds).toEqual({ width, height, top: -height });
 
     width = 80;
     height = 90;
     rerender();
 
-    expect(result.current.bounds).toEqual({ width: 80, height: 90 });
+    expect(result.current.bounds).toEqual({ width, height, top: -height });
   });
 });

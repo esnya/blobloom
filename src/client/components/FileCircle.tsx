@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-syntax
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useBody } from '../hooks/useBody';
 import { FileCircleContent } from './FileCircleContent';
 import { colorForFile } from '../colors';
@@ -32,6 +32,8 @@ export function FileCircle({
   const [currentRadius, setCurrentRadius] = useState(radius);
   const { startGlow, glowProps } = useGlowControl();
   const { chars, spawnChar, removeChar } = useCharEffects();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const color = useMemo(() => colorForFile(file), []);
   /* eslint-disable no-restricted-syntax */
   const prevLines = useRef(lines);
   /* eslint-enable no-restricted-syntax */
@@ -83,7 +85,7 @@ export function FileCircle({
           width: `${currentRadius * 2}px`,
           height: `${currentRadius * 2}px`,
           borderRadius: '50%',
-          background: colorForFile(file),
+          background: color,
           willChange: 'transform',
           transform: `translate3d(${body.position.x - currentRadius}px, ${body.position.y - currentRadius}px, 0) rotate(${body.angle}rad)`,
         }}

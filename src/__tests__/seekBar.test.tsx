@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { SeekBar } from '../client/components/SeekBar';
 
 describe('SeekBar', () => {
@@ -11,5 +11,15 @@ describe('SeekBar', () => {
     );
     rerender(<SeekBar value={5} min={0} max={10} onChange={onChange} />);
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('calls onChange on user input', () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <SeekBar value={0} min={0} max={10} onChange={onChange} />,
+    );
+    const input = container.querySelector('input[type="range"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '5' } });
+    expect(onChange).toHaveBeenCalledWith(5);
   });
 });

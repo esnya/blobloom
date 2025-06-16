@@ -7,16 +7,14 @@ export interface SeekBarProps {
   onChange: (value: number) => void;
 }
 
-export function SeekBar({ value, min, max, onChange: _onChange }: SeekBarProps): React.JSX.Element {
-  // TODO: re-enable onChange once playback is stable
-  void _onChange;
+export function SeekBar({ value, min, max, onChange }: SeekBarProps): React.JSX.Element {
   return (
     <input
       type="range"
       value={value}
       min={min}
       max={max}
-      onChange={() => {}}
+      onChange={(e) => onChange(Number((e.target as HTMLInputElement).value))}
     />
   );
 }

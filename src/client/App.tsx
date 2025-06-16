@@ -1,28 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CommitLog } from './components/CommitLog';
-import { DurationInput } from './components/DurationInput';
-import { PlayButton } from './components/PlayButton';
 import { SeekBar } from './components/SeekBar';
 import { FileCircleSimulation } from './components/FileCircleSimulation';
-import { useTimelinePlayback } from './hooks';
+import { useTimelineData } from './hooks';
 
 export function App(): React.JSX.Element {
-  const [duration, setDuration] = useState(20);
+  const [timestamp, setTimestamp] = useState(0);
 
-  const playback = useTimelinePlayback({
-    duration,
-    json: (input: string) => fetch(input).then((r) => r.json()),
-  });
   const {
-    timestamp,
-    setTimestamp,
+    commits,
+    lineCounts,
     start,
     end,
     ready,
-    commits,
-    lineCounts,
-    ...player
-  } = playback;
+  } = useTimelineData({
+    timestamp,
+    json: (input: string) => fetch(input).then((r) => r.json()),
+  });
+
+  useEffect(() => {
+    if (ready) setTimestamp(start);
+  }, [ready, start]);
 
 
 
@@ -31,15 +29,12 @@ export function App(): React.JSX.Element {
     <>
       {ready && (
         <div id="controls">
-          <PlayButton playing={player.isPlaying()} onToggle={player.togglePlay} />
-          <button onClick={player.stop}>Stop</button>
           <SeekBar
             value={timestamp}
             min={start}
             max={end}
             onChange={setTimestamp}
           />
-          <DurationInput defaultValue={duration} onInput={setDuration} />s
         </div>
       )}
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>

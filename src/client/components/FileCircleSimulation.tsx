@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from 'react';
 import { PhysicsProvider } from '../hooks/useEngine';
 import { PhysicsRunner } from '../hooks/useEngineRunner';
 import { useEngine } from '../hooks/useEngine';
-import { CharEffectsProvider } from '../hooks/useGlobalCharEffects';
 import { FileCircle } from './FileCircle';
 import type { LineCount } from '../types';
 import { computeScale } from '../scale';
@@ -20,11 +19,9 @@ export function FileCircleSimulation({ data }: FileCircleSimulationProps): React
     <div ref={containerRef} style={{ position: 'relative', width: '100%', height: '100%' }}>
       {bounds.width > 0 && (
         <PhysicsProvider bounds={bounds}>
-          <CharEffectsProvider>
-            <PhysicsRunner>
-              <FileCircleList data={data} bounds={bounds} />
-            </PhysicsRunner>
-          </CharEffectsProvider>
+          <PhysicsRunner>
+            <FileCircleList data={data} bounds={bounds} />
+          </PhysicsRunner>
         </PhysicsProvider>
       )}
     </div>

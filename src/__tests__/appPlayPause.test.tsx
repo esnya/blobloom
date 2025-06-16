@@ -65,6 +65,13 @@ describe('App play/pause', () => {
       jest.advanceTimersByTime(100);
     });
 
+    expect(Number(input.value)).toBe(initial);
+
+    fireEvent.click(button); // play
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
     await waitFor(() => expect(Number(input.value)).toBeGreaterThan(initial));
 
     fireEvent.click(button); // pause

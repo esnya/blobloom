@@ -6,6 +6,7 @@ import * as git from 'isomorphic-git';
 import type { AddressInfo } from 'net';
 import express from 'express';
 import { createServer } from 'http';
+import WebSocket from 'ws';
 import { apiMiddleware } from '../../server/api-middleware';
 import { appSettings } from '../../server/app-settings';
 import { setupLineCountWs } from '../../server/ws';
@@ -15,6 +16,15 @@ const author = { name: 'a', email: 'a@example.com' };
 
 
 describe('server e2e', () => {
+  const originalWebSocket = global.WebSocket;
+
+  beforeAll(() => {
+    global.WebSocket = WebSocket as unknown as typeof global.WebSocket;
+  });
+
+  afterAll(() => {
+    global.WebSocket = originalWebSocket;
+  });
   it('serves commits and line counts', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
     const app = express();

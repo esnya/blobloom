@@ -12,7 +12,13 @@ interface BodyOptions {
 
 export const useBody = (options: BodyOptions) => {
   const engine = useEngine();
-  const { radius, restitution = 0, frictionAir = 0, friction = 0 } = options;
+  const {
+    radius,
+    restitution = 0,
+    frictionAir = 0,
+    friction = 0,
+    onUpdate,
+  } = options;
 
   const [, setTransform] = useState(() => ({
     position: { x: 0, y: 0 },
@@ -33,9 +39,9 @@ export const useBody = (options: BodyOptions) => {
   useEffect(() => {
     body.onUpdate = () => {
       setTransform({ position: { ...body.position }, angle: body.angle });
-      options.onUpdate?.(body);
+      onUpdate?.(body);
     };
-  }, [body, options]);
+  }, [body, onUpdate]);
 
   useEffect(() => {
     engine.add(body);

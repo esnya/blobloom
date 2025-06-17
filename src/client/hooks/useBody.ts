@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useEngine } from './useEngine';
-import type * as Physics from '../physics';
+import type { Body } from '../physics/body';
 
 interface BodyOptions {
   radius: number;
@@ -8,7 +8,7 @@ interface BodyOptions {
   frictionAir?: number;
   friction?: number;
   angularDamping?: number;
-  onUpdate?: (body: Physics.Body) => void;
+  onUpdate?: (body: Body) => void;
 }
 
 export const useBody = (options: BodyOptions) => {

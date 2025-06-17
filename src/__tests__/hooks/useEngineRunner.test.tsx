@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { PhysicsProvider } from '../../client/hooks/useEngine';
 import { useEngineRunner } from '../../client/hooks/useEngineRunner';
-import { Engine } from '../../client/physics';
+import { Engine } from '../../client/physics/engine';
 
 describe('useEngineRunner', () => {
   const Runner = () => {

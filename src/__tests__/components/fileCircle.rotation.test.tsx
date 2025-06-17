@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 import React from 'react';
 import { render, act } from '@testing-library/react';
-import type { Engine } from '../../client/physics';
+import type { Engine } from '../../client/physics/engine';
 import { PhysicsProvider, useEngine } from '../../client/hooks/useEngine';
 import { FileCircle } from '../../client/components/FileCircle';
 

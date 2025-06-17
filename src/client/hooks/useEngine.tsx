@@ -1,22 +1,22 @@
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
-import * as Physics from '../physics';
+import { Engine } from '../physics/engine';
 
 interface Bounds {
   width: number;
   height: number;
 }
 
-const EngineContext = createContext<Physics.Engine | null>(null);
+const EngineContext = createContext<Engine | null>(null);
 
 interface PhysicsProviderProps {
   bounds: Bounds;
-  engine?: Physics.Engine;
+  engine?: Engine;
   children: React.ReactNode;
 }
 
 export function PhysicsProvider({ bounds, engine: externalEngine, children }: PhysicsProviderProps): React.JSX.Element {
   const engine = useMemo(
-    () => externalEngine ?? Physics.Engine.create(bounds.width, bounds.height),
+    () => externalEngine ?? Engine.create(bounds.width, bounds.height),
     [externalEngine, bounds.width, bounds.height],
   );
 
@@ -29,7 +29,7 @@ export function PhysicsProvider({ bounds, engine: externalEngine, children }: Ph
   return <EngineContext.Provider value={engine}>{children}</EngineContext.Provider>;
 }
 
-export const useEngine = (): Physics.Engine => {
+export const useEngine = (): Engine => {
   const engine = useContext(EngineContext);
   if (!engine) throw new Error('useEngine must be used within PhysicsProvider');
   return engine;

@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
-import { Engine, Body } from '../../client/physics';
+import { Engine } from '../../client/physics/engine';
+import { Body } from '../../client/physics/body';
 
 describe('Engine angular damping', () => {
   it('reduces angular velocity over time', () => {

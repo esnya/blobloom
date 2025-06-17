@@ -7,6 +7,7 @@ interface BodyOptions {
   restitution?: number;
   frictionAir?: number;
   friction?: number;
+  angularDamping?: number;
   onUpdate?: (body: Physics.Body) => void;
 }
 
@@ -17,6 +18,7 @@ export const useBody = (options: BodyOptions) => {
     restitution = 0,
     frictionAir = 0,
     friction = 0,
+    angularDamping = 0,
     onUpdate,
   } = options;
 
@@ -30,7 +32,7 @@ export const useBody = (options: BodyOptions) => {
       Math.random() * (engine.bounds.width - radius * 2) + radius,
       -radius,
       radius,
-      { restitution, frictionAir, friction },
+      { restitution, frictionAir, friction, angularDamping },
     );
     setTransform({ position: { ...b.position }, angle: b.angle });
     return b;

@@ -320,8 +320,16 @@ export class Engine {
     const tx = -ny;
     const ty = nx;
 
-    const relVelX = a.velocity.x - b.velocity.x;
-    const relVelY = a.velocity.y - b.velocity.y;
+    const r1 = a.radius ?? 0;
+    const r2 = b.radius ?? 0;
+
+    const contactAX = a.velocity.x - a.angularVelocity * r1 * ny;
+    const contactAY = a.velocity.y + a.angularVelocity * r1 * nx;
+    const contactBX = b.velocity.x + b.angularVelocity * r2 * ny;
+    const contactBY = b.velocity.y - b.angularVelocity * r2 * nx;
+
+    const relVelX = contactAX - contactBX;
+    const relVelY = contactAY - contactBY;
 
     const relNormal = relVelX * nx + relVelY * ny;
     const e = Math.min(a.restitution, b.restitution);

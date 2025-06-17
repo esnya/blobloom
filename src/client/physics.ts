@@ -189,6 +189,7 @@ export class Engine {
   gravity = { y: 1, scale: 0.008 };
   bounds: { width: number; height: number; top: number };
   maxDelta = 50;
+  dampingScale = 1.5;
   private runner?: EngineRunner;
 
   constructor(width = 0, height = 0) {
@@ -257,12 +258,12 @@ export class Engine {
       body.position.y += body.velocity.y;
       body.angle += body.angularVelocity;
 
-      const air = Math.exp(-body.frictionAir * dt);
+      const air = Math.exp(-body.frictionAir * dt * this.dampingScale);
       body.velocity.x *= air;
       body.velocity.y *= air;
       body.angularVelocity *= air;
       if (body.angularDamping)
-        body.angularVelocity *= Math.exp(-body.angularDamping * dt);
+        body.angularVelocity *= Math.exp(-body.angularDamping * dt * this.dampingScale);
 
       if (body.radius !== undefined) {
         if (body.position.x - body.radius < 0) {

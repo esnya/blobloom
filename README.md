@@ -49,6 +49,15 @@ npm run test:playwright
 ```
 Playwright tests live in the `playwright` directory.
 
+## Screenshots
+
+Generate a timeline screenshot once the server is running:
+
+```bash
+npx tsx scripts/capture-timeline-mid.ts
+```
+The image is saved to `docs/timeline-mid.png`.
+
 ## Attribution
 
 All code in this project was written by Codex.

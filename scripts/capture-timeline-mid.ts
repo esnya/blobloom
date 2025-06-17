@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { mkdirSync } from 'fs';
 import { chromium } from 'playwright';
 
 async function startServer(): Promise<() => void> {
@@ -35,6 +36,7 @@ void (async (): Promise<void> => {
   }, midTimestamp);
 
   await page.waitForTimeout(3000);
+  mkdirSync('docs', { recursive: true });
   const buf = await page.screenshot({ path: 'docs/timeline-mid.png' });
   console.log(buf.toString('base64'));
 

@@ -27,6 +27,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   const renameMapRef = useRef<Record<string, string>>({});
   const token = useRef(0);
   const processed = useRef(0);
+  const lastIdRef = useRef<string | null>(null);
 
   const handleMessage = useCallback((ev: MessageEvent) => {
     const payload = JSON.parse(ev.data as string) as (LineCountsResponse | ApiError) & {
@@ -65,7 +66,9 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
 
   const update = useCallback(
     (id: string, parent?: string) => {
+      if (lastIdRef.current === id) return;
       token.current += 1;
+      lastIdRef.current = id;
       send(JSON.stringify({ id, parent, token: token.current }));
     },
     [send],
@@ -77,6 +80,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     setLineCounts([]);
     token.current += 1;
     processed.current = token.current;
+    lastIdRef.current = null;
     close();
   }, [baseUrl, close]);
 
@@ -85,6 +89,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
       close();
       token.current += 1;
       processed.current = token.current;
+      lastIdRef.current = null;
     },
     [close],
   );

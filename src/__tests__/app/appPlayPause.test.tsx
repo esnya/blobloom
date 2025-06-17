@@ -37,10 +37,13 @@ describe('App play/pause', () => {
 
   it('pauses and resumes playback when toggled', async () => {
     const { container } = render(<App />);
-    await waitFor(() => expect(container.querySelector('#commit-log')).toBeTruthy());
+    await waitFor(() =>
+      expect(container.querySelectorAll('#commit-log li').length).toBeGreaterThan(0),
+    );
 
     const input = container.querySelector('input[type="range"]') as HTMLInputElement;
     const button = container.querySelector('#controls button') as HTMLButtonElement;
+    await waitFor(() => expect(button.disabled).toBe(false));
     const initial = Number(input.value);
 
     act(() => {

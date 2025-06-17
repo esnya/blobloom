@@ -23,7 +23,7 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
   server.prependListener(
     'upgrade',
     (req: IncomingMessage, socket: Socket, head: Buffer) => {
-      if (req.url?.startsWith('/ws/lines')) {
+      if (req.url?.startsWith('/ws/line-counts')) {
         wss.handleUpgrade(req, socket, head, (ws) => {
           wss.emit('connection', ws, req);
         });
@@ -75,10 +75,14 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
           timestamp: c.commit.committer.timestamp,
         }));
 
+        ws.send(
+          JSON.stringify({ type: 'range', start, end, token }),
+        );
         const payload = renames
-          ? { counts, renames, token, commits }
-          : { counts, token, commits };
+          ? { type: 'data', counts, renames, token, commits }
+          : { type: 'data', counts, token, commits };
         ws.send(JSON.stringify(payload));
+        ws.send(JSON.stringify({ type: 'done', token }));
       } catch (error) {
         ws.send(
           JSON.stringify({ error: (error as Error).message, token }),

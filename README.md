@@ -15,6 +15,7 @@ Install dependencies and start the server:
 
 ```bash
 npm install
+npm run typecheck        # ensure type checking passes before building
 npm audit --production
 npm run lint
 npm test

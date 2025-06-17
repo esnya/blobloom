@@ -17,7 +17,11 @@ describe('lines module', () => {
       addEventListener: (event: string, cb: (ev: MessageEvent) => void) => {
         if (event === 'open') cb(new MessageEvent('open'));
         if (event === 'message')
-          cb(new MessageEvent('message', { data: JSON.stringify({ counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }] }) }));
+          cb(
+            new MessageEvent('message', {
+              data: JSON.stringify({ type: 'data', counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }], commits: [] }),
+            }),
+          );
       },
     } as unknown as WebSocket;
     global.WebSocket = jest.fn(() => socket) as unknown as typeof WebSocket;
@@ -34,7 +38,7 @@ describe('lines module', () => {
       close: jest.fn(),
       addEventListener: (event: string, cb: (ev: MessageEvent) => void) => {
         if (event === 'open') cb(new MessageEvent('open'));
-        if (event === 'message') cb(new MessageEvent('message', { data: JSON.stringify({ counts: [] }) }));
+        if (event === 'message') cb(new MessageEvent('message', { data: JSON.stringify({ type: 'data', counts: [], commits: [] }) }));
       },
     } as unknown as WebSocket;
     global.WebSocket = jest.fn(() => socket) as unknown as typeof WebSocket;

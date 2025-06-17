@@ -15,7 +15,7 @@ interface AppContentProps {
 function AppContent({ playerFactory }: AppContentProps): React.JSX.Element {
   const [timestamp, setTimestamp] = useState(0);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
-  const { commits, lineCounts, start, end } = useTimelineData({ timestamp });
+  const { commits, lineCounts, start, end, ready } = useTimelineData({ timestamp });
   const [playing, setPlaying] = useState(false);
 
   const { togglePlay } = usePlayer({
@@ -35,8 +35,8 @@ function AppContent({ playerFactory }: AppContentProps): React.JSX.Element {
   return (
     <>
       <div id="controls">
-        <PlayPauseButton playing={playing} onToggle={togglePlay} />
-        <SeekBar value={timestamp} min={start} max={end} onChange={setTimestamp} />
+        <PlayPauseButton playing={playing} onToggle={togglePlay} disabled={!ready} />
+        <SeekBar value={timestamp} min={start} max={end} onChange={setTimestamp} disabled={!ready} />
         <label>
           Duration
           <input

@@ -30,21 +30,29 @@ describe('useTimelineData', () => {
           const { id, token } = JSON.parse(data) as { id: string; token: number };
           if (id === 'HEAD') {
             messageHandler?.(
-              new MessageEvent('message', { data: JSON.stringify({ counts: linesSecond, commits, token }) }),
+              new MessageEvent('message', { data: JSON.stringify({ type: 'range', start: 1000, end: 2000, token }) }),
+            );
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ type: 'data', counts: linesSecond, commits, token }) }),
+            );
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
             );
           } else if (id === 'c2') {
             resolveFirst = () => {
               messageHandler?.(
-                new MessageEvent('message', {
-                  data: JSON.stringify({ counts: linesFirst, token }),
-                }),
+                new MessageEvent('message', { data: JSON.stringify({ type: 'data', counts: linesFirst, token, commits: [] }) }),
+              );
+              messageHandler?.(
+                new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
               );
             };
           } else {
             messageHandler?.(
-              new MessageEvent('message', {
-                data: JSON.stringify({ counts: linesSecond, token }),
-              }),
+              new MessageEvent('message', { data: JSON.stringify({ type: 'data', counts: linesSecond, token, commits: [] }) }),
+            );
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
             );
           }
         }),

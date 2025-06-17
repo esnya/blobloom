@@ -29,12 +29,27 @@ describe('useTimelineData', () => {
           const { id, token } = JSON.parse(data) as { id: string; token: number };
           if (id === 'HEAD') {
             messageHandler?.(
-              new MessageEvent('message', { data: JSON.stringify({ counts: linesSecond, commits, token }) }),
+              new MessageEvent('message', {
+                data: JSON.stringify({ type: 'range', start: 1000, end: 2000, token }),
+              }),
+            );
+            messageHandler?.(
+              new MessageEvent('message', {
+                data: JSON.stringify({ type: 'data', counts: linesSecond, commits, token }),
+              }),
+            );
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
             );
           } else {
             const counts = id === 'c2' ? linesFirst : linesSecond;
             messageHandler?.(
-              new MessageEvent('message', { data: JSON.stringify({ counts, token }) }),
+              new MessageEvent('message', {
+                data: JSON.stringify({ type: 'data', counts, token, commits: [] }),
+              }),
+            );
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
             );
           }
         }),

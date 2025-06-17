@@ -19,7 +19,7 @@ it('handles upgrades before other listeners', async () => {
 
   await expect(
     new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(`ws://localhost:${port}/ws/lines`);
+      const ws = new WebSocket(`ws://localhost:${port}/ws/line-counts`);
       ws.on('open', () => {
         ws.terminate();
         resolve();

@@ -38,19 +38,19 @@ describe('setupLineCountWs commit range', () => {
       const { port } = server.address() as AddressInfo;
       await expect(
         new Promise<string[]>((resolve, reject) => {
-          const ws = new WebSocket(`ws://localhost:${port}/ws/lines`);
+          const ws = new WebSocket(`ws://localhost:${port}/ws/line-counts`);
           ws.on('open', () => {
             ws.send(JSON.stringify({ id: middle }));
           });
-          ws.on('message', (d) => {
+          ws.on('message', (d: WebSocket.RawData) => {
             const text =
               typeof d === 'string'
                 ? d
                 : Array.isArray(d)
                   ? Buffer.concat(d).toString('utf8')
                   : Buffer.from(d).toString('utf8');
-            const data = JSON.parse(text) as { commits: Array<{ id: string }> };
-            resolve(data.commits.map((c) => c.id));
+            const data = JSON.parse(text) as { type?: string; commits?: Array<{ id: string }> };
+            if (data.type === 'data' && data.commits) resolve(data.commits.map((c) => c.id));
           });
           ws.on('error', reject);
         })

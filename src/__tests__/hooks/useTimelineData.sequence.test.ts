@@ -39,14 +39,25 @@ describe('useTimelineData', () => {
             if (id === 'HEAD') {
               messageHandler?.(
                 new MessageEvent('message', {
-                  data: JSON.stringify({ counts: lineMap.c3, commits, token }),
+                  data: JSON.stringify({ type: 'range', start: 1000, end: 3000, token }),
                 }),
+              );
+              messageHandler?.(
+                new MessageEvent('message', {
+                  data: JSON.stringify({ type: 'data', counts: lineMap.c3, commits, token }),
+                }),
+              );
+              messageHandler?.(
+                new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
               );
             } else {
               messageHandler?.(
                 new MessageEvent('message', {
-                  data: JSON.stringify({ counts: lineMap[id], token }),
+                  data: JSON.stringify({ type: 'data', counts: lineMap[id], token, commits: [] }),
                 }),
+              );
+              messageHandler?.(
+                new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
               );
             }
           });

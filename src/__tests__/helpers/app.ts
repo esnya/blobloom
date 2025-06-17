@@ -21,15 +21,30 @@ export const setupAppTest = (
 
   document.body.innerHTML = '<div id="root"></div>';
 
-  global.WebSocket = jest.fn(() => ({
-    send: jest.fn(),
-    close: jest.fn(),
-    addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
-      if (ev === 'open') cb(new MessageEvent('open'));
-      if (ev === 'message')
-        cb(new MessageEvent('message', { data: JSON.stringify({ counts: lineCounts, commits }) }));
-    },
-  })) as unknown as typeof WebSocket;
+  global.WebSocket = jest.fn(() => {
+    let messageHandler: ((e: MessageEvent) => void) | undefined;
+    return {
+      send: jest.fn((raw: string) => {
+        const { token } = JSON.parse(raw) as { token?: number };
+        messageHandler?.(
+          new MessageEvent('message', {
+            data: JSON.stringify({ type: 'range', start: 1000, end: 2000, token }),
+          }),
+        );
+        messageHandler?.(
+          new MessageEvent('message', {
+            data: JSON.stringify({ type: 'data', counts: lineCounts, commits, token }),
+          }),
+        );
+        messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }));
+      }),
+      close: jest.fn(),
+      addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
+        if (ev === 'open') cb(new MessageEvent('open'));
+        if (ev === 'message') messageHandler = cb;
+      },
+    } as unknown as WebSocket;
+  }) as unknown as typeof WebSocket;
 
   global.fetch = jest.fn(() => Promise.reject(new Error('Unexpected fetch')));
 

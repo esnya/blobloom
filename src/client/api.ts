@@ -16,20 +16,22 @@ export const fetchLineCounts = async (
   baseUrl = '',
   parent?: string,
 ): Promise<LineCountsResult> => {
-  const url = buildWsUrl('/ws/lines', baseUrl);
+  const url = buildWsUrl('/ws/line-counts', baseUrl);
   return new Promise<LineCountsResult>((resolve, reject) => {
     const socket = new WebSocket(url);
     socket.addEventListener('open', () => {
       socket.send(JSON.stringify({ id: commitId, parent }));
     });
     socket.addEventListener('message', (ev) => {
-      const result = JSON.parse(ev.data as string) as LineCountsResponse | ApiError;
+      const result = JSON.parse(ev.data as string) as
+        | { type: 'data'; counts: LineCountsResponse['counts']; renames?: Record<string, string> }
+        | { type: 'range' | 'done' | 'error'; error?: string };
+      if (result.type !== 'data') return;
       socket.close();
-      if ('counts' in result && result.counts.length > 0) {
-        resolve(result);
+      if (result.counts.length > 0) {
+        resolve({ counts: result.counts, renames: result.renames });
       } else {
-        const message = 'error' in result ? result.error : 'No line counts';
-        reject(new Error(message));
+        reject(new Error('No line counts'));
       }
     });
     socket.addEventListener('error', () => {

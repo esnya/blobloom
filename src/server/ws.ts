@@ -15,7 +15,7 @@ export interface LineCountsRequest {
   token?: number;
 }
 
-const COMMITS_AROUND = 1;
+const COMMITS_AROUND = 15;
 
 export const setupLineCountWs = (app: express.Application, server: Server) => {
   const wss = new WebSocketServer({ noServer: true });

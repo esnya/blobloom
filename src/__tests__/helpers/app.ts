@@ -27,27 +27,11 @@ export const setupAppTest = (
     addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
       if (ev === 'open') cb(new MessageEvent('open'));
       if (ev === 'message')
-        cb(new MessageEvent('message', { data: JSON.stringify({ counts: lineCounts }) }));
+        cb(new MessageEvent('message', { data: JSON.stringify({ counts: lineCounts, commits }) }));
     },
   })) as unknown as typeof WebSocket;
 
-  global.fetch = jest.fn((input: RequestInfo | URL) => {
-    const url =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-        ? input.href
-        : input instanceof Request
-        ? input.url
-        : '';
-    if (url.startsWith('/api/commits')) {
-      if (url.endsWith('/lines')) {
-        return Promise.resolve({ json: () => Promise.resolve({ counts: lineCounts }) });
-      }
-      return Promise.resolve({ json: () => Promise.resolve({ commits }) });
-    }
-    return Promise.reject(new Error(`Unexpected url: ${url}`));
-  }) as jest.Mock;
+  global.fetch = jest.fn(() => Promise.reject(new Error('Unexpected fetch')));
 
   return () => {
     global.fetch = originalFetch;

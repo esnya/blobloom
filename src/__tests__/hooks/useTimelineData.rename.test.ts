@@ -19,20 +19,7 @@ describe('useTimelineData', () => {
     ];
     const linesInit = [{ file: 'a.txt', lines: 1, added: 0, removed: 0 }];
     const linesRenamed = [{ file: 'b.txt', lines: 1, added: 0, removed: 0 }];
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      if (url.startsWith('/rename/api/commits')) {
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
-      }
-      return Promise.reject(new Error(`unexpected ${url}`));
-    }) as unknown as typeof fetch;
+    global.fetch = jest.fn(() => Promise.reject(new Error('unexpected fetch')));
 
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
     global.WebSocket = jest.fn(() => {
@@ -40,7 +27,11 @@ describe('useTimelineData', () => {
         readyState: 1,
         send: jest.fn((data: string) => {
           const { id, token } = JSON.parse(data) as { id: string; token: number };
-          if (id === 'c0') {
+          if (id === 'HEAD') {
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ counts: linesInit, commits, token }) }),
+            );
+          } else if (id === 'c0') {
             messageHandler?.(
               new MessageEvent('message', { data: JSON.stringify({ counts: linesInit, token }) }),
             );

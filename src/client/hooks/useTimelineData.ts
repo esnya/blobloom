@@ -1,9 +1,8 @@
 /* eslint-disable no-restricted-syntax */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { readCommits } from '../commitsResource';
 import { buildWsUrl } from '../ws';
 import { useWebSocket } from './useWebSocket';
-import type { LineCount } from '../types';
+import type { Commit, LineCount } from '../types';
 import type { LineCountsResponse, ApiError } from '../../api/types';
 
 
@@ -13,7 +12,7 @@ interface TimelineDataOptions {
 }
 
 export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => {
-  const commits = readCommits(baseUrl);
+  const [commits, setCommits] = useState<Commit[]>([]);
 
   const start = useMemo(
     () => (commits.length ? commits[commits.length - 1]!.timestamp * 1000 : 0),
@@ -30,7 +29,16 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   const processed = useRef(0);
 
   const handleMessage = useCallback((ev: MessageEvent) => {
-    const payload = JSON.parse(ev.data as string) as (LineCountsResponse | ApiError) & { token?: number };
+    const payload = JSON.parse(ev.data as string) as (LineCountsResponse | ApiError) & {
+      token?: number;
+    };
+    if ('commits' in payload && Array.isArray(payload.commits)) {
+      setCommits((prev) => {
+        const map = new Map(prev.map((c) => [c.id, c] as const));
+        for (const c of payload.commits) map.set(c.id, c);
+        return Array.from(map.values()).sort((a, b) => b.timestamp - a.timestamp);
+      });
+    }
     if (
       'counts' in payload &&
       payload.token !== undefined &&
@@ -65,6 +73,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
 
   useEffect(() => {
     renameMapRef.current = {};
+    setCommits([]);
     setLineCounts([]);
     token.current += 1;
     processed.current = token.current;
@@ -79,6 +88,12 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     },
     [close],
   );
+
+  useEffect(() => {
+    if (commits.length === 0) {
+      update('HEAD');
+    }
+  }, [commits.length, update]);
 
   useEffect(() => {
     const ts = timestamp === 0 ? start : timestamp;

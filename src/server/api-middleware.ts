@@ -30,6 +30,7 @@ const commitsResponseSchema = z.object({
 
 const lineCountsResponseSchema = z.object({
   counts: z.array(lineCountSchema),
+  commits: z.array(commitSchema),
   renames: z.record(z.string(), z.string()).optional(),
 });
 
@@ -128,7 +129,7 @@ apiMiddleware.get(
             ignore,
           })
         : undefined;
-      const payload = renames ? { counts, renames } : { counts };
+      const payload = renames ? { counts, renames, commits: [] } : { counts, commits: [] };
       const parsed = lineCountsResponseSchema.safeParse(payload);
       if (!parsed.success) {
         res.status(500).json({ error: 'Invalid data' });

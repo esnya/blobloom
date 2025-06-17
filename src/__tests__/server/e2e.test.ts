@@ -44,7 +44,7 @@ describe('server e2e', () => {
 
       const base = `http://localhost:${port}`;
       const commits = await fetchCommits(base);
-      const { counts } = await fetchLineCounts(commits[0]!.id, base);
+      const { counts } = await fetchLineCounts(commits[0]!.timestamp * 1000, base);
 
       expect(commits[0]!.message).toBe('init\n');
       expect(counts[0]?.file).toBe('a.txt');
@@ -106,8 +106,8 @@ describe('server e2e', () => {
       const { port } = server.address() as AddressInfo;
 
       const base = `http://localhost:${port}`;
-      const commitId = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
-      await expect(fetchLineCounts(commitId, base)).rejects.toThrow('No line counts');
+      const commitTs = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.commit.committer.timestamp * 1000;
+      await expect(fetchLineCounts(commitTs, base)).rejects.toThrow('No line counts');
     } finally {
       server.close();
       fs.rmSync(dir, { recursive: true, force: true });
@@ -128,7 +128,6 @@ describe('server e2e', () => {
       await git.remove({ fs, dir, filepath: 'a.txt' });
       await git.add({ fs, dir, filepath: 'b.txt' });
       await git.commit({ fs, dir, author, message: 'rename' });
-      const head = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.oid;
 
       app.set(appSettings.repo.description!, dir);
       app.set(appSettings.branch.description!, 'HEAD');
@@ -138,7 +137,8 @@ describe('server e2e', () => {
       const { port } = server.address() as AddressInfo;
 
       const base = `http://localhost:${port}`;
-      const result = await fetchLineCounts(head, base, parent);
+      const headTs = (await git.log({ fs, dir, ref: 'HEAD' }))[0]!.commit.committer.timestamp * 1000;
+      const result = await fetchLineCounts(headTs, base, parent);
 
       expect(result.renames?.['b.txt']).toBe('a.txt');
     } finally {

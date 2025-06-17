@@ -12,7 +12,7 @@ export const fetchCommits = async (baseUrl = ''): Promise<Commit[]> => {
 };
 
 export const fetchLineCounts = async (
-  commitId: string,
+  timestamp: number,
   baseUrl = '',
   parent?: string,
 ): Promise<LineCountsResult> => {
@@ -20,7 +20,7 @@ export const fetchLineCounts = async (
   return new Promise<LineCountsResult>((resolve, reject) => {
     const socket = new WebSocket(url);
     socket.addEventListener('open', () => {
-      socket.send(JSON.stringify({ id: commitId, parent }));
+      socket.send(JSON.stringify({ timestamp, parent }));
     });
     socket.addEventListener('message', (ev) => {
       const result = JSON.parse(ev.data as string) as

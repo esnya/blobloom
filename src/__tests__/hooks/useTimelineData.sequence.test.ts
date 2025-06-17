@@ -31,12 +31,12 @@ describe('useTimelineData', () => {
       const socket = {
         readyState: 1,
         send: jest.fn((data: string) => {
-          const { id, token } = JSON.parse(data) as {
-            id: keyof typeof lineMap | 'HEAD';
+          const { timestamp, token } = JSON.parse(data) as {
+            timestamp: number;
             token: number;
           };
           callbacks.push(() => {
-            if (id === 'HEAD') {
+            if (timestamp === Number.MAX_SAFE_INTEGER) {
               messageHandler?.(
                 new MessageEvent('message', {
                   data: JSON.stringify({ type: 'range', start: 1000, end: 3000, token }),
@@ -51,9 +51,15 @@ describe('useTimelineData', () => {
                 new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
               );
             } else {
+              const commitId =
+                timestamp === commits[2]!.timestamp * 1000
+                  ? 'c1'
+                  : timestamp === commits[1]!.timestamp * 1000
+                    ? 'c2'
+                    : 'c3';
               messageHandler?.(
                 new MessageEvent('message', {
-                  data: JSON.stringify({ type: 'data', counts: lineMap[id], token, commits: [] }),
+                  data: JSON.stringify({ type: 'data', counts: lineMap[commitId], token, commits: [] }),
                 }),
               );
               messageHandler?.(

@@ -38,7 +38,7 @@ describe('setupLineCountWs timestamp range', () => {
         new Promise<{ start: number; end: number }>((resolve, reject) => {
           const ws = new WebSocket(`ws://localhost:${port}/ws/line-counts`);
           ws.on('open', () => {
-            ws.send(JSON.stringify({ id: 'HEAD' }));
+            ws.send(JSON.stringify({ timestamp: Number.MAX_SAFE_INTEGER }));
           });
           ws.on('message', (d: WebSocket.RawData) => {
             const text =
@@ -87,8 +87,8 @@ describe('setupLineCountWs timestamp range', () => {
         const received: Array<{ start: number; end: number }> = [];
         let done = 0;
         ws.on('open', () => {
-          ws.send(JSON.stringify({ id: 'HEAD' }));
-          ws.send(JSON.stringify({ id: 'HEAD' }));
+          ws.send(JSON.stringify({ timestamp: Number.MAX_SAFE_INTEGER }));
+          ws.send(JSON.stringify({ timestamp: Number.MAX_SAFE_INTEGER }));
         });
         ws.on('message', (d: WebSocket.RawData) => {
           const text =

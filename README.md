@@ -4,7 +4,8 @@
 
 Git size-history visualizer
 
-Requires Node.js 20 or later.
+Requires Node.js 20 or later. A `.nvmrc` file is included, so run `nvm use`
+to ensure the correct version.
 
 The client includes a simple physics engine that now supports restitution and
 basic friction for circles.

@@ -24,6 +24,7 @@ export class Body {
   restitution: number;
   friction: number;
   frictionAir: number;
+  angularDamping: number;
   mass: number;
   radius?: number;
   aabb: AABB;
@@ -36,6 +37,7 @@ export class Body {
     radius?: number;
     friction?: number;
     frictionAir?: number;
+    angularDamping?: number;
     mass?: number;
     onUpdate?: (body: Body) => void;
   }) {
@@ -46,6 +48,7 @@ export class Body {
     this.restitution = opts.restitution ?? 1;
     this.friction = opts.friction ?? 0;
     this.frictionAir = opts.frictionAir ?? 0;
+    this.angularDamping = opts.angularDamping ?? 0;
     this.mass = opts.mass ?? 1;
     if (opts.radius !== undefined) this.radius = opts.radius;
     if (opts.onUpdate) this.onUpdate = opts.onUpdate;
@@ -206,6 +209,7 @@ export class Engine {
         restitution: number;
         frictionAir: number;
         friction: number;
+        angularDamping: number;
         mass: number;
       }
     > = {},
@@ -218,6 +222,8 @@ export class Engine {
     if (opts.friction !== undefined) params.friction = opts.friction;
     if (opts.frictionAir !== undefined) params.frictionAir = opts.frictionAir;
     if (opts.mass !== undefined) params.mass = opts.mass;
+    if (opts.angularDamping !== undefined)
+      params.angularDamping = opts.angularDamping;
     if (opts.onUpdate) params.onUpdate = opts.onUpdate;
     return new Body(params);
   }
@@ -255,6 +261,8 @@ export class Engine {
       body.velocity.x *= air;
       body.velocity.y *= air;
       body.angularVelocity *= air;
+      if (body.angularDamping)
+        body.angularVelocity *= Math.exp(-body.angularDamping * dt);
 
       if (body.radius !== undefined) {
         if (body.position.x - body.radius < 0) {

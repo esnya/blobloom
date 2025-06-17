@@ -7,12 +7,15 @@ import fs from 'fs';
 import * as git from 'isomorphic-git';
 import { getLineCounts, getRenameMap } from './line-counts';
 import { repoDir, ignorePatterns } from './repo-config';
+import { appSettings } from './app-settings';
 
 export interface LineCountsRequest {
   id: string;
   parent?: string;
   token?: number;
 }
+
+const COMMITS_AROUND = 1;
 
 export const setupLineCountWs = (app: express.Application, server: Server) => {
   const wss = new WebSocketServer({ noServer: true });
@@ -56,7 +59,25 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
         const renames = parentId
           ? await getRenameMap({ dir, ref: id, parent: parentId, ignore })
           : undefined;
-        const payload = renames ? { counts, renames, token } : { counts, token };
+        const branch =
+          (app.get(appSettings.branch.description!) as string | undefined) ??
+          'HEAD';
+        const logs = await git.log({ fs, dir, ref: branch });
+        const index = logs.findIndex((c) => c.oid === id);
+        const start = index === -1 ? 0 : Math.max(index - COMMITS_AROUND, 0);
+        const end =
+          index === -1
+            ? Math.min(COMMITS_AROUND + 1, logs.length)
+            : Math.min(index + COMMITS_AROUND + 1, logs.length);
+        const commits = logs.slice(start, end).map((c) => ({
+          id: c.oid,
+          message: c.commit.message,
+          timestamp: c.commit.committer.timestamp,
+        }));
+
+        const payload = renames
+          ? { counts, renames, token, commits }
+          : { counts, token, commits };
         ws.send(JSON.stringify(payload));
       } catch (error) {
         ws.send(
@@ -80,3 +101,4 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
     });
   });
 };
+

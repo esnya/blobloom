@@ -65,6 +65,7 @@ describe('useTimelineData', () => {
       } as unknown as WebSocket;
       return socket;
     }) as unknown as typeof WebSocket;
+    (global.WebSocket as unknown as { OPEN: number }).OPEN = 1;
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(Suspense, { fallback: 'loading' }, children);

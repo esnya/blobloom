@@ -21,7 +21,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   const renameMapRef = useRef<Record<string, string>>({});
   const token = useRef(0);
   const processed = useRef(0);
-  const lastIdRef = useRef<string | null>(null);
+  const lastTimestampRef = useRef<number | null>(null);
 
   const handleMessage = useCallback((ev: MessageEvent) => {
     const payload = JSON.parse(ev.data as string) as {
@@ -72,12 +72,12 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   });
 
   const update = useCallback(
-    (id: string, parent?: string) => {
-      if (lastIdRef.current === id) return;
+    (ts: number, parent?: string) => {
+      if (lastTimestampRef.current === ts) return;
       token.current += 1;
-      lastIdRef.current = id;
+      lastTimestampRef.current = ts;
       setReady(false);
-      send(JSON.stringify({ id, parent, token: token.current }));
+      send(JSON.stringify({ timestamp: ts, parent, token: token.current }));
     },
     [send],
   );
@@ -91,7 +91,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     setReady(false);
     token.current += 1;
     processed.current = token.current;
-    lastIdRef.current = null;
+    lastTimestampRef.current = null;
     close();
   }, [baseUrl, close]);
 
@@ -100,7 +100,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
       close();
       token.current += 1;
       processed.current = token.current;
-      lastIdRef.current = null;
+      lastTimestampRef.current = null;
       setReady(false);
     },
     [close],
@@ -108,7 +108,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
 
   useEffect(() => {
     if (commits.length === 0) {
-      update('HEAD');
+      update(Number.MAX_SAFE_INTEGER);
     }
   }, [commits.length, update]);
 
@@ -119,7 +119,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     if (index === -1) return;
     const commit = commits[index]!;
     const parent = commits[index + 1]?.id;
-    update(commit.id, parent);
+    update(commit.timestamp * 1000, parent);
   }, [timestamp, start, commits, update]);
 
   return { commits, lineCounts, start, end, ready };

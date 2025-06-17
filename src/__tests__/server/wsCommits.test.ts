@@ -30,7 +30,7 @@ describe('setupLineCountWs commit range', () => {
       await git.add({ fs, dir, filepath: 'a.txt' });
       await git.commit({ fs, dir, author, message: 'third' });
       const logs = await git.log({ fs, dir, ref: 'HEAD', depth: 3 });
-      const middle = logs[1]!.oid;
+      const middle = logs[1]!.commit.committer.timestamp * 1000;
       app.set(appSettings.repo.description!, dir);
       app.set(appSettings.branch.description!, 'HEAD');
       setupLineCountWs(app, server);
@@ -40,7 +40,7 @@ describe('setupLineCountWs commit range', () => {
         new Promise<string[]>((resolve, reject) => {
           const ws = new WebSocket(`ws://localhost:${port}/ws/line-counts`);
           ws.on('open', () => {
-            ws.send(JSON.stringify({ id: middle }));
+            ws.send(JSON.stringify({ timestamp: middle }));
           });
           ws.on('message', (d: WebSocket.RawData) => {
             const text =

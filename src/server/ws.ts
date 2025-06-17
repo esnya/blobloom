@@ -10,7 +10,7 @@ import { repoDir, ignorePatterns } from './repo-config';
 import { appSettings } from './app-settings';
 
 export interface LineCountsRequest {
-  id: string;
+  timestamp: number;
   parent?: string;
   token?: number;
 }
@@ -41,12 +41,21 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
 
     const run = async (): Promise<void> => {
       if (processing || !next) return;
-      const { id, parent, token } = next;
+      const { timestamp, parent, token } = next;
       next = null;
       processing = true;
       try {
         const dir = repoDir(app);
         const ignore = ignorePatterns(app);
+        const branch =
+          (app.get(appSettings.branch.description!) as string | undefined) ??
+          'HEAD';
+        const logs = await git.log({ fs, dir, ref: branch });
+        const index = logs.findIndex(
+          (c) => c.commit.committer.timestamp * 1000 <= timestamp,
+        );
+        const commitIndex = index === -1 ? logs.length - 1 : index;
+        const id = logs[commitIndex]!.oid;
 
         await git.resolveRef({ fs, dir, ref: id });
         const parentId = previous ?? parent;
@@ -62,16 +71,11 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
         const renames = parentId
           ? await getRenameMap({ dir, ref: id, parent: parentId, ignore })
           : undefined;
-        const branch =
-          (app.get(appSettings.branch.description!) as string | undefined) ??
-          'HEAD';
-        const logs = await git.log({ fs, dir, ref: branch });
-        const index = logs.findIndex((c) => c.oid === id);
-        const commitStart = index === -1 ? 0 : Math.max(index - COMMITS_AROUND, 0);
+        const commitStart = commitIndex === -1 ? 0 : Math.max(commitIndex - COMMITS_AROUND, 0);
         const commitEnd =
-          index === -1
+          commitIndex === -1
             ? Math.min(COMMITS_AROUND + 1, logs.length)
-            : Math.min(index + COMMITS_AROUND + 1, logs.length);
+            : Math.min(commitIndex + COMMITS_AROUND + 1, logs.length);
         const commits = logs.slice(commitStart, commitEnd).map((c) => ({
           id: c.oid,
           message: c.commit.message,

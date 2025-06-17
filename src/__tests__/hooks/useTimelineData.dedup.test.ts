@@ -23,8 +23,8 @@ describe('useTimelineData', () => {
 
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
     const send = jest.fn((data: string) => {
-      const { id, token } = JSON.parse(data) as { id: string; token: number };
-      if (id === 'HEAD') {
+      const { timestamp, token } = JSON.parse(data) as { timestamp: number; token: number };
+      if (timestamp === Number.MAX_SAFE_INTEGER) {
         messageHandler?.(
           new MessageEvent('message', {
             data: JSON.stringify({ type: 'range', start: 1000, end: 2000, token }),
@@ -39,7 +39,7 @@ describe('useTimelineData', () => {
           new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
         );
       } else {
-        const counts = id === 'c2' ? linesFirst : linesSecond;
+        const counts = timestamp === commits[1]!.timestamp * 1000 ? linesFirst : linesSecond;
         messageHandler?.(
           new MessageEvent('message', {
             data: JSON.stringify({ type: 'data', counts, token, commits: [] }),

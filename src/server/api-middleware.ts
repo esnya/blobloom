@@ -112,8 +112,17 @@ apiMiddleware.get(
       }
       const ignore = ignorePatterns(app);
 
-      await git.resolveRef({ fs, dir, ref: req.params.commitId });
-      const options = { dir, ref: req.params.commitId, ignore } as {
+      const ts = Number(req.params.commitId);
+      const branch = await resolveBranch(
+        dir,
+        app.get(appSettings.branch.description!) as string | undefined,
+      );
+      const logs = await git.log({ fs, dir, ref: branch });
+      const index = logs.findIndex((c) => c.commit.committer.timestamp * 1000 <= ts);
+      const commitId = (index === -1 ? logs[logs.length - 1] : logs[index])!.oid;
+
+      await git.resolveRef({ fs, dir, ref: commitId });
+      const options = { dir, ref: commitId, ignore } as {
         dir: string;
         ref: string;
         ignore: string[];
@@ -124,7 +133,7 @@ apiMiddleware.get(
       const renames = params.data.parent
         ? await getRenameMap({
             dir,
-            ref: req.params.commitId,
+            ref: commitId,
             parent: params.data.parent,
             ignore,
           })

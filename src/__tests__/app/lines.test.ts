@@ -25,11 +25,13 @@ describe('lines module', () => {
       },
     } as unknown as WebSocket;
     global.WebSocket = jest.fn(() => socket) as unknown as typeof WebSocket;
-    await expect(fetchLineCounts('abc')).resolves.toEqual({
+    await expect(fetchLineCounts(1)).resolves.toEqual({
       counts: [{ file: 'a', lines: 1, added: 0, removed: 0 }],
     });
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(socket.send).toHaveBeenCalledWith(JSON.stringify({ id: 'abc', parent: undefined }));
+    expect(socket.send).toHaveBeenCalledWith(
+      JSON.stringify({ timestamp: 1, parent: undefined }),
+    );
   });
 
   it('throws on empty counts', async () => {
@@ -42,7 +44,7 @@ describe('lines module', () => {
       },
     } as unknown as WebSocket;
     global.WebSocket = jest.fn(() => socket) as unknown as typeof WebSocket;
-    await expect(fetchLineCounts('abc')).rejects.toThrow('No line counts');
+    await expect(fetchLineCounts(1)).rejects.toThrow('No line counts');
   });
 
   it('computes scale with easing', () => {

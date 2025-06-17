@@ -259,29 +259,65 @@ export class Engine {
       if (body.radius !== undefined) {
         if (body.position.x - body.radius < 0) {
           body.position.x = body.radius;
-          const vy = body.velocity.y;
-          body.velocity.x *= -body.restitution;
-          body.velocity.y *= 1 - body.friction;
-          body.angularVelocity -= (body.velocity.y - vy) / body.radius;
+          const sign = 1;
+          const r = body.radius;
+          const m = body.mass;
+          const vn = body.velocity.x * sign;
+          const vt = body.velocity.y - sign * body.angularVelocity * r;
+          const jn = -(1 + body.restitution) * vn * m;
+          let jt = -vt * m;
+          const maxJt = Math.abs(jn) * body.friction;
+          if (jt > maxJt) jt = maxJt;
+          if (jt < -maxJt) jt = -maxJt;
+          body.velocity.x += (jn / m) * sign;
+          body.velocity.y += jt / m;
+          body.angularVelocity -= (sign * jt) / (m * r);
         } else if (body.position.x + body.radius > width) {
           body.position.x = width - body.radius;
-          const vy = body.velocity.y;
-          body.velocity.x *= -body.restitution;
-          body.velocity.y *= 1 - body.friction;
-          body.angularVelocity += (body.velocity.y - vy) / body.radius;
+          const sign = -1;
+          const r = body.radius;
+          const m = body.mass;
+          const vn = body.velocity.x * sign;
+          const vt = body.velocity.y - sign * body.angularVelocity * r;
+          const jn = -(1 + body.restitution) * vn * m;
+          let jt = -vt * m;
+          const maxJt = Math.abs(jn) * body.friction;
+          if (jt > maxJt) jt = maxJt;
+          if (jt < -maxJt) jt = -maxJt;
+          body.velocity.x += (jn / m) * sign;
+          body.velocity.y += jt / m;
+          body.angularVelocity -= (sign * jt) / (m * r);
         }
         if (body.position.y - body.radius < top) {
           body.position.y = top + body.radius;
-          const vx = body.velocity.x;
-          body.velocity.y *= -body.restitution;
-          body.velocity.x *= 1 - body.friction;
-          body.angularVelocity += (body.velocity.x - vx) / body.radius;
+          const sign = 1;
+          const r = body.radius;
+          const m = body.mass;
+          const vn = body.velocity.y * sign;
+          const vt = body.velocity.x + sign * body.angularVelocity * r;
+          const jn = -(1 + body.restitution) * vn * m;
+          let jt = -vt * m;
+          const maxJt = Math.abs(jn) * body.friction;
+          if (jt > maxJt) jt = maxJt;
+          if (jt < -maxJt) jt = -maxJt;
+          body.velocity.y += (jn / m) * sign;
+          body.velocity.x += jt / m;
+          body.angularVelocity -= (sign * jt) / (m * r);
         } else if (body.position.y + body.radius > height) {
           body.position.y = height - body.radius;
-          const vx = body.velocity.x;
-          body.velocity.y *= -body.restitution;
-          body.velocity.x *= 1 - body.friction;
-          body.angularVelocity -= (body.velocity.x - vx) / body.radius;
+          const sign = -1;
+          const r = body.radius;
+          const m = body.mass;
+          const vn = body.velocity.y * sign;
+          const vt = body.velocity.x + sign * body.angularVelocity * r;
+          const jn = -(1 + body.restitution) * vn * m;
+          let jt = -vt * m;
+          const maxJt = Math.abs(jn) * body.friction;
+          if (jt > maxJt) jt = maxJt;
+          if (jt < -maxJt) jt = -maxJt;
+          body.velocity.y += (jn / m) * sign;
+          body.velocity.x += jt / m;
+          body.angularVelocity -= (sign * jt) / (m * r);
         }
       }
 
@@ -356,8 +392,8 @@ export class Engine {
       b.velocity.x -= (jt / m2) * tx;
       b.velocity.y -= (jt / m2) * ty;
 
-      if (a.radius) a.angularVelocity -= jt / m1 / a.radius;
-      if (b.radius) b.angularVelocity += jt / m2 / b.radius;
+      if (a.radius) a.angularVelocity += jt / m1 / a.radius;
+      if (b.radius) b.angularVelocity -= jt / m2 / b.radius;
     }
 
     const overlap = r - dist;

@@ -15,24 +15,7 @@ describe('useTimelineData', () => {
 
   it('reconnects and resends the current commit', async () => {
     jest.useFakeTimers();
-    const commits = [
-      { id: 'c1', message: 'a', timestamp: 2 },
-      { id: 'c2', message: 'b', timestamp: 1 },
-    ];
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      if (url.startsWith('/reconnect/api/commits')) {
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
-      }
-      return Promise.reject(new Error(`unexpected ${url}`));
-    }) as unknown as typeof fetch;
+    global.fetch = jest.fn(() => Promise.reject(new Error('unexpected fetch')));
 
     const sockets: Array<{
       send: jest.Mock<void, [string]>;
@@ -93,24 +76,7 @@ describe('useTimelineData', () => {
 
   it('reconnects on socket error event', async () => {
     jest.useFakeTimers();
-    const commits = [
-      { id: 'c1', message: 'a', timestamp: 2 },
-      { id: 'c2', message: 'b', timestamp: 1 },
-    ];
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      if (url.startsWith('/reconnect/api/commits')) {
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
-      }
-      return Promise.reject(new Error(`unexpected ${url}`));
-    }) as unknown as typeof fetch;
+    global.fetch = jest.fn(() => Promise.reject(new Error('unexpected fetch')));
 
     const sockets: Array<{
       send: jest.Mock<void, [string]>;

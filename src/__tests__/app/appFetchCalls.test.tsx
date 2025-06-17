@@ -21,25 +21,15 @@ describe('App API calls', () => {
     restore();
   });
 
-  it('fetches commits once and lines on timestamp change', async () => {
+  it('does not fetch commits and uses WebSocket for lines', async () => {
     const { container } = render(<App />);
     await waitFor(() => expect(container.querySelector('#commit-log')).toBeTruthy());
     const fetchMock = global.fetch as jest.Mock;
-    expect(
-      fetchMock.mock.calls.filter(
-        ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
-      ),
-    ).toHaveLength(1);
-    expect(fetchMock.mock.calls.some(([u]) => typeof u === 'string' && u.includes('/lines'))).toBe(false);
+    expect(fetchMock.mock.calls).toHaveLength(0);
 
     const input = container.querySelector('input[type="range"]') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '1500' } });
 
-    await waitFor(() => expect(fetchMock.mock.calls.length).toBe(1));
-    expect(
-      fetchMock.mock.calls.filter(
-        ([u]) => typeof u === 'string' && u.startsWith('/api/commits') && !u.includes('/lines'),
-      ),
-    ).toHaveLength(1);
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBe(0));
   });
 });

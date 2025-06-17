@@ -23,20 +23,7 @@ describe('useTimelineData', () => {
       c2: [{ file: 'a', lines: 2, added: 0, removed: 0 }],
       c3: [{ file: 'a', lines: 3, added: 0, removed: 0 }],
     } as const;
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      if (url.startsWith('/sequence/api/commits')) {
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
-      }
-      return Promise.reject(new Error(`unexpected ${url}`));
-    }) as unknown as typeof fetch;
+    global.fetch = jest.fn(() => Promise.reject(new Error('unexpected fetch')));
 
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
     const callbacks: Array<() => void> = [];
@@ -45,15 +32,23 @@ describe('useTimelineData', () => {
         readyState: 1,
         send: jest.fn((data: string) => {
           const { id, token } = JSON.parse(data) as {
-            id: keyof typeof lineMap;
+            id: keyof typeof lineMap | 'HEAD';
             token: number;
           };
           callbacks.push(() => {
-            messageHandler?.(
-              new MessageEvent('message', {
-                data: JSON.stringify({ counts: lineMap[id], token }),
-              }),
-            );
+            if (id === 'HEAD') {
+              messageHandler?.(
+                new MessageEvent('message', {
+                  data: JSON.stringify({ counts: lineMap.c3, commits, token }),
+                }),
+              );
+            } else {
+              messageHandler?.(
+                new MessageEvent('message', {
+                  data: JSON.stringify({ counts: lineMap[id], token }),
+                }),
+              );
+            }
           });
         }),
         close: jest.fn(),
@@ -74,6 +69,9 @@ describe('useTimelineData', () => {
       { initialProps: { ts: 0 }, wrapper },
     );
 
+    act(() => {
+      callbacks.shift()?.();
+    });
     await waitFor(() => expect(result.current.start).toBe(1000));
 
     act(() => {
@@ -84,17 +82,17 @@ describe('useTimelineData', () => {
     });
 
     act(() => {
-      callbacks[0]?.();
+      callbacks.shift()?.();
     });
     await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c1));
 
     act(() => {
-      callbacks[1]?.();
+      callbacks.shift()?.();
     });
     await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c2));
 
     act(() => {
-      callbacks[2]?.();
+      callbacks.shift()?.();
     });
     await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c3));
   });

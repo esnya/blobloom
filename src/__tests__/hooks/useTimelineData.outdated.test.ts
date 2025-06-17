@@ -20,20 +20,7 @@ describe('useTimelineData', () => {
     const linesFirst = [{ file: 'a', lines: 1, added: 0, removed: 0 }];
     const linesSecond = [{ file: 'a', lines: 2, added: 1, removed: 0 }];
     let resolveFirst: (() => void) | undefined;
-    global.fetch = jest.fn((input: RequestInfo | URL) => {
-      const url =
-        typeof input === 'string'
-          ? input
-          : input instanceof URL
-            ? input.href
-            : input instanceof Request
-              ? input.url
-              : '';
-      if (url.startsWith('/outdated/api/commits')) {
-        return Promise.resolve({ json: () => Promise.resolve({ commits }) } as unknown as Response);
-      }
-      return Promise.reject(new Error(`unexpected ${url}`));
-    }) as unknown as typeof fetch;
+    global.fetch = jest.fn(() => Promise.reject(new Error('unexpected fetch')));
 
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
     global.WebSocket = jest.fn(() => {
@@ -41,7 +28,11 @@ describe('useTimelineData', () => {
         readyState: 1,
         send: jest.fn((data: string) => {
           const { id, token } = JSON.parse(data) as { id: string; token: number };
-          if (id === 'c2') {
+          if (id === 'HEAD') {
+            messageHandler?.(
+              new MessageEvent('message', { data: JSON.stringify({ counts: linesSecond, commits, token }) }),
+            );
+          } else if (id === 'c2') {
             resolveFirst = () => {
               messageHandler?.(
                 new MessageEvent('message', {
@@ -82,7 +73,7 @@ describe('useTimelineData', () => {
       rerender({ ts: 2000 });
     });
 
-    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(1);
+    expect((global.fetch as jest.Mock).mock.calls).toHaveLength(0);
 
     act(() => {
       resolveFirst?.();

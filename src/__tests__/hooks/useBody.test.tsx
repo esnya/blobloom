@@ -42,4 +42,24 @@ describe('useBody', () => {
     expect(result.current.body.position.x).toBeGreaterThanOrEqual(10);
     expect(result.current.body.position.x).toBeLessThanOrEqual(190);
   });
+
+  it('keeps body.onUpdate stable when options object changes', () => {
+    const onUpdate = jest.fn();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PhysicsProvider bounds={{ width: 100, height: 100 }}>{children}</PhysicsProvider>
+    );
+
+    const { result, rerender } = renderHook(
+      ({ options }: { options: Parameters<typeof useBody>[0] }) => {
+        const engine = useEngine();
+        const info = useBody(options);
+        return { engine, ...info };
+      },
+      { wrapper, initialProps: { options: { radius: 10, onUpdate } } },
+    );
+
+    const initialOnUpdate = result.current.body.onUpdate;
+    rerender({ options: { radius: 10, onUpdate } });
+    expect(result.current.body.onUpdate).toBe(initialOnUpdate);
+  });
 });

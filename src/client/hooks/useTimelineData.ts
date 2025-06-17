@@ -73,6 +73,12 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
         reconnectRef.current = setTimeout(connect, 1000);
       }
     });
+    socket.addEventListener('error', () => {
+      socketRef.current = null;
+      if (activeRef.current) {
+        reconnectRef.current = setTimeout(connect, 1000);
+      }
+    });
     socketRef.current = socket;
   }, [baseUrl, handleMessage, sendCurrent]);
 

@@ -15,7 +15,6 @@ Install dependencies and start the server:
 
 ```bash
 npm install
-npx playwright install   # install browsers for headless tests
 npm audit --production
 npm run lint
 npm test
@@ -33,30 +32,6 @@ For example, set `BLOBLOOM_REPO` to specify the repository path.
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Headless Tests
-
-Playwright is included as a development dependency. After `npm install`, install browsers once:
-
-```bash
-npx playwright install
-```
-
-Run end-to-end tests with:
-
-```bash
-npm run build
-npm run test:playwright
-```
-Playwright tests live in the `playwright` directory.
-
-## Screenshots
-
-Generate a timeline screenshot once the server is running:
-
-```bash
-npx tsx scripts/capture-timeline-mid.ts
-```
-The image is saved to `docs/timeline-mid.png`.
 
 ## Attribution
 

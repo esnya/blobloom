@@ -1,7 +1,4 @@
 # Agent Instructions
-* Headless tests use Playwright. Browsers are cached in CI.
-* Playwright is included as a development dependency.
-* Run `npx playwright install` locally when dependencies change.
 
 - When fixing a bug:
   1. Write a failing test that reproduces the issue and confirm it fails.

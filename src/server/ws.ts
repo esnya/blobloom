@@ -35,6 +35,9 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
     let previous: string | undefined;
     let processing = false;
     let next: LineCountsRequest | null = null;
+    let rangeStart: number | null = null;
+    let rangeEnd: number | null = null;
+    let rangeSent = false;
 
     const run = async (): Promise<void> => {
       if (processing || !next) return;
@@ -64,20 +67,30 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
           'HEAD';
         const logs = await git.log({ fs, dir, ref: branch });
         const index = logs.findIndex((c) => c.oid === id);
-        const start = index === -1 ? 0 : Math.max(index - COMMITS_AROUND, 0);
-        const end =
+        const commitStart = index === -1 ? 0 : Math.max(index - COMMITS_AROUND, 0);
+        const commitEnd =
           index === -1
             ? Math.min(COMMITS_AROUND + 1, logs.length)
             : Math.min(index + COMMITS_AROUND + 1, logs.length);
-        const commits = logs.slice(start, end).map((c) => ({
+        const commits = logs.slice(commitStart, commitEnd).map((c) => ({
           id: c.oid,
           message: c.commit.message,
           timestamp: c.commit.committer.timestamp,
         }));
 
-        ws.send(
-          JSON.stringify({ type: 'range', start, end, token }),
-        );
+        if (!rangeSent) {
+          if (rangeStart === null || rangeEnd === null) {
+            const rangeLogs = await git.log({ fs, dir, ref: branch });
+            const oldest = rangeLogs[rangeLogs.length - 1];
+            rangeStart = oldest ? oldest.commit.committer.timestamp * 1000 : 0;
+            const newest = rangeLogs[0];
+            rangeEnd = newest ? newest.commit.committer.timestamp * 1000 : 0;
+          }
+          ws.send(
+            JSON.stringify({ type: 'range', start: rangeStart, end: rangeEnd, token }),
+          );
+          rangeSent = true;
+        }
         const payload = renames
           ? { type: 'data', counts, renames, token, commits }
           : { type: 'data', counts, token, commits };

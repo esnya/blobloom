@@ -23,6 +23,5 @@
   - Changing body radius via `useBody`
 
 ## TODO
-- Add more hook tests and restore coverage threshold to 80.
 - ~~Move FileCircle refs into custom hooks; restrict `no-restricted-syntax` overrides to necessary lines.~~
 - ~~Remove or replace `src/renameDemo.ts` if no longer needed.~~

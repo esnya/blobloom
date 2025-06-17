@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { readCommits } from '../commitsResource';
 import { buildWsUrl } from '../ws';
+import { useWebSocket } from './useWebSocket';
 import type { LineCount } from '../types';
 import type { LineCountsResponse, ApiError } from '../../api/types';
 
@@ -27,18 +28,6 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   const renameMapRef = useRef<Record<string, string>>({});
   const token = useRef(0);
   const processed = useRef(0);
-  const socketRef = useRef<WebSocket | null>(null);
-  const queuedRef = useRef<string | null>(null);
-  const lastRequestRef = useRef<string | null>(null);
-  const reconnectRef = useRef<NodeJS.Timeout | null>(null);
-  const activeRef = useRef(true);
-
-  const sendCurrent = useCallback(() => {
-    if (socketRef.current && socketRef.current.readyState === 1 && lastRequestRef.current) {
-      socketRef.current.send(lastRequestRef.current);
-      queuedRef.current = null;
-    }
-  }, []);
 
   const handleMessage = useCallback((ev: MessageEvent) => {
     const payload = JSON.parse(ev.data as string) as (LineCountsResponse | ApiError) & { token?: number };
@@ -61,36 +50,17 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
       setLineCounts(mapped);
     }
   }, []);
-
-  const connect = useCallback(() => {
-    if (socketRef.current || !activeRef.current) return;
-    const socket = new WebSocket(buildWsUrl('/ws/lines', baseUrl));
-    socket.addEventListener('open', sendCurrent);
-    socket.addEventListener('message', handleMessage);
-    socket.addEventListener('close', () => {
-      socketRef.current = null;
-      if (activeRef.current) {
-        reconnectRef.current = setTimeout(connect, 1000);
-      }
-    });
-    socket.addEventListener('error', () => {
-      socketRef.current = null;
-      if (activeRef.current) {
-        reconnectRef.current = setTimeout(connect, 1000);
-      }
-    });
-    socketRef.current = socket;
-  }, [baseUrl, handleMessage, sendCurrent]);
+  const { send, close } = useWebSocket({
+    url: buildWsUrl('/ws/lines', baseUrl),
+    onMessage: handleMessage,
+  });
 
   const update = useCallback(
     (id: string, parent?: string) => {
       token.current += 1;
-      connect();
-      lastRequestRef.current = JSON.stringify({ id, parent, token: token.current });
-      queuedRef.current = lastRequestRef.current;
-      sendCurrent();
+      send(JSON.stringify({ id, parent, token: token.current }));
     },
-    [connect, sendCurrent],
+    [send],
   );
 
   useEffect(() => {
@@ -98,21 +68,16 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     setLineCounts([]);
     token.current += 1;
     processed.current = token.current;
-    activeRef.current = false;
-    if (reconnectRef.current) clearTimeout(reconnectRef.current);
-    socketRef.current?.close();
-    activeRef.current = true;
-  }, [baseUrl]);
+    close();
+  }, [baseUrl, close]);
 
   useEffect(
     () => () => {
-      activeRef.current = false;
-      if (reconnectRef.current) clearTimeout(reconnectRef.current);
-      socketRef.current?.close();
+      close();
       token.current += 1;
       processed.current = token.current;
     },
-    [],
+    [close],
   );
 
   useEffect(() => {

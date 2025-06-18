@@ -5,6 +5,7 @@ import * as git from 'isomorphic-git';
 import fs from 'fs';
 import { getLineCounts, getRenameMap } from './line-counts';
 import { resolveRepoDir, ignorePatterns } from './repo-config';
+import { resolveBranch } from './resolveBranch';
 import type {
   ApiError,
   CommitsResponse,
@@ -36,20 +37,6 @@ const lineCountsResponseSchema = z.object({
 
 const linesQuerySchema = z.object({ parent: z.string().optional() });
 
-const resolveBranch = async (
-  dir: string,
-  inputBranch: string | undefined,
-): Promise<string> => {
-  const branches = await git.listBranches({ fs, dir });
-  let branch = inputBranch;
-  if (!branch) {
-    branch = ['main', 'master', 'trunk'].find((b) => branches.includes(b)) ?? branches[0];
-  }
-  if (!branch) {
-    throw new Error('No branch found.');
-  }
-  return branch;
-};
 
 export const apiMiddleware = express.Router();
 

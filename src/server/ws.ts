@@ -7,6 +7,7 @@ import fs from 'fs';
 import * as git from 'isomorphic-git';
 import { getLineCounts, getRenameMap } from './line-counts';
 import { repoDir, ignorePatterns } from './repo-config';
+import { resolveBranch } from './resolveBranch';
 import { appSettings } from './app-settings';
 
 export interface LineCountsRequest {
@@ -47,9 +48,10 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
       try {
         const dir = repoDir(app);
         const ignore = ignorePatterns(app);
-        const branch =
-          (app.get(appSettings.branch.description!) as string | undefined) ??
-          'HEAD';
+        const branch = await resolveBranch(
+          dir,
+          app.get(appSettings.branch.description!) as string | undefined,
+        );
         const logs = await git.log({ fs, dir, ref: branch });
         const index = logs.findIndex(
           (c) => c.commit.committer.timestamp * 1000 <= timestamp,

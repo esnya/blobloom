@@ -26,6 +26,11 @@ export const fetchLineCounts = async (
       const result = JSON.parse(ev.data as string) as
         | { type: 'data'; counts: LineCountsResponse['counts']; renames?: Record<string, string> }
         | { type: 'range' | 'done' | 'error'; error?: string };
+      if (result.type === 'error') {
+        socket.close();
+        reject(new Error(result.error ?? 'Unknown error'));
+        return;
+      }
       if (result.type !== 'data') return;
       socket.close();
       if (result.counts.length > 0) {

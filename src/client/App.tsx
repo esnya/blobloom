@@ -15,7 +15,7 @@ interface AppContentProps {
 function AppContent({ playerFactory }: AppContentProps): React.JSX.Element {
   const [timestamp, setTimestamp] = useState(0);
   const [duration, setDuration] = useState(DEFAULT_DURATION);
-  const { commits, lineCounts, start, end, ready } = useTimelineData({ timestamp });
+  const { commits, lineCounts, start, end } = useTimelineData({ timestamp });
   const [playing, setPlaying] = useState(false);
 
   const { togglePlay } = usePlayer({
@@ -32,11 +32,25 @@ function AppContent({ playerFactory }: AppContentProps): React.JSX.Element {
     setTimestamp(start);
   }, [start, end]);
 
+  if (commits.length === 0) {
+    return <div>Loading timeline...</div>;
+  }
+
   return (
     <>
       <div id="controls">
-        <PlayPauseButton playing={playing} onToggle={togglePlay} disabled={!ready} />
-        <SeekBar value={timestamp} min={start} max={end} onChange={setTimestamp} disabled={!ready} />
+        <PlayPauseButton
+          playing={playing}
+          onToggle={togglePlay}
+          disabled={commits.length === 0}
+        />
+        <SeekBar
+          value={timestamp}
+          min={start}
+          max={end}
+          onChange={setTimestamp}
+          disabled={commits.length === 0}
+        />
         <label>
           Duration
           <input
@@ -44,13 +58,19 @@ function AppContent({ playerFactory }: AppContentProps): React.JSX.Element {
             type="number"
             min="1"
             value={duration}
-            onChange={e => setDuration(Number((e.target as HTMLInputElement).value))}
+            onChange={e =>
+              setDuration(Number((e.target as HTMLInputElement).value))
+            }
           />
         </label>
       </div>
       <div id="timestamp">{new Date(timestamp).toLocaleString()}</div>
       <FileCircleSimulation data={lineCounts} />
-      <CommitLog commits={commits} timestamp={timestamp} onTimestampChange={setTimestamp} />
+      <CommitLog
+        commits={commits}
+        timestamp={timestamp}
+        onTimestampChange={setTimestamp}
+      />
     </>
   );
 }

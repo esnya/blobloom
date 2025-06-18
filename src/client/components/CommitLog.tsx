@@ -56,7 +56,7 @@ export const CommitLog = ({ commits, timestamp, onTimestampChange, visible = 15 
     }
     setOffset(nextOffset);
     if (index === 0) container.dispatchEvent(new Event('end'));
-  }, [timestamp, index, commits, containerRef]);
+  }, [timestamp, index, commits, containerRef, size.height]);
 
   return (
     // eslint-disable-next-line no-restricted-syntax

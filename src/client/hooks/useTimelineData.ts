@@ -99,12 +99,12 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   messageHandlerRef.current = handleMessage;
 
   const update = useCallback(
-    (ts: number, parent?: string) => {
+    (ts: number) => {
       if (lastTimestampRef.current === ts) return;
       token.current += 1;
       lastTimestampRef.current = ts;
       const payload = {
-        data: JSON.stringify({ timestamp: ts, parent, token: token.current }),
+        data: JSON.stringify({ timestamp: ts, token: token.current }),
         token: token.current,
       };
       if (waitingRef.current) {
@@ -154,12 +154,8 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   useEffect(() => {
     const ts = timestamp === 0 ? start : timestamp;
     if (ts === 0) return;
-    const index = commits.findIndex((c) => c.timestamp * 1000 <= ts);
-    if (index === -1) return;
-    const commit = commits[index]!;
-    const parent = commits[index + 1]?.id;
-    update(commit.timestamp * 1000, parent);
-  }, [timestamp, start, commits, update]);
+    update(ts);
+  }, [timestamp, start, update]);
 
   return { commits, lineCounts, start, end, ready };
 };

@@ -38,6 +38,7 @@ export class WebSocketClient {
   };
 
   send(data: string) {
+    this.active = true;
     this.connect();
     this.queued = data;
     this.last = data;
@@ -46,10 +47,12 @@ export class WebSocketClient {
 
   close() {
     this.active = false;
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     this.socket?.close();
     this.socket = null;
-    this.active = true;
   }
 
   dispose() {

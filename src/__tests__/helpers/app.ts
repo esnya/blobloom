@@ -1,6 +1,7 @@
 export interface SetupAppOptions {
   commits?: { id: string; message: string; timestamp: number }[];
   lineCounts?: { file: string; lines: number; added?: number; removed?: number }[];
+  doneDelay?: number;
 }
 
 const defaultCommits = [
@@ -15,7 +16,11 @@ const defaultLineCounts = [
 export const setupAppTest = (
   options: SetupAppOptions = {},
 ): (() => void) => {
-  const { commits = defaultCommits, lineCounts = defaultLineCounts } = options;
+  const {
+    commits = defaultCommits,
+    lineCounts = defaultLineCounts,
+    doneDelay = 0,
+  } = options;
   const originalFetch = global.fetch;
   const originalWs = (global as unknown as { WebSocket?: typeof WebSocket }).WebSocket;
 
@@ -26,17 +31,26 @@ export const setupAppTest = (
     return {
       send: jest.fn((raw: string) => {
         const { token } = JSON.parse(raw) as { token?: number };
-        messageHandler?.(
-          new MessageEvent('message', {
-            data: JSON.stringify({ type: 'range', start: 1000, end: 2000, token }),
-          }),
-        );
-        messageHandler?.(
-          new MessageEvent('message', {
-            data: JSON.stringify({ type: 'data', counts: lineCounts, commits, token }),
-          }),
-        );
-        messageHandler?.(new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }));
+        const emit = () => {
+          messageHandler?.(
+            new MessageEvent('message', {
+              data: JSON.stringify({ type: 'range', start: 1000, end: 2000, token }),
+            }),
+          );
+          messageHandler?.(
+            new MessageEvent('message', {
+              data: JSON.stringify({ type: 'data', counts: lineCounts, commits, token }),
+            }),
+          );
+          messageHandler?.(
+            new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
+          );
+        };
+        if (doneDelay > 0) {
+          setTimeout(emit, doneDelay);
+        } else {
+          emit();
+        }
       }),
       close: jest.fn(),
       addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {

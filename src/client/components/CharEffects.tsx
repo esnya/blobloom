@@ -9,10 +9,8 @@ export interface CharEffectsProps {
 export function CharEffects({ effects }: CharEffectsProps): React.JSX.Element {
   const { chars, removeChar } = effects;
 
-  /* eslint-disable no-restricted-syntax */
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const active = React.useRef(new Map<string, HTMLSpanElement>());
-  /* eslint-enable no-restricted-syntax */
+  const containerRef = React.useRef<HTMLDivElement>(null); // eslint-disable-line no-restricted-syntax
+  const active = React.useRef(new Map<string, HTMLSpanElement>()); // eslint-disable-line no-restricted-syntax
 
   React.useEffect(() => {
     const map = active.current;

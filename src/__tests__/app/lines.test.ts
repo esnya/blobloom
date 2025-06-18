@@ -47,6 +47,20 @@ describe('lines module', () => {
     await expect(fetchLineCounts(1)).rejects.toThrow('No line counts');
   });
 
+  it('throws when server reports error', async () => {
+    const socket = {
+      send: jest.fn(),
+      close: jest.fn(),
+      addEventListener: (event: string, cb: (ev: MessageEvent) => void) => {
+        if (event === 'open') cb(new MessageEvent('open'));
+        if (event === 'message')
+          cb(new MessageEvent('message', { data: JSON.stringify({ type: 'error', error: 'boom' }) }));
+      },
+    } as unknown as WebSocket;
+    global.WebSocket = jest.fn(() => socket) as unknown as typeof WebSocket;
+    await expect(fetchLineCounts(1)).rejects.toThrow('boom');
+  });
+
   it('computes scale with easing', () => {
     const scale = computeScale(200, 200, [
       { file: 'a', lines: 1, added: 0, removed: 0 },

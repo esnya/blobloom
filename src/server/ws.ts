@@ -102,7 +102,7 @@ export const setupLineCountWs = (app: express.Application, server: Server) => {
         ws.send(JSON.stringify({ type: 'done', token }));
       } catch (error) {
         ws.send(
-          JSON.stringify({ error: (error as Error).message, token }),
+          JSON.stringify({ type: 'error', error: (error as Error).message, token }),
         );
       } finally {
         processing = false;

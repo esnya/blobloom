@@ -1,7 +1,7 @@
 import type { Commit, LineCount } from '../types';
 import type { LineCountsResponse } from '../../api/types';
 import { WebSocketClient } from './WebSocketClient';
-import { buildWsUrl } from '../ws';
+import { buildWsUrl, deriveWsOptions } from '../ws';
 
 export interface TimelineDataOptions {
   baseUrl?: string | undefined;
@@ -56,7 +56,7 @@ export class TimelineDataManager {
   private createSocket() {
     if (this.socket) this.socket.dispose();
     this.socket = new WebSocketClient({
-      url: buildWsUrl('/ws/line-counts', this.baseUrl ?? ''),
+      url: buildWsUrl('/ws/line-counts', deriveWsOptions(this.baseUrl ?? '')),
       onMessage: (ev) => this.handleMessage(ev),
       reconnectDelay: 1000,
     });

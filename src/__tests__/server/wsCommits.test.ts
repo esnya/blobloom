@@ -50,9 +50,15 @@ describe('setupLineCountWs commit range', () => {
                   ? Buffer.concat(d).toString('utf8')
                   : Buffer.from(d).toString('utf8');
             const data = JSON.parse(text) as { type?: string; commits?: Array<{ id: string }> };
-            if (data.type === 'data' && data.commits) resolve(data.commits.map((c) => c.id));
+            if (data.type === 'data' && data.commits) {
+              ws.terminate();
+              resolve(data.commits.map((c) => c.id));
+            }
           });
-          ws.on('error', reject);
+          ws.on('error', (err) => {
+            ws.terminate();
+            reject(err);
+          });
         })
       ).resolves.toEqual(logs.map((l) => l.oid));
     } finally {

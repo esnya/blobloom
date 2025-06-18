@@ -49,10 +49,14 @@ describe('setupLineCountWs timestamp range', () => {
                   : Buffer.from(d).toString('utf8');
             const data = JSON.parse(text) as { type?: string; start?: number; end?: number };
             if (data.type === 'range' && data.start !== undefined && data.end !== undefined) {
+              ws.terminate();
               resolve({ start: data.start, end: data.end });
             }
           });
-          ws.on('error', reject);
+          ws.on('error', (err) => {
+            ws.terminate();
+            reject(err);
+          });
         })
       ).resolves.toEqual({ start: oldest, end: newest });
     } finally {
@@ -103,10 +107,16 @@ describe('setupLineCountWs timestamp range', () => {
           }
           if (data.type === 'done') {
             done += 1;
-            if (done === 2) resolve(received);
+            if (done === 2) {
+              ws.terminate();
+              resolve(received);
+            }
           }
         });
-        ws.on('error', reject);
+        ws.on('error', (err) => {
+          ws.terminate();
+          reject(err);
+        });
       });
       expect(ranges).toEqual([{ start: oldest, end: newest }]);
     } finally {

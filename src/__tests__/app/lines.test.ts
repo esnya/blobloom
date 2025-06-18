@@ -88,4 +88,11 @@ describe('lines module', () => {
     const scale = computeScale(0, 200, [{ file: 'a', lines: 1, added: 0, removed: 0 }]);
     expect(scale).toBe(0);
   });
+
+  it('handles typed arrays', () => {
+    const typed = new Uint8Array([1, 2, 3]);
+    const scaleFromTyped = computeScale(200, 200, typed);
+    const scaleFromArray = computeScale(200, 200, [1, 2, 3]);
+    expect(scaleFromTyped).toBeCloseTo(scaleFromArray);
+  });
 });

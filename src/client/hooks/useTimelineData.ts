@@ -22,20 +22,48 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   const token = useRef(0);
   const processed = useRef(0);
   const lastTimestampRef = useRef<number | null>(null);
+  const waitingRef = useRef(false);
+  const pendingRef = useRef<Array<{ data: string; token: number }>>([]);
+  const currentTokenRef = useRef(0);
+  const messageHandlerRef = useRef<(ev: MessageEvent) => void>(() => {});
 
-  const handleMessage = useCallback((ev: MessageEvent) => {
-    const payload = JSON.parse(ev.data as string) as {
-      type?: string;
-      token?: number;
-      [key: string]: unknown;
-    };
+  const { send, close } = useWebSocket({
+    url: buildWsUrl('/ws/line-counts', baseUrl),
+    onMessage: (ev) => messageHandlerRef.current(ev),
+  });
+
+  const sendMessage = useCallback(
+    (payload: { data: string; token: number }) => {
+      waitingRef.current = true;
+      currentTokenRef.current = payload.token;
+      send(payload.data);
+    },
+    [send],
+  );
+
+  const handleMessage = useCallback(
+    (ev: MessageEvent) => {
+      const payload = JSON.parse(ev.data as string) as {
+        type?: string;
+        token?: number;
+        [key: string]: unknown;
+      };
     if (payload.type === 'range') {
       setStart(payload.start as number);
       setEnd(payload.end as number);
       return;
     }
     if (payload.type === 'done') {
-      if (payload.token === token.current) setReady(true);
+      if (payload.token === currentTokenRef.current) {
+        waitingRef.current = false;
+        if (pendingRef.current.length > 0) {
+          const next = pendingRef.current.shift()!;
+          setReady(false);
+          sendMessage(next);
+        } else {
+          setReady(true);
+        }
+      }
       return;
     }
     if (payload.type === 'data') {
@@ -65,21 +93,28 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
         setLineCounts(mapped);
       }
     }
-  }, []);
-  const { send, close } = useWebSocket({
-    url: buildWsUrl('/ws/line-counts', baseUrl),
-    onMessage: handleMessage,
-  });
+  },
+    [sendMessage],
+  );
+  messageHandlerRef.current = handleMessage;
 
   const update = useCallback(
     (ts: number, parent?: string) => {
       if (lastTimestampRef.current === ts) return;
       token.current += 1;
       lastTimestampRef.current = ts;
-      setReady(false);
-      send(JSON.stringify({ timestamp: ts, parent, token: token.current }));
+      const payload = {
+        data: JSON.stringify({ timestamp: ts, parent, token: token.current }),
+        token: token.current,
+      };
+      if (waitingRef.current) {
+        pendingRef.current.push(payload);
+      } else {
+        setReady(false);
+        sendMessage(payload);
+      }
     },
-    [send],
+    [sendMessage],
   );
 
   useEffect(() => {
@@ -89,6 +124,8 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     setStart(0);
     setEnd(0);
     setReady(false);
+    waitingRef.current = false;
+    pendingRef.current = [];
     token.current += 1;
     processed.current = token.current;
     lastTimestampRef.current = null;
@@ -102,6 +139,8 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
       processed.current = token.current;
       lastTimestampRef.current = null;
       setReady(false);
+      waitingRef.current = false;
+      pendingRef.current = [];
     },
     [close],
   );

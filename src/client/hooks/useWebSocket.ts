@@ -1,6 +1,7 @@
-/* eslint-disable no-restricted-syntax */
+// eslint-disable-next-line no-restricted-syntax
 import { useCallback, useEffect, useRef } from 'react';
 import { useLatest } from './useLatest';
+import { WebSocketClient } from '../logic/WebSocketClient';
 
 interface UseWebSocketOptions {
   url: string;
@@ -14,62 +15,21 @@ export const useWebSocket = ({
   reconnectDelay = 1000,
 }: UseWebSocketOptions) => {
   const messageRef = useLatest(onMessage);
-  const socketRef = useRef<WebSocket | null>(null);
-  const reconnectRef = useRef<NodeJS.Timeout | null>(null);
-  const activeRef = useRef(true);
-  const queuedRef = useRef<string | null>(null);
-  const lastRef = useRef<string | null>(null);
+  // eslint-disable-next-line no-restricted-syntax
+  const clientRef = useRef<WebSocketClient | null>(null);
 
-  const sendQueued = useCallback(() => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN && queuedRef.current) {
-      socketRef.current.send(queuedRef.current);
-      queuedRef.current = null;
-    }
-  }, []);
+  useEffect(() => {
+    clientRef.current?.dispose();
+    clientRef.current = new WebSocketClient({
+      url,
+      onMessage: (ev) => messageRef.current(ev),
+      reconnectDelay,
+    });
+    return () => clientRef.current?.dispose();
+  }, [url, reconnectDelay, messageRef]);
 
-  const connect = useCallback(() => {
-    if (socketRef.current || !activeRef.current) return;
-    const socket = new WebSocket(url);
-    socket.addEventListener('open', sendQueued);
-    socket.addEventListener('message', (ev) => messageRef.current(ev));
-    const retry = () => {
-      socketRef.current = null;
-      if (activeRef.current) {
-        queuedRef.current = lastRef.current;
-        reconnectRef.current = setTimeout(connect, reconnectDelay);
-      }
-    };
-    socket.addEventListener('close', retry);
-    socket.addEventListener('error', retry);
-    socketRef.current = socket;
-  }, [url, sendQueued, messageRef, reconnectDelay]);
-
-  const send = useCallback(
-    (data: string) => {
-      connect();
-      queuedRef.current = data;
-      lastRef.current = data;
-      sendQueued();
-    },
-    [connect, sendQueued],
-  );
-
-  const close = useCallback(() => {
-    activeRef.current = false;
-    if (reconnectRef.current) clearTimeout(reconnectRef.current);
-    socketRef.current?.close();
-    socketRef.current = null;
-    activeRef.current = true;
-  }, []);
-
-  useEffect(
-    () => () => {
-      activeRef.current = false;
-      if (reconnectRef.current) clearTimeout(reconnectRef.current);
-      socketRef.current?.close();
-    },
-    [],
-  );
+  const send = useCallback((data: string) => clientRef.current?.send(data), []);
+  const close = useCallback(() => clientRef.current?.close(), []);
 
   return { send, close } as const;
 };

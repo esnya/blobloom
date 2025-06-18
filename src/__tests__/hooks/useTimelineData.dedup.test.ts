@@ -12,7 +12,7 @@ describe('useTimelineData', () => {
     global.WebSocket = originalWebSocket;
   });
 
-  it('sends updates only when commit id changes', async () => {
+  it('sends updates whenever timestamp changes', async () => {
     const commits = [
       { id: 'c1', message: 'a', timestamp: 2 },
       { id: 'c2', message: 'b', timestamp: 1 },
@@ -78,11 +78,11 @@ describe('useTimelineData', () => {
     act(() => {
       rerender({ ts: 1500 });
     });
-    await waitFor(() => expect(send).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(3));
 
     act(() => {
       rerender({ ts: 2000 });
     });
-    await waitFor(() => expect(send).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(4));
   });
 });

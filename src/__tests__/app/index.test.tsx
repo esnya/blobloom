@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-import { waitFor } from '@testing-library/react';
+import { waitFor, act } from '@testing-library/react';
 import { setupAppTest } from '../helpers/app';
 
 describe('index.tsx', () => {
@@ -26,7 +26,9 @@ describe('index.tsx', () => {
         return instance;
       },
     }));
-    await import('../../client/index');
+    await act(async () => {
+      await import('../../client/index');
+    });
     expect(spy).toHaveBeenCalled();
     await waitFor(() => expect(root.firstChild).toBeTruthy());
   });

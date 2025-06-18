@@ -23,7 +23,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   const processed = useRef(0);
   const lastTimestampRef = useRef<number | null>(null);
   const waitingRef = useRef(false);
-  const pendingRef = useRef<Array<{ data: string; token: number }>>([]);
+  const pendingRef = useRef<{ data: string; token: number } | null>(null);
   const currentTokenRef = useRef(0);
   const messageHandlerRef = useRef<(ev: MessageEvent) => void>(() => {});
 
@@ -56,8 +56,9 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     if (payload.type === 'done') {
       if (payload.token === currentTokenRef.current) {
         waitingRef.current = false;
-        if (pendingRef.current.length > 0) {
-          const next = pendingRef.current.shift()!;
+        if (pendingRef.current) {
+          const next = pendingRef.current;
+          pendingRef.current = null;
           setReady(false);
           sendMessage(next);
         } else {
@@ -108,7 +109,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
         token: token.current,
       };
       if (waitingRef.current) {
-        pendingRef.current.push(payload);
+        pendingRef.current = payload;
       } else {
         setReady(false);
         sendMessage(payload);
@@ -125,7 +126,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
     setEnd(0);
     setReady(false);
     waitingRef.current = false;
-    pendingRef.current = [];
+    pendingRef.current = null;
     token.current += 1;
     processed.current = token.current;
     lastTimestampRef.current = null;
@@ -140,7 +141,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
       lastTimestampRef.current = null;
       setReady(false);
       waitingRef.current = false;
-      pendingRef.current = [];
+      pendingRef.current = null;
     },
     [close],
   );
@@ -154,6 +155,7 @@ export const useTimelineData = ({ baseUrl, timestamp }: TimelineDataOptions) => 
   useEffect(() => {
     const ts = timestamp === 0 ? start : timestamp;
     if (ts === 0) return;
+    if (timestamp === 0 && (waitingRef.current || pendingRef.current)) return;
     update(ts);
   }, [timestamp, start, update]);
 

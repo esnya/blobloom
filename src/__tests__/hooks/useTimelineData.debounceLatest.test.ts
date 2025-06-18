@@ -12,54 +12,50 @@ describe('useTimelineData', () => {
     global.WebSocket = originalWebSocket;
   });
 
-  it('skips outdated updates during playback', async () => {
+  it('replaces queued updates with the latest timestamp', async () => {
     const commits = [
-      { id: 'c3', message: 'c3', timestamp: 3 },
       { id: 'c2', message: 'c2', timestamp: 2 },
       { id: 'c1', message: 'c1', timestamp: 1 },
     ];
-    const lineMap = {
-      c1: [{ file: 'a', lines: 1, added: 0, removed: 0 }],
-      c2: [{ file: 'a', lines: 2, added: 0, removed: 0 }],
-      c3: [{ file: 'a', lines: 3, added: 0, removed: 0 }],
-    } as const;
+    const linesFirst = [{ file: 'a', lines: 1, added: 0, removed: 0 }];
+    const linesSecond = [{ file: 'a', lines: 2, added: 1, removed: 0 }];
     global.fetch = jest.fn(() => Promise.reject(new Error('unexpected fetch')));
 
     let messageHandler: ((ev: MessageEvent) => void) | undefined;
     const callbacks: Array<() => void> = [];
-    global.WebSocket = jest.fn(() => {
-      const socket = {
-        readyState: 1,
-        send: jest.fn((data: string) => {
-          const { timestamp, token } = JSON.parse(data) as {
-            timestamp: number;
-            token: number;
-          };
+    const send = jest.fn((data: string) => {
+      const { timestamp, token } = JSON.parse(data) as {
+        timestamp: number;
+        token: number;
+      };
           callbacks.push(() => {
             if (timestamp === Number.MAX_SAFE_INTEGER) {
               messageHandler?.(
                 new MessageEvent('message', {
-                  data: JSON.stringify({ type: 'range', start: 1000, end: 3000, token }),
+                  data: JSON.stringify({ type: 'range', start: 1000, end: 2000, token }),
                 }),
               );
               messageHandler?.(
                 new MessageEvent('message', {
-                  data: JSON.stringify({ type: 'data', counts: lineMap.c3, commits, token }),
+                  data: JSON.stringify({ type: 'data', counts: linesSecond, commits, token }),
+                }),
+              );
+              messageHandler?.(
+                new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
+              );
+            } else if (timestamp === commits[1]!.timestamp * 1000) {
+              messageHandler?.(
+                new MessageEvent('message', {
+                  data: JSON.stringify({ type: 'data', counts: linesFirst, token, commits: [] }),
                 }),
               );
               messageHandler?.(
                 new MessageEvent('message', { data: JSON.stringify({ type: 'done', token }) }),
               );
             } else {
-              const commitId =
-                timestamp === commits[2]!.timestamp * 1000
-                  ? 'c1'
-                  : timestamp === commits[1]!.timestamp * 1000
-                    ? 'c2'
-                    : 'c3';
               messageHandler?.(
                 new MessageEvent('message', {
-                  data: JSON.stringify({ type: 'data', counts: lineMap[commitId], token, commits: [] }),
+                  data: JSON.stringify({ type: 'data', counts: linesSecond, token, commits: [] }),
                 }),
               );
               messageHandler?.(
@@ -67,7 +63,11 @@ describe('useTimelineData', () => {
               );
             }
           });
-        }),
+        });
+    global.WebSocket = jest.fn(() => {
+      const socket = {
+        readyState: 1,
+        send,
         close: jest.fn(),
         addEventListener: (ev: string, cb: (e: MessageEvent) => void) => {
           if (ev === 'message') messageHandler = cb;
@@ -82,30 +82,25 @@ describe('useTimelineData', () => {
       React.createElement(Suspense, { fallback: 'loading' }, children);
 
     const { result, rerender } = renderHook(
-      ({ ts }) => useTimelineData({ timestamp: ts, baseUrl: '/sequence' }),
+      ({ ts }) => useTimelineData({ timestamp: ts, baseUrl: '/drop' }),
       { initialProps: { ts: 0 }, wrapper },
     );
 
     act(() => {
+      rerender({ ts: 1500 });
+      rerender({ ts: 2000 });
       callbacks.shift()?.();
     });
     await waitFor(() => expect(result.current.start).toBe(1000));
 
     act(() => {
-      rerender({ ts: 2000 });
+      callbacks.shift()?.();
     });
-    act(() => {
-      rerender({ ts: 3000 });
-    });
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(2));
 
     act(() => {
       callbacks.shift()?.();
     });
-    await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c1));
-
-    act(() => {
-      callbacks.shift()?.();
-    });
-    await waitFor(() => expect(result.current.lineCounts).toEqual(lineMap.c3));
+    await waitFor(() => expect(result.current.lineCounts).toEqual(linesSecond));
   });
 });

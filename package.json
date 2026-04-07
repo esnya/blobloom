@@ -52,7 +52,7 @@
     "ts-jest": "^29.4.0",
     "tsx": "^4.6.3",
     "typescript": "^5.2.2",
-    "vite": "^6.4.1"
+    "vite": "^6.4.2"
   },
   "overrides": {
     "test-exclude": "^7.0.1"

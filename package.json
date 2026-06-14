@@ -40,7 +40,7 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
-    "@vitejs/plugin-react": "^4.5.2",
+    "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9.29.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "5.5.0",
@@ -50,9 +50,9 @@
     "jest-environment-jsdom": "^30.0.0",
     "prettier": "^3.5.3",
     "ts-jest": "^29.4.0",
-    "tsx": "^4.6.3",
+    "tsx": "^4.22.4",
     "typescript": "^5.2.2",
-    "vite": "^6.4.2"
+    "vite": "^8.0.16"
   },
   "overrides": {
     "test-exclude": "^7.0.1"

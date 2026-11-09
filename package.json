@@ -21,7 +21,7 @@
     "commander": "^14.0.0",
     "diff-sequences": "^29.6.3",
     "express": "^5.2.0",
-    "isomorphic-git": "^1.30.3",
+    "isomorphic-git": "^1.38.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-transition-group": "^4.4.5",
